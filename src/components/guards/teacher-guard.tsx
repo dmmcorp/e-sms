@@ -20,14 +20,14 @@ export function TeacherGuard({ children }: { children: React.ReactNode }) {
             }
 
             // Based on schema.ts roles: "admin", "teacher", "school-head", "registrar"
-            if (role !== "teacher") {
+            if (role !== "subject-teacher" && role !== "adviser" && role !== "adviser/subject-teacher") {
                 // Redirect non-teacher users to appropriate routes
                 switch (role) {
                     case "admin":
                         router.push("/sysadmin")
                         break
-                    case "school-head":
-                        router.push("/school-head")
+                    case "principal":
+                        router.push("/principal")
                         break
                     case "registrar":
                         router.push("/registrar")
@@ -46,7 +46,7 @@ export function TeacherGuard({ children }: { children: React.ReactNode }) {
     }
 
     // Only render children if authenticated and role is teacher
-    if (isAuthenticated && role === "teacher") {
+    if (isAuthenticated && (role === "subject-teacher" || role === "adviser" || role === "adviser/subject-teacher")) {
         return <>{children}</>
     }
 

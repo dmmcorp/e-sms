@@ -18,11 +18,17 @@ export function SchoolHeadGuard({ children }: { children: React.ReactNode }) {
             }
 
             // Based on schema.ts roles: "admin", "teacher", "school-head", "registrar"
-            if (role !== "school-head") {
+            if (role !== "principal") {
                 // Redirect non-admin users to appropriate routes
                 switch (role) {
-                    case "teacher":
-                        router.push("/dashboard")
+                    case "adviser":
+                        router.push("/teacher") // Redirect to teacher dashboard
+                        break
+                    case "subject-teacher":
+                        router.push("/teacher") // Redirect to teacher dashboard
+                        break
+                    case "adviser/subject-teacher":
+                        router.push("/teacher") // Redirect to teacher dashboard
                         break
                     case "admin":
                         router.push("/sysadmin")
@@ -31,7 +37,7 @@ export function SchoolHeadGuard({ children }: { children: React.ReactNode }) {
                         router.push("/registrar")
                         break
                     default:
-                        router.push("/auth")
+                        router.push("/")
                 }
                 return
             }
@@ -44,7 +50,7 @@ export function SchoolHeadGuard({ children }: { children: React.ReactNode }) {
     }
 
     // Only render children if authenticated and system admin
-    if (isAuthenticated && role === "school-head") {
+    if (isAuthenticated && role === "principal") {
         return <>{children}</>
     }
 

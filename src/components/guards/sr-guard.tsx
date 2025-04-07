@@ -23,17 +23,23 @@ export function RegistrarGuard({ children }: { children: React.ReactNode }) {
             if (role !== "registrar") {
                 // Redirect non-registrar users to appropriate routes
                 switch (role) {
-                    case "teacher":
+                    case "adviser":
+                        router.push("/teacher") // Redirect to teacher dashboard
+                        break
+                    case "subject-teacher":
+                        router.push("/teacher") // Redirect to teacher dashboard
+                        break
+                    case "adviser/subject-teacher":
                         router.push("/teacher") // Redirect to teacher dashboard
                         break
                     case "admin":
                         router.push("/sysadmin") // Redirect to admin dashboard
                         break
-                    case "school-head":
+                    case "principal":
                         router.push("/school-head") // Redirect to school-head dashboard
                         break
                     default:
-                        router.push("/auth") // Redirect to authentication page
+                        router.push("/") // Redirect to authentication page
                 }
                 return
             }

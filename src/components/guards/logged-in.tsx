@@ -16,13 +16,19 @@ export function RoleCheck() {
         if (!isAuthLoading && !isRoleLoading && isAuthenticated) {
             switch (role) {
                 case "admin":
-                    router.push("/sysadmin") // Redirect to admin dashboard
+                    router.push("/admin") // Redirect to admin dashboard
                     break
-                case "teacher":
+                case "adviser":
                     router.push("/teacher") // Redirect to teacher dashboard
                     break
-                case "school-head":
-                    router.push("/school-head") // Redirect to school head dashboard
+                case "subject-teacher":
+                    router.push("/teacher") // Redirect to teacher dashboard
+                    break
+                case "adviser/subject-teacher":
+                    router.push("/teacher") // Redirect to teacher dashboard
+                    break
+                case "principal":
+                    router.push("/principal") // Redirect to school head dashboard
                     break
                 case "registrar":
                     router.push("/registrar") // Redirect to registrar dashboard

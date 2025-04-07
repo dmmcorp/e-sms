@@ -21,17 +21,23 @@ export function SystemAdminGuard({ children }: { children: React.ReactNode }) {
             if (role !== "admin") {
                 // Redirect non-admin users to appropriate routes
                 switch (role) {
-                    case "teacher":
-                        router.push("/teacher")
+                    case "adviser":
+                        router.push("/teacher") // Redirect to teacher dashboard
                         break
-                    case "school-head":
-                        router.push("/school-head")
+                    case "subject-teacher":
+                        router.push("/teacher") // Redirect to teacher dashboard
+                        break
+                    case "adviser/subject-teacher":
+                        router.push("/teacher") // Redirect to teacher dashboard
+                        break
+                    case "principal":
+                        router.push("/principal")
                         break
                     case "registrar":
                         router.push("/registrar")
                         break
                     default:
-                        router.push("/auth")
+                        router.push("/")
                 }
                 return
             }
