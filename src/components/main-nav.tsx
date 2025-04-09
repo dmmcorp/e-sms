@@ -22,7 +22,7 @@ function MainNav() {
     return (
         <nav
             className={cn(pathName === "/admin" ? "hidden" : "flex",
-                'px-3 md:px-10 w-full h-fit z-50 shadow-md py-5 justify-between items-center pr-3 sm:pr-5 md:pr-10 lg:pr-10'
+                'px-3 md:px-10 w-full h-18 z-50 shadow-md py-5 justify-between items-center pr-3 sm:pr-5 md:pr-10 lg:pr-10'
             )}
             style={{
                 backgroundColor: "var(--nav-background, #1e293b)",

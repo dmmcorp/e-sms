@@ -31,7 +31,7 @@ export default function RootLayout({
       <ConvexClientProvider>
         <html lang="en">
           <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased min-w-screen min-h-screen`}
+            className={`${geistSans.variable} ${geistMono.variable} flex flex-col antialiased min-w-screen min-h-screen`}
           >
             <TeacherGuard>
 

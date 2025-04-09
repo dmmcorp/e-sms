@@ -15,7 +15,9 @@ import type {
 } from "convex/server";
 import type * as auth from "../auth.js";
 import type * as http from "../http.js";
+import type * as subjectThought from "../subjectThought.js";
 import type * as systemSettings from "../systemSettings.js";
+import type * as teachingLoad from "../teachingLoad.js";
 import type * as users from "../users.js";
 
 /**
@@ -29,7 +31,9 @@ import type * as users from "../users.js";
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   http: typeof http;
+  subjectThought: typeof subjectThought;
   systemSettings: typeof systemSettings;
+  teachingLoad: typeof teachingLoad;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

@@ -3,12 +3,12 @@ import { authTables } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 
 const gradeLevel = v.union(
-  v.literal('G7'),
-  v.literal('G8'),
-  v.literal('G9'),
-  v.literal('G10'),
-  v.literal('G11'),
-  v.literal('G12'),
+  v.literal('Grade 7'),
+  v.literal('Grade 8'),
+  v.literal('Grade 9'),
+  v.literal('Grade 10'),
+  v.literal('Grade 11'),
+  v.literal('Grade 12'),
 )
  
 const schema = defineSchema({
@@ -34,10 +34,10 @@ const schema = defineSchema({
     emailVerified: v.optional(v.boolean()),
   }),
 
-  subjectToughts: defineTable({
+  subjectThought: defineTable({
     teacherId: v.id('users'),
     gradeLevel: gradeLevel,
-    name: v.string(),
+    subjectName: v.string(),
     quarter: v.array(v.union(
       v.literal('1st quarter'),
       v.literal('2nd quarter'),
@@ -74,18 +74,88 @@ const schema = defineSchema({
     }))
     })
   }),
+
+  teachingLoad: defineTable({
+    subjectThoughId: v.id('subjectThought'),
+    semester: v.optional(v.union(
+      v.literal('1st semester'),
+      v.literal('2nd semester')
+    )),
+    quarter: v.union(
+      v.literal('1st quarter'),
+      v.literal('2nd quarter'),
+      v.literal('3rd quarter'),
+      v.literal('4th quarter'),
+    ),
+    sectionId: v.id('sections'),
+  }),
   
   sections: defineTable({
-      adviserId: v.id('users'),
-      name: v.string(),
-      gradeLevel: gradeLevel,
-      schooYear: v.string(),
-
+    adviserId: v.id('users'),
+    name: v.string(),
+    gradeLevel: gradeLevel,
+    schooYear: v.string(),
   }),
 
+  classRecords: defineTable({
+    teachingLoadId: v.id('teachingLoad'),
+    studentId: v.id('students'),
+    isDropped: v.boolean(), // change this when the enrollment status of the student becomes dropped
+    isReturning: v.boolean(), // get the value from the student enrollment isReturning column
+    needsIntervention: v.optional(v.boolean()),
+    interventionGrade: v.optional(v.number()),
+    interventionUsed: v.optional(v.array(v.string())), // ex. Big book, General remarks
+    interventionRemarks: v.optional(v.string()) 
+  }),
+
+  writtenWorks: defineTable({
+    classRecordId: v.id('classRecords'),
+    assessmentNo: v.union(
+      v.literal(1),
+      v.literal(2),
+      v.literal(3),
+      v.literal(4),
+      v.literal(5),
+      v.literal(6),
+      v.literal(7),
+      v.literal(8),
+      v.literal(9),
+      v.literal(10),
+    ),
+    score: v.number(),
+    highestPossibleScore: v.number(),
+  }),
+
+  performanceTasks: defineTable({
+    classRecordId: v.id('classRecords'),
+    assessmentNo: v.union(
+      v.literal(1),
+      v.literal(2),
+      v.literal(3),
+      v.literal(4),
+      v.literal(5),
+      v.literal(6),
+      v.literal(7),
+      v.literal(8),
+      v.literal(9),
+      v.literal(10),
+    ),
+    score: v.number(),
+    highestPossibleScore: v.number()
+  }),
+
+  majorExams: defineTable({
+    classRecordId: v.id('classRecords'),
+    assessmentNo: v.union(
+      v.literal(1),
+    ),
+    score: v.number(),
+    highestPossibleScore: v.number()
+  }),
+  
   students: defineTable({
     lastName: v.string(),
-    firsName: v.string(), 
+    firstName: v.string(),
     middleName: v.string(), 
     sex: v.union(v.literal('male'), v.literal('female')),
     lrn: v.string(),
@@ -100,8 +170,13 @@ const schema = defineSchema({
     studentId: v.id('students'),
     schoolYear: v.string(),
     gradeLevel: gradeLevel,
-    status: v.string(),
-    subjects: v.array(v.id('subjects'))
+    status: v.union(
+      v.literal('enrolled'),
+      v.literal('dropped')
+    ),
+    subjects: v.array(v.id('subjects')),
+    isReturning: v.boolean(),
+
   }),
 
   systemSettings: defineTable({

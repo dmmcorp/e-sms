@@ -1,3 +1,5 @@
+import { Doc } from "../../convex/_generated/dataModel";
+
 export type SchoolYearTypes = 
   "2024-2025" |
   "2025-2026" |
@@ -28,3 +30,21 @@ export type SchoolYearTypes =
   "Grade 10"|
   "Grade 11"|
   "Grade 12";
+
+export type SemesterType = 
+  "1st semester"|
+  "2nd semester";
+
+export type QuarterType = 
+  "1st quarter"|
+  "2nd quarter"|
+  "3rd quarter"|
+  "4th quarter";
+
+  export type TeacherTypes = Doc<'users'>;
+  export type SubjectTypes = Doc<'subjectThought'>;
+
+  export interface TeachingLoadType extends Doc<'teachingLoad'>{
+    section: Doc<'sections'>
+  
+  }

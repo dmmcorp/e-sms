@@ -2,49 +2,74 @@
 import { useCurrentUser } from '@/hooks/teacher/use-get-teacher-type'
 import React from 'react'
 import Loading from '../loading'
-import { Card, CardContent } from '@/components/ui/card'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useQuery } from 'convex/react'
+import { api } from '../../../../convex/_generated/api'
+import { Loader2Icon } from 'lucide-react'
+import Image from 'next/image'
+import Navigation from './nav'
 
 function TeacherPage() {
-    const {user, isLoading} = useCurrentUser()
-    const router = useRouter()
-  
+    const {user, isLoading} = useCurrentUser();
+    const school = useQuery(api.systemSettings.get)
+    if (isLoading) {
+        return null;
+    }
     if(!user || isLoading) return <Loading/>
 
     if(user.role === "adviser/subject-teacher") {
       return (
-        <div className="w-full min-h-screen grid grid-cols-1 md:grid-cols-2 items-center justify-center">
-          <Link href={`/teacher/adviser`} >
-            <Card>
-              <CardContent>
-                Adviser
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href={`/teacher/subject-teacher`} >
-            <Card>
-              <CardContent>
-                Subject Teacher
-              </CardContent>
-            </Card>
-          </Link>
+        <div className="h-[calc(100vh-4.5rem)] w-full lg:flex lg:flex-row">
+             
+        {school === undefined ? (
+            <div className="w-full h-full lg:w-[50%] lg:flex lg:flex-col lg:justify-center lg:items-center">
+          <Loader2Icon className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-primary mt-4">Loading school information...</p>
+            </div>
+        ) : school ? (
+            <>
+          <div className="hidden lg:w-[50%] bg-zinc-50 lg:flex lg:flex-col lg:justify-center lg:items-center text-white px-[76px]">
+              <div className="w-full h-full flex flex-col items-center justify-center">
+            <Image
+                src={school.schoolImage as string}
+                alt={school.schoolName as string}
+                width={240}
+                height={240}
+                className="mb-6"
+            />
+
+            <h1 className="text-3xl font-bold leading-tight text-black">
+                {school.schoolName}
+            </h1>
+              </div>
+
+              <div className="text-lg font-medium flex flex-col justify-center items-center mt-auto mb-[60px] text-black">
+            <h1>ERMS.</h1>
+            <h1>Electronic Record Management System</h1>
+              </div>
+          </div>
+            </>
+        ) : (
+            <>
+          <div className="hidden lg:w-[50%] bg-zinc-50 lg:flex lg:flex-col lg:justify-center lg:items-center text-white px-[76px]">
+              <div className="text-lg font-medium flex flex-col justify-center items-center mt-auto mb-[60px] text-black">
+            <h1>ERMS.</h1>
+            <h1>Electronic Record Management System</h1>
+              </div>
+          </div>
+            </>
+        )}
+             <div className="h-full w-full lg:w-[50%] flex flex-col flex-1 items-center justify-center bg-zinc-800">
+            <div className="h-full flex items-center justify-center ">
+          <div className="md:h-auto md:w-[420px]">
+            <Navigation/>
+          </div>
+            </div>
         </div>
+        
+          </div>
       )
     } 
 
-    if(user.role === "adviser") {
-      router.push('/adviser')
-    }
-    if(user.role === "subject-teacher") {
-      router.push('/subject-teacher')
-    }
-
-  return (
-    <div className='w-full min-h-screen flex items-center justify-center'>
-      <p>You are not an adviser, subject teacher, or both.</p>
-    </div>
-  )
 }
 
 export default TeacherPage

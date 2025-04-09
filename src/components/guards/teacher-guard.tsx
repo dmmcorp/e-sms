@@ -1,6 +1,8 @@
 "use client"
 
+import useTeacherStore from "@/app/teacher/_store/useTeacher"
 import { useCheckRole } from "@/features/current/api/use-check-role"
+import { useCurrentUser } from "@/features/current/api/use-current-user"
 import { useConvexAuth } from "convex/react"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
@@ -10,7 +12,8 @@ export function TeacherGuard({ children }: { children: React.ReactNode }) {
     const router = useRouter()
     const { isAuthenticated, isLoading: isAuthLoading } = useConvexAuth() // Check if the user is authenticated
     const { data: role, isLoading: isRoleLoading } = useCheckRole() // Fetch the user's role
-
+    const {user, isLoading} = useCurrentUser()
+    const setTeacher = useTeacherStore(state => state.setTeacher)
     useEffect(() => {
         // Redirect logic based on authentication and role
         if (!isAuthLoading && !isRoleLoading) {
@@ -18,13 +21,22 @@ export function TeacherGuard({ children }: { children: React.ReactNode }) {
                 router.push("/") // Redirect to home if not authenticated
                 return
             }
-
+            
             // Based on schema.ts roles: "admin", "teacher", "school-head", "registrar"
-            if (role !== "subject-teacher" && role !== "adviser" && role !== "adviser/subject-teacher") {
+            if (
+                role !== "adviser/subject-teacher" 
+            ) {
                 // Redirect non-teacher users to appropriate routes
                 switch (role) {
+
+                    case "adviser":
+                        router.push("/teacher/adviser")
+                        break
+                    case "subject-teacher":
+                        router.push("/teacher/subject-teacher")
+                        break
                     case "admin":
-                        router.push("/sysadmin")
+                        router.push("/admin")
                         break
                     case "principal":
                         router.push("/principal")
@@ -45,8 +57,17 @@ export function TeacherGuard({ children }: { children: React.ReactNode }) {
         return null
     }
 
-    // Only render children if authenticated and role is teacher
-    if (isAuthenticated && (role === "subject-teacher" || role === "adviser" || role === "adviser/subject-teacher")) {
+    // Only render children if authenticated and role is teacher 
+    if (
+        isAuthenticated && 
+        (
+            role === "subject-teacher" ||
+            role === "adviser" ||
+            role === "adviser/subject-teacher"
+        ) &&
+        !isLoading && user
+    ) {
+        setTeacher(user)
         return <>{children}</>
     }
 
