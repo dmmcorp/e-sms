@@ -26,7 +26,7 @@ import { Separator } from "@/components/ui/separator";
 
 // define zod validation schema for system settings
 const formSchema = z.object({
-  schoolName: z.string().min(2, "School name is required"),
+  schoolName: z.string().min(2, "Invalid school name format"),
   schoolImage: z.string().min(2, "School image is required"),
 });
 
@@ -93,14 +93,22 @@ export function SchoolSettingsForm() {
     setIsLoading(true);
 
     try {
-      await updateSchoolSettings({
-        schoolImage: logoStorageId,
+      const formData = {
         schoolName: schoolSettings.schoolName,
-      });
+        schoolImage: logoStorageId || "",
+      };
+
+      const validatedData = formSchema.parse(formData);
+
+      updateSchoolSettings(validatedData);
       toast.success("School settings updated successfully");
     } catch (error) {
-      toast.error("Failed to update school settings");
-      console.error("Error updating school settings:", error);
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      } else {
+        toast.error("Failed to update school settings");
+        console.error("Error updating school settings:", error);
+      }
     } finally {
       setIsLoading(false);
     }
