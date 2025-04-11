@@ -12,13 +12,14 @@ import {
 } from "@/components/ui/select";
 import { UserForm, UserFormData } from "@/lib/zod";
 import { motion } from "framer-motion";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { containerVariants } from "../../_components/variants";
 import AdviserForm from "./adviser-form";
 import { useConvexMutation } from "@convex-dev/react-query";
 import { api } from "../../../../../convex/_generated/api";
 import { toast } from "sonner";
+import { PrincipalDepartmentType, RoleType } from "@/lib/types";
 
 const roles = [
   {
@@ -47,19 +48,25 @@ const roles = [
   },
 ];
 
-type RoleType =
-  | "admin"
-  | "subject-teacher"
-  | "adviser"
-  | "adviser/subject-teacher"
-  | "principal"
-  | "registrar";
-
-// Define a Zod schema for form validation
+const principalDepartments = [
+  {
+    display: "Junior Department",
+    value: "junior-department",
+  },
+  {
+    display: "Senior Department",
+    value: "senior-department",
+  },
+  {
+    display: "Entire School",
+    value: "entire-school",
+  },
+];
 
 function UserPage() {
   const initialFormValues: UserFormData = {
     role: undefined,
+    principalType: undefined,
     fullName: "",
     email: "",
     password: "",
@@ -98,26 +105,50 @@ function UserPage() {
         fieldErrors.role = "Role is required";
       }
 
+      // if principal is empty put error
+      if (formData.role === "principal" && !formData.principalType) {
+        fieldErrors.principalType = "Department is required for principal role";
+      }
+
       setErrors(fieldErrors);
     } else {
       // Even if parsing is successful, ensure role is set
       if (formData.role === undefined) {
         setErrors({ role: "Role is required" });
+      } else if (formData.role === "principal" && !formData.principalType) {
+        setErrors({
+          principalType: "Department is required for principal role",
+        });
       } else {
         setErrors({});
 
-        // if all checks passed, and success create the user
+        // if all checks passed, and success then create the user
         try {
           await createUser({
             ...result.data,
             role: result.data.role as RoleType,
           });
+
+          setFormData({
+            email: "",
+            fullName: "",
+            password: "",
+            principalType: undefined,
+          });
+          toast.success("Successfully created a user");
         } catch (error) {
           toast.error(error as string);
         }
       }
     }
   };
+
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      principalType: undefined,
+    }));
+  }, [formData.role]);
 
   return (
     <div className="space-y-5 px-2 pt-7">
@@ -131,10 +162,10 @@ function UserPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-2">
               <div className="flex items-center gap-x-3 w-full">
-                <Label htmlFor="role" className=" w-20">
+                <Label htmlFor="role" className="w-[15%]">
                   Role:
                 </Label>
-                <div className="w-full">
+                <div className="w-[85%]">
                   <Select
                     value={formData.role || ""}
                     disabled={isPending}
@@ -164,11 +195,51 @@ function UserPage() {
                   )}
                 </div>
               </div>
+
+              {formData.role === "principal" && (
+                <div className="flex items-center gap-x-3 w-full">
+                  <Label htmlFor="role" className="w-[15%]">
+                    Department:
+                  </Label>
+                  <div className="w-[85%]">
+                    <Select
+                      value={formData.principalType || ""}
+                      disabled={isPending}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          principalType: value as PrincipalDepartmentType,
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue
+                          id="departments"
+                          placeholder="Select principal department"
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {principalDepartments.map((dept) => (
+                          <SelectItem key={dept.value} value={dept.value}>
+                            {dept.display}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.principalType && (
+                      <p className="text-xs text-red-600">
+                        {errors.principalType}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center gap-x-3 w-full">
-                <Label htmlFor="fullName" className=" w-20">
+                <Label htmlFor="fullName" className="w-[15%]">
                   Name
                 </Label>
-                <div className="w-full">
+                <div className="w-[85%]">
                   <Input
                     id="fullName"
                     type="text"
@@ -185,10 +256,10 @@ function UserPage() {
                 </div>
               </div>
               <div className="flex items-center gap-x-3 w-full">
-                <Label htmlFor="email" className=" w-20">
+                <Label htmlFor="email" className="w-[15%]">
                   Email
                 </Label>
-                <div className="w-full">
+                <div className="w-[85%]">
                   <Input
                     id="email"
                     type="email"
@@ -205,10 +276,10 @@ function UserPage() {
                 </div>
               </div>
               <div className="flex items-center gap-x-3 w-full">
-                <Label htmlFor="password" className=" w-20">
+                <Label htmlFor="password" className="w-[15%]">
                   Password:
                 </Label>
-                <div className="w-full">
+                <div className="w-[85%]">
                   <Input
                     id="password"
                     type="password"
@@ -224,8 +295,12 @@ function UserPage() {
                   )}
                 </div>
               </div>
-              <div className="flex justify-end mt-5">
-                <Button type="submit" disabled={isPending}>
+              <div className="flex justify-center mt-5">
+                <Button
+                  type="submit"
+                  disabled={isPending}
+                  className="w-[120px]"
+                >
                   Save
                 </Button>
               </div>

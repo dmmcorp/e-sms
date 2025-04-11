@@ -48,3 +48,16 @@ export interface TeachingLoadType extends Doc<'teachingLoad'> {
   section: Doc<'sections'>
 
 }
+
+export type RoleType =
+  | "admin"
+  | "subject-teacher"
+  | "adviser"
+  | "adviser/subject-teacher"
+  | "principal"
+  | "registrar";
+
+export type PrincipalDepartmentType =
+  "junior-department" |
+  "senior-department" |
+  "entire-school"

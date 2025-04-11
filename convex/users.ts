@@ -39,6 +39,14 @@ export const createUser = mutation({
         fullName: v.string(),
         email: v.string(),
         password: v.string(),
+
+        // optional depending on role
+        // FOR PRINCIPAL
+        principalType: v.optional(v.union(
+            v.literal("junior-department"),
+            v.literal("senior-department"),
+            v.literal("entire-school"),
+        )),
     },
     handler: async (ctx, args) => {
         // Verify if there is a current user logged in
