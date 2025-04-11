@@ -10,29 +10,29 @@ const gradeLevel = v.union(
   v.literal('Grade 11'),
   v.literal('Grade 12'),
 )
- 
+
 const schema = defineSchema({
   ...authTables,
   // Your other tables...
   users: defineTable({
     fullName: v.string(),
     role: v.union(
-        v.literal("admin"),
-        v.literal("subject-teacher"),
-        v.literal("adviser"),
-        v.literal("adviser/subject-teacher"),
-        v.literal("principal"),
-        v.literal("registrar")
-    ), 
+      v.literal("admin"),
+      v.literal("subject-teacher"),
+      v.literal("adviser"),
+      v.literal("adviser/subject-teacher"),
+      v.literal("principal"),
+      v.literal("registrar")
+    ),
     principalType: v.optional(v.union(
-        v.literal("junior-department"),
-        v.literal("senior-department"),
-        v.literal("entire-school"),
+      v.literal("junior-department"),
+      v.literal("senior-department"),
+      v.literal("entire-school"),
     )),
     isActive: v.optional(v.boolean()),
     email: v.string(),
     emailVerified: v.optional(v.boolean()),
-  }),
+  }).index('email', ['email']),
 
   subjectThought: defineTable({
     teacherId: v.id('users'),
@@ -54,24 +54,24 @@ const schema = defineSchema({
         v.literal("Modular"),
         v.literal("Other"),
       ),
-    other: v.optional(v.array(v.object({
-      component: v.union(
-        v.literal('Written Works'),
-        v.literal('Perfomance Tasks'),
-        v.literal('Major Exam'),
-      ),
-      percentage: v.number(),
+      other: v.optional(v.array(v.object({
+        component: v.union(
+          v.literal('Written Works'),
+          v.literal('Perfomance Tasks'),
+          v.literal('Major Exam'),
+        ),
+        percentage: v.number(),
 
-    }))),
-    faceToFace: v.optional(v.object({
+      }))),
+      faceToFace: v.optional(v.object({
         ww: v.number(),
         pt: v.number(),
         majorExam: v.number(),
-    })),
-    modular: v.optional(v.object({
-      ww: v.number(),
-      pt: v.number(),
-    }))
+      })),
+      modular: v.optional(v.object({
+        ww: v.number(),
+        pt: v.number(),
+      }))
     })
   }),
 
@@ -93,7 +93,7 @@ const schema = defineSchema({
     ),
     sectionId: v.id('sections'),
   }),
-  
+
   sections: defineTable({
     adviserId: v.id('users'),
     name: v.string(),
@@ -110,7 +110,7 @@ const schema = defineSchema({
     needsIntervention: v.optional(v.boolean()),
     interventionGrade: v.optional(v.number()),
     interventionUsed: v.optional(v.array(v.string())), // ex. Big book, General remarks
-    interventionRemarks: v.optional(v.string()) 
+    interventionRemarks: v.optional(v.string())
   }),
 
   highestScores: defineTable({
@@ -170,11 +170,11 @@ const schema = defineSchema({
     score: v.number(),
     highestPossibleScore: v.number()
   }),
-  
+
   students: defineTable({
     lastName: v.string(),
     firstName: v.string(),
-    middleName: v.string(), 
+    middleName: v.string(),
     sex: v.union(v.literal('male'), v.literal('female')),
     lrn: v.string(),
     dateOfBirth: v.string(),
@@ -202,5 +202,5 @@ const schema = defineSchema({
     schoolName: v.optional(v.string()),
   })
 });
- 
+
 export default schema;

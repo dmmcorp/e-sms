@@ -1,6 +1,6 @@
 import { Doc } from "../../convex/_generated/dataModel";
 
-export type SchoolYearTypes = 
+export type SchoolYearTypes =
   "2024-2025" |
   "2025-2026" |
   "2026-2027" |
@@ -23,26 +23,26 @@ export type SchoolYearTypes =
   "2043-2044" |
   "2044-2045";
 
-  export type GradeLevelsTypes = 
-  "Grade 7"|
-  "Grade 8"|
-  "Grade 0"|
-  "Grade 10"|
-  "Grade 11"|
+export type GradeLevelsTypes =
+  "Grade 7" |
+  "Grade 8" |
+  "Grade 9" |
+  "Grade 10" |
+  "Grade 11" |
   "Grade 12";
 
-export type SemesterType = 
-  "1st semester"|
+export type SemesterType =
+  "1st semester" |
   "2nd semester";
 
-export type QuarterType = 
-  "1st quarter"|
-  "2nd quarter"|
-  "3rd quarter"|
+export type QuarterType =
+  "1st quarter" |
+  "2nd quarter" |
+  "3rd quarter" |
   "4th quarter";
 
-  export type TeacherTypes = Doc<'users'>;
-  export type SubjectTypes = Doc<'subjectThought'>;
+export type TeacherTypes = Doc<'users'>;
+export type SubjectTypes = Doc<'subjectThought'>;
 
   interface ClassRecordWithStudentInfo extends Doc<'classRecords'>{
     student: Doc<'students'> 

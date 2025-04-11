@@ -31,6 +31,7 @@ import type * as users from "../users.js";
  */
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  files: typeof files;
   highestScores: typeof highestScores;
   http: typeof http;
   subjectThought: typeof subjectThought;
