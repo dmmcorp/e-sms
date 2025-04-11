@@ -10,11 +10,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import React, { useState } from "react";
-import { z } from "zod";
-import AdviserForm from "./adviser-form";
+import { UserForm, UserFormData } from "@/lib/zod";
 import { motion } from "framer-motion";
+import React, { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { containerVariants } from "../../_components/variants";
+import AdviserForm from "./adviser-form";
+import { useConvexMutation } from "@convex-dev/react-query";
+import { api } from "../../../../../convex/_generated/api";
+import { toast } from "sonner";
+
 const roles = [
   {
     display: "Admin",
@@ -49,35 +54,22 @@ type RoleType =
   | "adviser/subject-teacher"
   | "principal"
   | "registrar";
-// Define a Zod schema for form validation
-const formSchema = z.object({
-  role: z
-    .enum([
-      "admin",
-      "subject-teacher",
-      "adviser",
-      "adviser/subject-teacher",
-      "principal",
-      "registrar",
-    ])
-    .optional(),
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters long"),
-});
 
-type FormData = z.infer<typeof formSchema>;
+// Define a Zod schema for form validation
 
 function UserPage() {
-  const initialFormValues: FormData = {
+  const initialFormValues: UserFormData = {
     role: undefined,
-    name: "",
+    fullName: "",
     email: "",
     password: "",
   };
 
-  const [formData, setFormData] = useState<FormData>(initialFormValues);
+  const [formData, setFormData] = useState<UserFormData>(initialFormValues);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { mutate: createUser, isPending } = useMutation({
+    mutationFn: useConvexMutation(api.users.createUser),
+  });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -86,10 +78,10 @@ function UserPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const result = formSchema.safeParse(formData);
+    const result = UserForm.safeParse(formData);
 
     const fieldErrors: Record<string, string> = {};
 
@@ -113,13 +105,22 @@ function UserPage() {
         setErrors({ role: "Role is required" });
       } else {
         setErrors({});
-        // Proceed with form submission logic here
+
+        // if all checks passed, and success create the user
+        try {
+          await createUser({
+            ...result.data,
+            role: result.data.role as RoleType,
+          });
+        } catch (error) {
+          toast.error(error as string);
+        }
       }
     }
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 px-2 pt-7">
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -136,6 +137,7 @@ function UserPage() {
                 <div className="w-full">
                   <Select
                     value={formData.role || ""}
+                    disabled={isPending}
                     onValueChange={(value) =>
                       setFormData((prev) => ({
                         ...prev,
@@ -163,21 +165,22 @@ function UserPage() {
                 </div>
               </div>
               <div className="flex items-center gap-x-3 w-full">
-                <Label htmlFor="name" className=" w-20">
+                <Label htmlFor="fullName" className=" w-20">
                   Name
                 </Label>
                 <div className="w-full">
                   <Input
-                    id="name"
+                    id="fullName"
                     type="text"
-                    placeholder="Enter teacher complete name"
-                    name="name"
-                    value={formData.name}
+                    placeholder="Enter full name"
+                    name="fullName"
+                    value={formData.fullName}
                     onChange={handleChange}
                     className="w-full"
+                    disabled={isPending}
                   />
-                  {errors.name && (
-                    <p className="text-xs text-red-600">{errors.name}</p>
+                  {errors.fullName && (
+                    <p className="text-xs text-red-600">{errors.fullName}</p>
                   )}
                 </div>
               </div>
@@ -189,11 +192,12 @@ function UserPage() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="Enter teacher email"
+                    placeholder="Enter email address"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
                     className="w-full"
+                    disabled={isPending}
                   />
                   {errors.email && (
                     <p className="text-xs text-red-600">{errors.email}</p>
@@ -208,11 +212,12 @@ function UserPage() {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Enter teacher password"
+                    placeholder="Enter password"
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
                     className="w-full"
+                    disabled={isPending}
                   />
                   {errors.password && (
                     <p className="text-xs text-red-600">{errors.password}</p>
@@ -220,7 +225,9 @@ function UserPage() {
                 </div>
               </div>
               <div className="flex justify-end mt-5">
-                <Button type="submit">Save</Button>
+                <Button type="submit" disabled={isPending}>
+                  Save
+                </Button>
               </div>
             </form>
           </CardContent>
