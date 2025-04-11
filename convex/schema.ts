@@ -108,6 +108,19 @@ const schema = defineSchema({
     interventionRemarks: v.optional(v.string()) 
   }),
 
+  highestScores: defineTable({
+    teachingLoadId: v.id("teachingLoad"),
+    componentType: v.union(
+      v.literal("Written Works"),
+      v.literal("Performance Tasks"),
+      v.literal("Major Exam"),
+    ),
+    scores: v.array(v.object({
+      assessmentNo: v.number(),
+      score: v.number()
+    }))
+  }),
+
   writtenWorks: defineTable({
     classRecordId: v.id('classRecords'),
     assessmentNo: v.union(

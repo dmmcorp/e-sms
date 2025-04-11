@@ -1,5 +1,5 @@
-import { v } from "convex/values";
-import { query } from "./_generated/server";
+import { ConvexError, v } from "convex/values";
+import { mutation, query } from "./_generated/server";
 import {asyncMap} from "convex-helpers"
 
 export const getTeachingLoad = query({
@@ -133,3 +133,64 @@ export const getTeachingLoad = query({
         });
     }
 });
+
+
+export const getById = query({
+    args:{ 
+       id: v.optional(v.id('teachingLoad'))
+
+    },
+    handler: async(ctx, args) =>{
+        if(!args.id) return undefined;
+
+        const load = await ctx.db.get(args.id)
+
+        if(load === null) return undefined;
+
+        const subjectThought = await ctx.db.get(load.subjectThoughId);
+        const section = await ctx.db.get(load.sectionId);
+        
+        if(!subjectThought) throw new ConvexError('No subjectThought Found!');
+        if(!section) throw new ConvexError('No section Found!');
+
+        const teacher = await ctx.db.get(subjectThought.teacherId)
+
+        const classRecords = await ctx.db.query('classRecords')
+            .filter(q => q.eq(q.field('teachingLoadId'), load._id))
+            .order('desc').collect()
+          
+        const recordWithStudentInfo = await asyncMap(classRecords, async(record)=>{
+            const student = await ctx.db.get(record.studentId);
+            if(student === null) return null
+            return {
+                ...record,
+                student: student
+            }
+        });
+
+        const highestScores = await ctx.db.query('highestScores')
+            .filter(q => q.eq(q.field('teachingLoadId'), load._id))
+            .collect()
+        
+
+        return {
+            ...load,
+            subjectThought: {
+                ...subjectThought,
+                teacher: teacher
+            },
+            section: section,
+            classRecords: recordWithStudentInfo.filter( rec => rec !== null),
+            highestScores: highestScores
+        }
+    }
+});
+
+export const saveScores = mutation({
+    args:{
+
+    },
+    handler: async(ctx, args) =>{
+        
+    }
+})
