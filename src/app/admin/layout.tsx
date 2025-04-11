@@ -5,6 +5,7 @@ import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { ConvexClientProvider } from "@/components/convex-client-provider";
 import MainNav from "@/components/main-nav";
 import { SystemAdminGuard } from "@/components/guards/admin-guard";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,7 +20,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ERMS-Teacher",
   description: "Teacher Page",
-}
+};
 
 export default function RootLayout({
   children,
@@ -34,11 +35,9 @@ export default function RootLayout({
             className={`${geistSans.variable} ${geistMono.variable} antialiased min-w-screen min-h-screen flex flex-col bg-zinc-50`}
           >
             <SystemAdminGuard>
-
-              <MainNav/>
-              <div className="flex-1 overflow-hidden">
-                {children}
-              </div>
+              <MainNav />
+              <Toaster richColors />
+              <div className="flex-1 overflow-hidden">{children}</div>
             </SystemAdminGuard>
           </body>
         </html>
