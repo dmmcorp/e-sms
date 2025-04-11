@@ -44,7 +44,17 @@ export type QuarterType =
   export type TeacherTypes = Doc<'users'>;
   export type SubjectTypes = Doc<'subjectThought'>;
 
+  interface ClassRecordWithStudentInfo extends Doc<'classRecords'>{
+    student: Doc<'students'> 
+  }
+  interface subjectThoughtWithTeacherInfo extends Doc<'subjectThought'>{
+    teacher: Doc<'users'> | null
+  }
+
   export interface TeachingLoadType extends Doc<'teachingLoad'>{
     section: Doc<'sections'>
+    subjectThought: subjectThoughtWithTeacherInfo;
+    classRecords: ClassRecordWithStudentInfo[];
+    highestScores: Doc<'highestScores'>[]
   
   }

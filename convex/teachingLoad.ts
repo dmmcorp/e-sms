@@ -188,9 +188,34 @@ export const getById = query({
 
 export const saveScores = mutation({
     args:{
-
+        loadId: v.id('teachingLoad'),
+        componentType: v.union(
+            v.literal("Written Works"),
+            v.literal("Performance Tasks"),
+            v.literal("Major Exam"),
+        ),
+        scores: v.array(v.object({
+            assessmentNo: v.number(),
+            score: v.number()
+        }))
     },
     handler: async(ctx, args) =>{
-        
+        const isExisting = await ctx.db.query('highestScores')
+            .filter(q => q.eq(q.field('teachingLoadId'), args.loadId))
+            .filter(q => q.eq(q.field('componentType'), args.componentType))
+            .first()
+        if(isExisting !== null) {
+            await ctx.db.patch(isExisting._id,{
+                teachingLoadId: args.loadId,
+                componentType: args.componentType,
+                scores: args.scores
+            })
+        } else {
+            await ctx.db.insert('highestScores',{
+                teachingLoadId: args.loadId,
+                componentType: args.componentType,
+                scores: args.scores
+            })
+        }
     }
 })

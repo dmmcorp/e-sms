@@ -44,7 +44,7 @@ function SectionSummary({
   
 
   return (
-    <div className='grid grid-cols-2'>
+    <div className='grid grid-cols-1 md:grid-cols-2'>
         {loads.map((load)=>(
           <Card key={load._id} className="">
             <CardContent>
@@ -54,13 +54,13 @@ function SectionSummary({
                 </div>
                 <div className="grid grid-cols-2 py-2">
                   
-                  <h1 className='text-xl  font-semibold'>{load.subject?.gradeLevel}</h1>
-                  <h1 className='text-xl text-right font-semibold'>{load.section?.name}</h1>
+                  <h1 className='text-lg md:text-xl  font-semibold'>{load.subject?.gradeLevel}</h1>
+                  <h1 className='text-lg md:text-xl text-right font-semibold'>{load.section?.name}</h1>
                 </div>
                 <Separator className='my-2'/>
-                <h1 className=''>Students: {load.classRecords?.length}</h1>
-                <div className="flex justify-between">
                 
+                <div className="grid grid-cols-2 text-muted-foreground gap-3 mb-5">
+                  <h1 className=''>Students: {load.classRecords?.length}</h1>
                   <div className="">
                     {/* // Display the number of dropped students with a tooltip showing names of the students} */}
                     <CustomTooltip 
@@ -116,7 +116,7 @@ function SectionSummary({
                 </div>
                 <div className="flex items-center justify-end">
 
-                  <Link href={"/teacher/subject-teacher/class-record"}>
+                  <Link href={`/teacher/subject-teacher/${load._id}`}>
                     <Button variant={'default'} className='hover:cursor-pointer'>Class Record <BiCaretRight/></Button>
                   </Link>
                 </div>

@@ -29,11 +29,11 @@ function SubjectThought() {
   }
 
   return (
-    <div className='flex-1 flex'>
+    <div className='flex-1 flex flex-col lg:flex-row'>
       {/* Sidebar card to display the list of subjects */}
-      <Card className="flex flex-col w-1/4 p-5">
+      <Card className="flex flex-col w-full lg:w-1/4 p-5">
         <h1 className='text-center font-bold'>Select a subject</h1>
-        <ScrollArea className='flex-1'>
+        <ScrollArea className='flex-1 flex h-60'>
           <CardContent>
             {/* Render a button for each subject */}
             {subjects.map((sub) => (

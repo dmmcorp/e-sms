@@ -75,6 +75,10 @@ const schema = defineSchema({
     })
   }),
 
+  //if the teacher teach on 1st, to 4th quarter then theere will be 4 teaching load will be created.
+  //each teaching load has many classrecords(student records for the subject.).
+  //if the student enroll only on math then find the teaching load that has a subject thought with a subject name of Math. then use the teaching load Id to create a class record for the student
+
   teachingLoad: defineTable({
     subjectThoughId: v.id('subjectThought'),
     semester: v.optional(v.union(
@@ -97,6 +101,7 @@ const schema = defineSchema({
     schooYear: v.string(),
   }),
 
+  // table for students record for subject teachers
   classRecords: defineTable({
     teachingLoadId: v.id('teachingLoad'),
     studentId: v.id('students'),
@@ -187,9 +192,9 @@ const schema = defineSchema({
       v.literal('enrolled'),
       v.literal('dropped')
     ),
-    subjects: v.array(v.id('subjects')),
+    subjects: v.array(v.string()),
     isReturning: v.boolean(),
-
+    sectionId: v.optional(v.id('sections'))
   }),
 
   systemSettings: defineTable({

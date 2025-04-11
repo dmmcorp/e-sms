@@ -36,4 +36,29 @@ export const schoolYears = [
   "2042-2043",
   "2043-2044",
   "2044-2045",
-]
+];
+
+export function calculatePercentageScore(totalScore: number, highestPossibleScore: number): number {
+  if (highestPossibleScore === 0 || totalScore === 0) {
+    return 0; // Returning 0 instead of throwing an error
+  }
+  return (totalScore / highestPossibleScore) * 100;
+};
+
+export function calculateWeightedScore(percentageScore: number, gradeWeightPercentage: number): number {
+  if (gradeWeightPercentage < 0 || gradeWeightPercentage > 100) {
+    return 0; // Returning 0 instead of throwing an error
+  }
+
+  const gradeWeightDecimal = gradeWeightPercentage / 100; // Convert to decimal
+  return percentageScore * gradeWeightDecimal;
+}
+type Scores = {
+  assessmentNo: number;
+  score: number;
+}[] | undefined
+export function getTotalScore(scores:Scores, ){
+  if(!scores) return 0
+
+  return scores.reduce((sum, item)=> sum + item.score, 0)
+}
