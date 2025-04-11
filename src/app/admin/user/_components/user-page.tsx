@@ -20,6 +20,9 @@ import { useConvexMutation } from "@convex-dev/react-query";
 import { api } from "../../../../../convex/_generated/api";
 import { toast } from "sonner";
 import { PrincipalDepartmentType, RoleType } from "@/lib/types";
+import { SubjectTaughtForm } from "./subject-taught-form";
+import { Separator } from "@/components/ui/separator";
+import { Id } from "../../../../../convex/_generated/dataModel";
 
 const roles = [
   {
@@ -65,11 +68,12 @@ const principalDepartments = [
 
 function UserPage() {
   const initialFormValues: UserFormData = {
-    role: undefined,
+    role: "admin",
     principalType: undefined,
     fullName: "",
     email: "",
     password: "",
+    subjectsTaught: [],
   };
 
   const [formData, setFormData] = useState<UserFormData>(initialFormValues);
@@ -88,58 +92,125 @@ function UserPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const result = UserForm.safeParse(formData);
-
     const fieldErrors: Record<string, string> = {};
 
-    // Check if Zod parsing failed
-    if (!result.success) {
-      result.error.errors.forEach((err) => {
-        if (err.path[0]) {
-          fieldErrors[err.path[0] as string] = err.message;
-        }
+    // Basic validations
+    if (formData.role === undefined) {
+      fieldErrors.role = "Role is required";
+    }
+
+    if (formData.role === "principal" && !formData.principalType) {
+      fieldErrors.principalType = "Department is required for principal role";
+    }
+
+    // Subject Teacher validations
+    if (formData.role === "subject-teacher") {
+      if (!formData.subjectsTaught || formData.subjectsTaught.length === 0) {
+        fieldErrors.subjectsTaught = "At least one subject is required";
+      } else {
+        // Validate each subject
+        formData.subjectsTaught.forEach((subject, index) => {
+          if (!subject.subjectName) {
+            fieldErrors[`subject${index}Name`] = "Subject name is required";
+          }
+          if (!subject.gradeLevel) {
+            fieldErrors[`subject${index}Grade`] = "Grade level is required";
+          }
+          if (!subject.sectionId) {
+            fieldErrors[`subject${index}Section`] = "Section is required";
+          }
+
+          if (
+            (!subject.quarter || subject.quarter.length === 0) &&
+            (!subject.semester || subject.semester.length === 0)
+          ) {
+            fieldErrors[`subject${index}Period`] =
+              "Select either quarters or semesters";
+          }
+
+          // Validate grade weights
+          if (subject.gradeWeights) {
+            const weights = subject.gradeWeights;
+            let total = 0;
+
+            if (weights.type === "Face to face" && weights.faceToFace) {
+              total =
+                weights.faceToFace.ww +
+                weights.faceToFace.pt +
+                weights.faceToFace.majorExam;
+            } else if (weights.type === "Modular" && weights.modular) {
+              total = weights.modular.ww + weights.modular.pt;
+            } else if (weights.type === "Other" && weights.other) {
+              total = weights.other.reduce(
+                (sum, item) => sum + item.percentage,
+                0
+              );
+            }
+
+            if (total !== 100) {
+              fieldErrors[`subject${index}Weights`] =
+                "Grade weights must total 100%";
+            }
+          }
+        });
+      }
+    }
+
+    if (Object.keys(fieldErrors).length > 0) {
+      setErrors(fieldErrors);
+      return;
+    }
+
+    // Submit the form
+    try {
+      // Replace the existing cleanedSubjects code with this:
+      const cleanedSubjects = formData.subjectsTaught?.map(
+        ({
+          // @ts-expect-error slight type issue
+          id,
+          // @ts-expect-error slight type issue
+          newComponentType,
+          // @ts-expect-error slight type issue
+          newComponentPercentage,
+          semester = [], // Provide default empty array
+          ...subject
+        }) => ({
+          ...subject,
+          semester: semester || [], // Ensure semester is always an array
+          sectionId: subject.sectionId as Id<"sections">, // Keep original type
+          gradeWeights: {
+            ...subject.gradeWeights,
+            // Clean up grade weights based on type
+            faceToFace:
+              subject.gradeWeights.type === "Face to face"
+                ? subject.gradeWeights.faceToFace
+                : undefined,
+            modular:
+              subject.gradeWeights.type === "Modular"
+                ? subject.gradeWeights.modular
+                : undefined,
+            other:
+              subject.gradeWeights.type === "Other"
+                ? subject.gradeWeights.other
+                : undefined,
+          },
+        })
+      );
+
+      await createUser({
+        role: formData.role as RoleType,
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        principalType: formData.principalType,
+        subjectsTaught:
+          formData.role === "subject-teacher" ? cleanedSubjects : undefined,
       });
 
-      // Additional check for role if it's not handled by Zod
-      if (formData.role === undefined) {
-        fieldErrors.role = "Role is required";
-      }
-
-      // if principal is empty put error
-      if (formData.role === "principal" && !formData.principalType) {
-        fieldErrors.principalType = "Department is required for principal role";
-      }
-
-      setErrors(fieldErrors);
-    } else {
-      // Even if parsing is successful, ensure role is set
-      if (formData.role === undefined) {
-        setErrors({ role: "Role is required" });
-      } else if (formData.role === "principal" && !formData.principalType) {
-        setErrors({
-          principalType: "Department is required for principal role",
-        });
-      } else {
-        setErrors({});
-
-        // if all checks passed, and success then create the user
-        try {
-          await createUser({
-            ...result.data,
-            role: result.data.role as RoleType,
-          });
-
-          setFormData({
-            email: "",
-            fullName: "",
-            password: "",
-            principalType: undefined,
-          });
-          toast.success("Successfully created a user");
-        } catch (error) {
-          toast.error(error as string);
-        }
-      }
+      setFormData(initialFormValues);
+      toast.success("Successfully created a user");
+    } catch (error) {
+      toast.error(error as string);
     }
   };
 
@@ -151,12 +222,12 @@ function UserPage() {
   }, [formData.role]);
 
   return (
-    <div className="space-y-5 px-2 pt-7">
+    <div className="w-full space-y-5 px-2 py-7">
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className=""
+        className="w-full flex items-center justify-center"
       >
         <Card className="lg:w-1/2 ">
           <CardContent>
@@ -295,6 +366,20 @@ function UserPage() {
                   )}
                 </div>
               </div>
+
+              <Separator className="my-3" />
+
+              {/* Subject Teacher UI component */}
+              {formData.role === "subject-teacher" && (
+                <SubjectTaughtForm
+                  errors={errors}
+                  formData={formData}
+                  isPending={isPending}
+                  setFormData={setFormData}
+                  handleChange={handleChange}
+                />
+              )}
+
               <div className="flex justify-center mt-5">
                 <Button
                   type="submit"
