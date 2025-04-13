@@ -1,9 +1,10 @@
 import React from 'react'
+import HandledSection from './_components/handled-section'
 
 function AdviserPage() {
   return (
-    <div>
-        
+    <div className='md:px-5'>
+        <HandledSection/>
     </div>
   )
 }

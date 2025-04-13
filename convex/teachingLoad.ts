@@ -133,8 +133,6 @@ export const getTeachingLoad = query({
         });
     }
 });
-
-
 export const getById = query({
     args:{ 
        id: v.optional(v.id('teachingLoad'))
@@ -217,5 +215,133 @@ export const saveScores = mutation({
                 scores: args.scores
             })
         }
+    }
+})
+
+export const getLoadUsingSectionId = query({
+    args:{
+        sectionId: v.id('sections'),
+        quarter: v.union(
+            v.literal('1st quarter'),
+            v.literal('2nd quarter'),
+            v.literal('3rd quarter'),
+            v.literal('4th quarter'),
+        ),
+        semester: v.optional(v.union(
+            v.literal('1st semester'),
+            v.literal('2nd semester'),
+        )),
+    },
+    handler: async(ctx, args) =>{
+        let query = await ctx.db.query('teachingLoad')
+            .filter(q => q.eq(q.field('sectionId'), args.sectionId))
+            .filter(q => q.eq(q.field('quarter'), args.quarter))
+
+        if(args.semester) {
+            query = query.filter(q => q.eq(q.field('semester'), args.semester))
+        }
+
+        let loads = query.collect()
+
+        const subjects = await asyncMap(loads, async(load)=>{
+      
+            // Fetch initial class records associated with the teaching load
+            const initClassRecords = await ctx.db.query('classRecords').filter(q => q.eq(q.field('teachingLoadId'), load._id)).collect();
+
+             // Process each class record to calculate averages and prepare chart data
+             const classRecords = await asyncMap(initClassRecords, async (classRecord) => {
+                const ww = await ctx.db.query('writtenWorks').filter(q => q.eq(q.field('classRecordId'), classRecord._id)).collect();
+                const pt = await ctx.db.query('performanceTasks').filter(q => q.eq(q.field('classRecordId'), classRecord._id)).collect();
+                const me = await ctx.db.query('majorExams').filter(q => q.eq(q.field('classRecordId'), classRecord._id)).collect();
+
+                // Calculate the number of entries for each type
+                const wwLength = ww.length;
+                const ptLength = pt.length;
+                const meLength = me.length;
+
+                // Calculate average scores for each type
+                const wwAverage = wwLength > 0 ? ww.reduce((sum, item) => sum + item.score, 0) / wwLength : 0;
+                const ptAverage = ptLength > 0 ? pt.reduce((sum, item) => sum + item.score, 0) / ptLength : 0;
+                const meAverage = meLength > 0 ? me.reduce((sum, item) => sum + item.score, 0) / meLength : 0;
+
+                // Prepare chart data for the class record
+                const chartData = [
+                    {
+                        type: "Written",
+                        aveScores: wwAverage,
+                    },
+                    {
+                        type: "Performance",
+                        aveScores: ptAverage,
+                    },
+                    {
+                        type: "Major Exam",
+                        aveScores: meAverage,
+                    },
+                ];
+
+                // Return the class record with chart data
+                return {
+                    ...classRecord,
+                    chartData: chartData
+                };
+            });
+
+             // Fetch dropped students and include their details
+             const droppedStudents = await asyncMap(
+                classRecords.filter(record => record.isDropped),
+                async (record) => {
+                    const student = await ctx.db.get(record.studentId);
+                    return {
+                        ...record,
+                        student: student
+                    };
+                }
+            );
+
+            // Fetch returning students and include their details
+            const returningStudents = await asyncMap(
+                classRecords.filter(record => record.isReturning),
+                async (record) => {
+                    const student = await ctx.db.get(record.studentId);
+                    return {
+                        ...record,
+                        student: student
+                    };
+                }
+            );
+
+            // Fetch students needing interventions and include their details
+            const needsInterventions = await asyncMap(
+                classRecords.filter(record => record.needsIntervention),
+                async (record) => {
+                    const student = await ctx.db.get(record.studentId);
+                    return {
+                        ...record,
+                        student: student
+                    };
+                }
+            );
+
+            // Fetch subject details for the teaching load
+
+            const subject = await ctx.db.get(load.subjectThoughId);
+            if(subject === null) return null
+            const teacher = await ctx.db.get(subject.teacherId);
+            if(teacher === null) return null;
+
+            return{
+                ...load,
+                subject:{
+                    ...subject,
+                    teacher: teacher
+                },
+                classRecords: classRecords,
+                droppedStud: droppedStudents,
+                returningStud: returningStudents,
+                needsInterventions: needsInterventions
+            }
+        })
+        return subjects.filter(s => s != null)
     }
 })

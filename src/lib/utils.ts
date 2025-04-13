@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { SectionType } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -38,6 +39,16 @@ export const schoolYears = [
   "2044-2045",
 ];
 
+export function formatDate(convexDate: number | undefined) {
+  if(!convexDate) return undefined
+  const roundedTimestamp = Math.floor(convexDate);
+
+  const readableDate = new Date(roundedTimestamp);
+  const formattedDate = readableDate.toLocaleString();
+
+  return formattedDate
+}
+
 export function calculatePercentageScore(totalScore: number, highestPossibleScore: number): number {
   if (highestPossibleScore === 0 || totalScore === 0) {
     return 0; // Returning 0 instead of throwing an error
@@ -61,4 +72,14 @@ export function getTotalScore(scores:Scores, ){
   if(!scores) return 0
 
   return scores.reduce((sum, item)=> sum + item.score, 0)
+};
+
+export function isSHS(section: SectionType){
+  const gradeLevel = section.gradeLevel
+  if(gradeLevel === "Grade 11" || gradeLevel === "Grade 12"){
+    return true
+  } else {
+    return false
+  }
 }
+

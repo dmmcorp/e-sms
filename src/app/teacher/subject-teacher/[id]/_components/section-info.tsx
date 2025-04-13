@@ -13,7 +13,7 @@ function SectionInfo({teachingLoad}: SectionInfoType) {
         <h1>Section: <span className='font-normal'>{section.name}</span></h1>
         <h1>Grade Level: <span className='font-normal'>{subject.gradeLevel}</span></h1>
         <h1>Subject: <span className='font-normal'>{subject.subjectName}</span></h1>
-        <h1>School Year: <span className='font-normal'>{section.schooYear}</span></h1>
+        <h1>School Year: <span className='font-normal'>{section.schoolYear}</span></h1>
         {teachingLoad.semester && (
           <h1>Semester: <span className='font-normal'>{teachingLoad.semester}</span></h1>
         )}
