@@ -249,3 +249,18 @@ export const createUser = mutation({
         return accountResponse.user;
     }
 })
+
+export const getAllUsers = query({
+    args: {},
+    handler: async (ctx) => {
+        const users = await ctx.db.query("users").collect();
+        return users.map((user) => {
+            return {
+                id: user._id,
+                email: user.email,
+                role: user.role,
+                fullName: user.fullName,
+            }
+        });
+    },
+})

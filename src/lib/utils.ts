@@ -66,3 +66,23 @@ export function getTotalScore(scores: Scores,) {
 // Generate a unique ID for each subject
 export const generateId = () =>
   `subject_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+
+export function formatRole(role: string): string {
+  switch (role) {
+    case "adviser/subject-teacher":
+      return "Adviser/Subject Teacher";
+    case "subject-teacher":
+      return "Subject Teacher";
+    case "adviser":
+      return "Adviser";
+    case "principal":
+      return "Principal";
+    case "registrar":
+      return "Registrar";
+    case "admin":
+      return "Admin";
+    default:
+      return role; // Return the original role if no match is found
+  }
+}
