@@ -174,7 +174,7 @@ export const createUser = mutation({
                     adviserId: accountResponse.user._id,
                     name: section.name,
                     gradeLevel: section.gradeLevel,
-                    schooYear: section.schoolYear,
+                    schoolYear: section.schoolYear,
                 });
 
                 createdSections.push({
