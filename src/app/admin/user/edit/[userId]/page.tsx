@@ -41,19 +41,16 @@ import { principalDepartments, roles } from "@/lib/constants";
 import { useRouter } from "next/navigation";
 
 interface EditUserModalProps {
-  params: Promise<{
+  params: {
     userId: Id<"users">;
-  }>;
-  isOpen: boolean;
-  setIsOpen: Dispatch<SetStateAction<boolean>>;
+  };
   onUserUpdated?: () => void;
 }
 
 const EditUserPage: React.FC<EditUserModalProps> = ({
-  params: paramsPromise,
+  params,
   onUserUpdated,
 }) => {
-  const params = use(paramsPromise);
   const { userId } = params;
 
   const initialFormValues: UserFormData = {
@@ -95,7 +92,6 @@ const EditUserPage: React.FC<EditUserModalProps> = ({
       const mappedSubjects = (user.subjectsTaught || []).map((subject) => ({
         subjectName: subject.subjectName || "",
         gradeLevel: subject.gradeLevel,
-        // @ts-expect-error slight type issue
         sectionId: subject.sectionId || "",
         quarter: Array.isArray(subject.quarter) ? subject.quarter : [],
         semester: Array.isArray(subject.semester) ? subject.semester : [],
@@ -114,6 +110,7 @@ const EditUserPage: React.FC<EditUserModalProps> = ({
         fullName: user.fullName,
         email: user.email,
         password: "",
+        // @ts-expect-error slight type issue
         subjectsTaught: Array.isArray(mappedSubjects) ? mappedSubjects : [],
         sections: Array.isArray(mappedSections) ? mappedSections : [],
       });
