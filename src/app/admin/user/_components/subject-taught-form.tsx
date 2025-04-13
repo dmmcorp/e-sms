@@ -425,23 +425,35 @@ export const SubjectTaughtForm = ({
                         </SelectItem>
                       ))}
 
-                    {/* Show pending sections being created in this form */}
+                    {/* Show pending sections with CORRECT INDEX */}
                     {formData.role === "adviser/subject-teacher" &&
                       formData.sections
                         ?.filter(
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
                           (section: any) =>
                             section.name &&
                             section.gradeLevel === subject.gradeLevel
                         )
-                        .map((section: any, index: number) => (
-                          <SelectItem
-                            key={`pending-${index}`}
-                            value={`pending-section-${index}`}
-                            className="bg-blue-50"
-                          >
-                            {section.name}
-                          </SelectItem>
-                        ))}
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        .map((section: any) => {
+                          // Find the actual index of this section in the full sections array
+                          const actualIndex = formData.sections?.findIndex(
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            (s: any) =>
+                              s.name === section.name &&
+                              s.gradeLevel === section.gradeLevel
+                          );
+
+                          return (
+                            <SelectItem
+                              key={`pending-${actualIndex}`}
+                              value={`pending-section-${actualIndex}`}
+                              className="bg-blue-50"
+                            >
+                              {section.name}
+                            </SelectItem>
+                          );
+                        })}
                   </SelectContent>
                 </Select>
                 {errors[`subject${index}Section`] && (

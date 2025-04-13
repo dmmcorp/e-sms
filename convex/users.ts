@@ -196,8 +196,12 @@ export const createUser = mutation({
                 if (sectionId.startsWith('pending-section-')) {
                     const pendingIndex = parseInt(sectionId.replace('pending-section-', ''));
 
-                    // Find the corresponding created section
-                    const createdSection = createdSections.find(s => s.index === pendingIndex);
+                    // Find the corresponding created section by index AND matching grade level
+                    const createdSection = createdSections.find(
+                        s => s.index === pendingIndex &&
+                            s.gradeLevel === subject.gradeLevel
+                    );
+
                     if (!createdSection) {
                         throw new ConvexError(`Invalid pending section reference: ${sectionId}`);
                     }
