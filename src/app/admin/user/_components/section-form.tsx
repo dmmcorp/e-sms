@@ -144,7 +144,10 @@ export const SectionForm = ({
                 </div>
               </div>
 
-              <div className="flex items-center gap-x-3 w-full">
+              {section.schoolYear && (
+                <p>School Year: {section.schoolYear || ""}</p>
+              )}
+              <div className="flex items-center gap-x-3 w-full mt-11">
                 <Label
                   htmlFor={`section-gradeLevel-${index}`}
                   className="w-[20%]"
@@ -178,6 +181,9 @@ export const SectionForm = ({
                 </div>
               </div>
 
+              <p className="font-bold underline underline-offset-4">
+                Add Section
+              </p>
               <div className="flex items-center gap-x-3 w-full">
                 <Label htmlFor={`section-name-${index}`} className="w-[20%]">
                   Section Name:
