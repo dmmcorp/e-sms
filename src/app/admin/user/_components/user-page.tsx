@@ -23,6 +23,8 @@ import { PrincipalDepartmentType, RoleType } from "@/lib/types";
 import { SubjectTaughtForm } from "./subject-taught-form";
 import { Separator } from "@/components/ui/separator";
 import { Id } from "../../../../../convex/_generated/dataModel";
+import { ConvexError } from "convex/values";
+import { SectionForm } from "./section-form";
 
 const roles = [
   {
@@ -74,6 +76,7 @@ function UserPage() {
     email: "",
     password: "",
     subjectsTaught: [],
+    sections: [],
   };
 
   const [formData, setFormData] = useState<UserFormData>(initialFormValues);
@@ -92,15 +95,59 @@ function UserPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Reset previous errors
+    setErrors({});
+
     const fieldErrors: Record<string, string> = {};
 
-    // Basic validations
+    // Basic validations - Add more strict validation here
+    if (!formData.fullName.trim()) {
+      fieldErrors.fullName = "Name is required";
+    }
+
+    if (!formData.email.trim()) {
+      fieldErrors.email = "Email is required";
+    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      fieldErrors.email = "Valid email is required";
+    }
+
+    if (!formData.password.trim()) {
+      fieldErrors.password = "Password is required";
+    } else if (formData.password.length < 6) {
+      fieldErrors.password = "Password must be at least 6 characters";
+    }
+
     if (formData.role === undefined) {
       fieldErrors.role = "Role is required";
     }
 
     if (formData.role === "principal" && !formData.principalType) {
       fieldErrors.principalType = "Department is required for principal role";
+    }
+
+    // Adviser validations
+    if (
+      formData.role === "adviser" ||
+      formData.role === "adviser/subject-teacher"
+    ) {
+      if (!formData.sections || formData.sections.length === 0) {
+        fieldErrors.sections = "At least one section is required";
+      } else {
+        // Validate each section
+        formData.sections.forEach((section, index) => {
+          if (!section.name) {
+            fieldErrors[`section${index}Name`] = "Section name is required";
+          }
+          if (!section.gradeLevel) {
+            fieldErrors[`section${index}GradeLevel`] =
+              "Grade level is required";
+          }
+          if (!section.schoolYear) {
+            fieldErrors[`section${index}SchoolYear`] =
+              "School year is required";
+          }
+        });
+      }
     }
 
     // Subject Teacher validations
@@ -141,10 +188,14 @@ function UserPage() {
             } else if (weights.type === "Modular" && weights.modular) {
               total = weights.modular.ww + weights.modular.pt;
             } else if (weights.type === "Other" && weights.other) {
-              total = weights.other.reduce(
-                (sum, item) => sum + item.percentage,
-                0
-              );
+              // Check if other array exists and has elements
+              total =
+                weights.other && weights.other.length > 0
+                  ? weights.other.reduce(
+                      (sum, item) => sum + item.percentage,
+                      0
+                    )
+                  : 0;
             }
 
             if (total !== 100) {
@@ -156,14 +207,16 @@ function UserPage() {
       }
     }
 
+    // If there are validation errors, show them and DON'T submit the form
     if (Object.keys(fieldErrors).length > 0) {
+      console.log("Validation errors found:", fieldErrors);
       setErrors(fieldErrors);
-      return;
+      toast.error("Please fix the form errors");
+      return; // Stop here and don't submit the form
     }
 
-    // Submit the form
+    // Only if validation passes, proceed with form submission
     try {
-      // Replace the existing cleanedSubjects code with this:
       const cleanedSubjects = formData.subjectsTaught?.map(
         ({
           // @ts-expect-error slight type issue
@@ -172,15 +225,14 @@ function UserPage() {
           newComponentType,
           // @ts-expect-error slight type issue
           newComponentPercentage,
-          semester = [], // Provide default empty array
+          semester = [],
           ...subject
         }) => ({
           ...subject,
-          semester: semester || [], // Ensure semester is always an array
-          sectionId: subject.sectionId as Id<"sections">, // Keep original type
+          semester: semester || [],
+          sectionId: subject.sectionId as Id<"sections">,
           gradeWeights: {
             ...subject.gradeWeights,
-            // Clean up grade weights based on type
             faceToFace:
               subject.gradeWeights.type === "Face to face"
                 ? subject.gradeWeights.faceToFace
@@ -197,20 +249,55 @@ function UserPage() {
         })
       );
 
-      await createUser({
-        role: formData.role as RoleType,
-        fullName: formData.fullName,
-        email: formData.email,
-        password: formData.password,
-        principalType: formData.principalType,
-        subjectsTaught:
-          formData.role === "subject-teacher" ? cleanedSubjects : undefined,
-      });
+      const cleanedSections = formData.sections
+        ?.filter(
+          (section) => section.name && section.gradeLevel && section.schoolYear
+        )
+        .map(({ adviserId, ...section }) => ({
+          name: section.name,
+          gradeLevel: section.gradeLevel!,
+          schoolYear: section.schoolYear!,
+        }));
 
-      setFormData(initialFormValues);
-      toast.success("Successfully created a user");
+      console.log("Form passed validation, submitting data");
+
+      // Only call createUser if validation passes
+      createUser(
+        {
+          role: formData.role as RoleType,
+          fullName: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+          principalType: formData.principalType,
+          subjectsTaught:
+            formData.role === "subject-teacher" ||
+            formData.role === "adviser/subject-teacher"
+              ? cleanedSubjects
+              : undefined,
+          sections:
+            formData.role === "adviser" ||
+            formData.role === "adviser/subject-teacher"
+              ? cleanedSections
+              : undefined,
+        },
+        {
+          onSuccess: () => {
+            setFormData(initialFormValues);
+            toast.success("Successfully created a user");
+          },
+          onError: (error: unknown) => {
+            console.error("Error creating user:", error);
+            if (error instanceof ConvexError) {
+              toast.error(error.data || "Failed to create user");
+            } else {
+              toast.error("An unexpected error occurred");
+            }
+          },
+        }
+      );
     } catch (error) {
-      toast.error(error as string);
+      console.error("Unexpected error:", error);
+      toast.error("An unexpected error occurred");
     }
   };
 
@@ -223,6 +310,15 @@ function UserPage() {
 
   return (
     <div className="w-full space-y-5 px-2 py-7">
+      {/* {formData.role === "adviser/subject-teacher" && (
+        <div className="bg-blue-50 p-2 rounded border border-blue-200 text-sm mb-3">
+          <p className="text-blue-700">
+            Note: Sections you define above will be available for selection in
+            the subjects below. They will appear with "(Pending)" next to them
+            and will be created when you submit the form.
+          </p>
+        </div>
+      )} */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -369,8 +465,24 @@ function UserPage() {
 
               <Separator className="my-3" />
 
-              {/* Subject Teacher UI component */}
-              {formData.role === "subject-teacher" && (
+              {(formData.role === "adviser" ||
+                formData.role === "adviser/subject-teacher") && (
+                <>
+                  <SectionForm
+                    formData={formData}
+                    setFormData={setFormData}
+                    errors={errors}
+                    handleChange={handleChange}
+                    isPending={isPending}
+                  />
+                  {formData.role === "adviser/subject-teacher" && (
+                    <Separator className="my-3" />
+                  )}
+                </>
+              )}
+
+              {(formData.role === "subject-teacher" ||
+                formData.role === "adviser/subject-teacher") && (
                 <SubjectTaughtForm
                   errors={errors}
                   formData={formData}
@@ -393,7 +505,6 @@ function UserPage() {
           </CardContent>
         </Card>
       </motion.div>
-      {formData.role === "adviser" && <AdviserForm />}
     </div>
   );
 }

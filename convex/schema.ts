@@ -57,7 +57,7 @@ const schema = defineSchema({
       other: v.optional(v.array(v.object({
         component: v.union(
           v.literal('Written Works'),
-          v.literal('Perfomance Tasks'),
+          v.literal('Performance Tasks'),
           v.literal('Major Exam'),
         ),
         percentage: v.number(),

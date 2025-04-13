@@ -60,7 +60,7 @@ export const createUser = mutation({
                 v.literal('Grade 11'),
                 v.literal('Grade 12'),
             ),
-            sectionId: v.id("sections"),
+            sectionId: v.string(), // Changed from v.id to v.string to accept pending IDs
             quarter: v.array(v.union(
                 v.literal('1st quarter'),
                 v.literal('2nd quarter'),
@@ -89,13 +89,30 @@ export const createUser = mutation({
                 other: v.optional(v.array(v.object({
                     component: v.union(
                         v.literal('Written Works'),
-                        v.literal('Perfomance Tasks'),
+                        v.literal('Performance Tasks'),
                         v.literal('Major Exam'),
                     ),
                     percentage: v.number(),
                 }))),
             }),
         }))),
+
+        // FOR ADVISER
+
+        sections: v.optional(v.array(v.object({
+            name: v.string(),
+            gradeLevel: v.union(
+                v.literal('Grade 7'),
+                v.literal('Grade 8'),
+                v.literal('Grade 9'),
+                v.literal('Grade 10'),
+                v.literal('Grade 11'),
+                v.literal('Grade 12'),
+            ),
+            schoolYear: v.string(),
+        }))),
+
+        // FOR OTHERS
     },
     handler: async (ctx, args) => {
         // Verify if there is a current user logged in
@@ -125,7 +142,7 @@ export const createUser = mutation({
         }
 
         // extract user input
-        const { email, password, subjectsTaught, ...userData } = args;
+        const { email, password, subjectsTaught, sections, ...userData } = args;
 
         // Create the user account in auth system
         // @ts-expect-error - type error in convex auth
@@ -147,9 +164,52 @@ export const createUser = mutation({
             throw new ConvexError("Failed to create account");
         }
 
-        // create the subjects taught but since there are many subjects, we need to loop it first
-        if (args.role === "subject-teacher" && subjectsTaught) {
+        // Array to store created section IDs
+        const createdSections = [];
+
+        // Handle adviser sections first
+        if ((args.role === "adviser" || args.role === "adviser/subject-teacher") && sections && sections.length > 0) {
+            for (const section of sections) {
+                const sectionId = await ctx.db.insert("sections", {
+                    adviserId: accountResponse.user._id,
+                    name: section.name,
+                    gradeLevel: section.gradeLevel,
+                    schooYear: section.schoolYear,
+                });
+
+                createdSections.push({
+                    id: sectionId,
+                    name: section.name,
+                    gradeLevel: section.gradeLevel,
+                    index: createdSections.length,
+                });
+            }
+        }
+
+        // Handle subject teacher subjects (for both subject-teacher and adviser/subject-teacher roles)
+        if ((args.role === "subject-teacher" || args.role === "adviser/subject-teacher") && subjectsTaught) {
             for (const subject of subjectsTaught) {
+                // Check if this is a reference to a pending section
+                let sectionId = subject.sectionId;
+
+                // If it's a pending section reference (pending-section-X)
+                if (sectionId.startsWith('pending-section-')) {
+                    const pendingIndex = parseInt(sectionId.replace('pending-section-', ''));
+
+                    // Find the corresponding created section by index AND matching grade level
+                    const createdSection = createdSections.find(
+                        s => s.index === pendingIndex &&
+                            s.gradeLevel === subject.gradeLevel
+                    );
+
+                    if (!createdSection) {
+                        throw new ConvexError(`Invalid pending section reference: ${sectionId}`);
+                    }
+
+                    // Use the actual created section ID instead
+                    sectionId = createdSection.id;
+                }
+
                 // First create the subject thought
                 const subjectThoughtId = await ctx.db.insert("subjectThought", {
                     teacherId: accountResponse.user._id,
@@ -167,7 +227,7 @@ export const createUser = mutation({
                             subjectThoughId: subjectThoughtId,
                             quarter: quarter,
                             semester: undefined,
-                            sectionId: subject.sectionId,
+                            sectionId: sectionId as Id<"sections">, // Use resolved sectionId
                         });
                     }
                 }
@@ -178,14 +238,14 @@ export const createUser = mutation({
                             subjectThoughId: subjectThoughtId,
                             semester: semester,
                             quarter: subject.quarter?.[0] || "1st quarter",
-                            sectionId: subject.sectionId,
+                            sectionId: sectionId as Id<"sections">, // Use resolved sectionId
                         });
                     }
                 }
             }
         }
 
-        // else return the created user meaning success
+        // return the created user
         return accountResponse.user;
     }
 })

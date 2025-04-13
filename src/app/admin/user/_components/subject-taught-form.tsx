@@ -91,12 +91,13 @@ export const SubjectTaughtForm = ({
           type: "Face to face",
           faceToFace: { ww: 0, pt: 0, majorExam: 0 },
         },
+        newComponentType: gradeComponentTypes[0], // Initialize this field
       };
 
       setSubjects([newSubject]);
       updateFormDataWithSubjects([newSubject]);
     }
-  }, []); // Empty dependency array
+  }, []);
 
   // Generate a unique ID for each subject
   const generateId = () =>
@@ -115,11 +116,10 @@ export const SubjectTaughtForm = ({
         type: "Face to face",
         faceToFace: { ww: 0, pt: 0, majorExam: 0 },
       },
+      newComponentType: "Written Works", // Use string directly to avoid typo
     };
 
     setSubjects((prev) => [...prev, newSubject]);
-
-    // Update the form data with the new subjects array
     updateFormDataWithSubjects([...subjects, newSubject]);
   };
 
@@ -134,10 +134,57 @@ export const SubjectTaughtForm = ({
 
   // Update the form data with the current subjects
   const updateFormDataWithSubjects = (updatedSubjects: Subject[]) => {
+    // Create deep copies of everything to avoid reference issues
+    const cleanedSubjects = updatedSubjects.map((subject) => {
+      // Create a cleaned copy of the subject without UI-only fields
+      const { newComponentType, newComponentPercentage, ...subjectBase } =
+        subject;
+
+      // Handle grade weights properly with deep copying
+      const gradeWeights = {
+        type: subject.gradeWeights.type,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+
+      // Copy the appropriate fields based on type
+      if (
+        subject.gradeWeights.type === "Face to face" &&
+        subject.gradeWeights.faceToFace
+      ) {
+        gradeWeights.faceToFace = { ...subject.gradeWeights.faceToFace };
+      }
+
+      if (
+        subject.gradeWeights.type === "Modular" &&
+        subject.gradeWeights.modular
+      ) {
+        gradeWeights.modular = { ...subject.gradeWeights.modular };
+      }
+
+      if (subject.gradeWeights.type === "Other") {
+        // Deep copy the other array and its contents
+        gradeWeights.other = subject.gradeWeights.other
+          ? [...subject.gradeWeights.other.map((item) => ({ ...item }))]
+          : [];
+      }
+
+      // Return the cleaned, deep-copied subject
+      return {
+        ...subjectBase,
+        gradeWeights,
+      };
+    });
+
+    console.log(
+      "About to update formData with:",
+      JSON.stringify(cleanedSubjects)
+    );
+
+    // Update the form data with the cleaned subjects array
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setFormData((prev: any) => ({
       ...prev,
-      subjectsTaught: updatedSubjects,
+      subjectsTaught: cleanedSubjects,
     }));
   };
 
@@ -158,22 +205,38 @@ export const SubjectTaughtForm = ({
   // Update grade weights for a specific subject
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateGradeWeights = (id: string, gradeWeights: any) => {
+    console.log("Updating grade weights:", id, JSON.stringify(gradeWeights));
+
     const updatedSubjects = subjects.map((subject) => {
       if (subject.id === id) {
-        // Ensure other array exists and is preserved
+        // Create a proper deep copy to avoid reference issues
         const updatedGradeWeights = {
-          ...gradeWeights,
-          other:
-            gradeWeights.type === "Other"
-              ? gradeWeights.other || []
-              : undefined,
+          type: gradeWeights.type,
+          // Handle each type of grade weight properly
           faceToFace:
             gradeWeights.type === "Face to face"
-              ? gradeWeights.faceToFace
+              ? { ...gradeWeights.faceToFace }
               : undefined,
           modular:
-            gradeWeights.type === "Modular" ? gradeWeights.modular : undefined,
+            gradeWeights.type === "Modular"
+              ? { ...gradeWeights.modular }
+              : undefined,
+          other:
+            gradeWeights.type === "Other"
+              ? // Make a deep copy of the array and each object inside
+                [
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  ...(gradeWeights.other || []).map((item: any) => ({
+                    ...item,
+                  })),
+                ]
+              : undefined,
         };
+
+        console.log(
+          "Updated grade weights:",
+          JSON.stringify(updatedGradeWeights)
+        );
 
         return {
           ...subject,
@@ -183,8 +246,81 @@ export const SubjectTaughtForm = ({
       return subject;
     });
 
+    // Update both the subjects state and the form data
     setSubjects(updatedSubjects);
     updateFormDataWithSubjects(updatedSubjects);
+  };
+
+  const handleOGCButton = (subject: Subject) => {
+    // Validate inputs
+    if (
+      !subject.newComponentPercentage ||
+      Number(subject.newComponentPercentage) <= 0 ||
+      !subject.newComponentType
+    ) {
+      return;
+    }
+
+    // Find the current subject with latest state
+    const currentSubject = subjects.find((s) => s.id === subject.id);
+    if (!currentSubject) return;
+
+    // Create new component
+    const newComponent = {
+      component: subject.newComponentType as
+        | "Written Works"
+        | "Performance Tasks"
+        | "Major Exam",
+      percentage: Number(subject.newComponentPercentage),
+    };
+
+    // Important: Create a proper COPY of the existing components array
+    const existingOther = Array.isArray(currentSubject.gradeWeights.other)
+      ? [...currentSubject.gradeWeights.other]
+      : [];
+
+    console.log("BEFORE: Existing components:", JSON.stringify(existingOther));
+
+    // Create an entirely new array with the new component
+    const newComponentsArray = [...existingOther, newComponent];
+
+    console.log(
+      "AFTER: New components array:",
+      JSON.stringify(newComponentsArray)
+    );
+
+    // Create an entirely new gradeWeights object
+    const updatedGradeWeights = {
+      type: "Other" as const,
+      other: newComponentsArray,
+    };
+
+    // Update the subjects array directly instead of through updateGradeWeights
+    const updatedSubjects = subjects.map((s) => {
+      if (s.id === subject.id) {
+        return {
+          ...s,
+          gradeWeights: updatedGradeWeights,
+          newComponentPercentage: "", // Reset input fields
+          newComponentType: gradeComponentTypes[0], // Reset select
+        };
+      }
+      return s;
+    });
+
+    // Update both state and form data in one go
+    setSubjects(updatedSubjects);
+
+    // Directly update form data with the new subjects array
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setFormData((prev: any) => ({
+      ...prev,
+      subjectsTaught: updatedSubjects.map(
+        ({ newComponentType, newComponentPercentage, ...rest }) => rest
+      ),
+    }));
+
+    console.log("Updated subjects:", updatedSubjects);
   };
 
   console.log(formData);
@@ -288,10 +424,42 @@ export const SubjectTaughtForm = ({
                           {section.name}
                         </SelectItem>
                       ))}
+
+                    {/* Show pending sections with CORRECT INDEX */}
+                    {formData.role === "adviser/subject-teacher" &&
+                      formData.sections
+                        ?.filter(
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          (section: any) =>
+                            section.name &&
+                            section.gradeLevel === subject.gradeLevel
+                        )
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        .map((section: any) => {
+                          // Find the actual index of this section in the full sections array
+                          const actualIndex = formData.sections?.findIndex(
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            (s: any) =>
+                              s.name === section.name &&
+                              s.gradeLevel === section.gradeLevel
+                          );
+
+                          return (
+                            <SelectItem
+                              key={`pending-${actualIndex}`}
+                              value={`pending-section-${actualIndex}`}
+                              className="bg-blue-50"
+                            >
+                              {section.name}
+                            </SelectItem>
+                          );
+                        })}
                   </SelectContent>
                 </Select>
-                {errors.sectionId && (
-                  <p className="text-xs text-red-600">{errors.sectionId}</p>
+                {errors[`subject${index}Section`] && (
+                  <p className="text-xs text-red-600">
+                    {errors[`subject${index}Section`]}
+                  </p>
                 )}
               </div>
             </div>
@@ -783,8 +951,8 @@ export const SubjectTaughtForm = ({
 
                       {/* Add new component form */}
                       <div className="space-y-2">
-                        <div className="flex gap-2">
-                          <div className="flex-1">
+                        <div className="grid grid-cols-1 gap-2">
+                          <div className="w-full">
                             <Select
                               value={
                                 subject.newComponentType ||
@@ -799,7 +967,7 @@ export const SubjectTaughtForm = ({
                               }}
                               disabled={subject.gradeWeights.type !== "Other"}
                             >
-                              <SelectTrigger>
+                              <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select component" />
                               </SelectTrigger>
                               <SelectContent>
@@ -815,7 +983,7 @@ export const SubjectTaughtForm = ({
                             </Select>
                           </div>
 
-                          <div className="w-24">
+                          <div>
                             <Input
                               type="number"
                               min="1"
@@ -835,52 +1003,7 @@ export const SubjectTaughtForm = ({
                         </div>
 
                         <Button
-                          onClick={() => {
-                            if (
-                              !subject.newComponentPercentage ||
-                              Number(subject.newComponentPercentage) <= 0 ||
-                              !subject.newComponentType
-                            ) {
-                              return;
-                            }
-
-                            const newComponent = {
-                              component: subject.newComponentType as
-                                | "Written Works"
-                                | "Performance Tasks"
-                                | "Major Exam",
-                              percentage: Number(
-                                subject.newComponentPercentage
-                              ),
-                            };
-
-                            // Get existing other components or initialize empty array
-                            const currentOther =
-                              subject.gradeWeights.other || [];
-
-                            // Create new grade weights object
-                            const updatedGradeWeights = {
-                              type: "Other" as const,
-                              other: [...currentOther, newComponent],
-                              faceToFace: undefined,
-                              modular: undefined,
-                            };
-
-                            // Update grade weights
-                            updateGradeWeights(subject.id, updatedGradeWeights);
-
-                            // Reset input fields
-                            updateSubject(
-                              subject.id,
-                              "newComponentType",
-                              gradeComponentTypes[0]
-                            );
-                            updateSubject(
-                              subject.id,
-                              "newComponentPercentage",
-                              ""
-                            );
-                          }}
+                          onClick={() => handleOGCButton(subject)}
                           disabled={
                             subject.gradeWeights.type !== "Other" ||
                             !subject.newComponentPercentage ||

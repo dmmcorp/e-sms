@@ -42,12 +42,12 @@ export type QuarterType =
   "4th quarter";
 
 export type RoleType =
-| "admin"
-| "subject-teacher"
-| "adviser"
-| "adviser/subject-teacher"
-| "principal"
-| "registrar";
+  | "admin"
+  | "subject-teacher"
+  | "adviser"
+  | "adviser/subject-teacher"
+  | "principal"
+  | "registrar";
 
 export type PrincipalDepartmentType =
   "junior-department" |
@@ -82,3 +82,16 @@ export interface TeachingLoadType extends Doc<'teachingLoad'>{
   highestScores: Doc<'highestScores'>[]
 
 }
+
+export type OtherComponent = {
+  component: "Written Works" | "Performance Tasks" | "Major Exam";
+  percentage: number;
+};
+
+export type GradeWeightType = "Face to face" | "Modular" | "Other";
+export type GradeWeights = {
+  type: GradeWeightType;
+  faceToFace?: { ww: number; pt: number; majorExam: number; };
+  modular?: { ww: number; pt: number; };
+  other?: OtherComponent[];
+};
