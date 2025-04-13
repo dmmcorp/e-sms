@@ -3,7 +3,7 @@ import { mutation, query } from "./_generated/server";
 import { ConvexError, GenericId, v } from "convex/values";
 import { UserForm } from "../src/lib/zod"
 import { Doc, Id } from "./_generated/dataModel";
-
+import { SubjectTaughtQueryResult } from "../src/lib/types";
 
 // backend function to get the current logged in user
 export const current = query({
@@ -268,15 +268,13 @@ export const getAllUsers = query({
 export const getUser = query({
     args: { userId: v.id("users") },
     handler: async (ctx, args) => {
-        // Simple check to ensure there is a selected user
         const user = await ctx.db.get(args.userId);
         if (!user) {
             throw new ConvexError("User not found");
         }
 
-
         // Get sections if adviser role
-        let sections: Doc<"sections">[] = []
+        let sections: Doc<"sections">[] = [];
         if (user.role === "adviser" || user.role === "adviser/subject-teacher") {
             sections = await ctx.db
                 .query("sections")
@@ -285,9 +283,8 @@ export const getUser = query({
         }
 
         // Get subjects taught if subject-teacher role
-        let subjectsTaught = []
+        let subjectsTaught: SubjectTaughtQueryResult[] = [];
         if (user.role === "subject-teacher" || user.role === "adviser/subject-teacher") {
-            // fetch subjects first
             const subjects = await ctx.db
                 .query("subjectThought")
                 .withIndex("teacherId", q => q.eq("teacherId", args.userId))
@@ -299,31 +296,43 @@ export const getUser = query({
                     .withIndex("subjectThoughId", q => q.eq("subjectThoughId", subject._id))
                     .collect();
 
-                const quarter = [];
-                const semester = [];
-                let sectionId;
+                // Group teaching loads by section to handle teaching the same subject in multiple sections
+                const sectionGroups = teachingLoads.reduce<Record<string, { quarters: Set<string>, semesters: Set<string>, sectionId: Id<"sections"> }>>((acc, load) => {
+                    const sectionIdStr = load.sectionId.toString(); // Use string as key
+                    if (!acc[sectionIdStr]) {
+                        acc[sectionIdStr] = { quarters: new Set(), semesters: new Set(), sectionId: load.sectionId };
+                    }
+                    if (load.quarter) acc[sectionIdStr].quarters.add(load.quarter);
+                    if (load.semester) acc[sectionIdStr].semesters.add(load.semester);
+                    return acc;
+                }, {});
 
-                for (const load of teachingLoads) {
-                    if (load.quarter) quarter.push(load.quarter);
-                    if (load.semester) semester.push(load.semester);
-                    if (!sectionId) sectionId = load.sectionId;
-                }
-
-                // Add to subjects array
-                subjectsTaught.push({
-                    id: `subject_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                    subjectName: subject.subjectName,
-                    gradeLevel: subject.gradeLevel,
-                    sectionId: sectionId,
-                    quarter: quarter,
-                    semester: semester || [],
-                    gradeWeights: subject.gradeWeights,
+                // Create a subject entry for each section the subject is taught in
+                Object.values(sectionGroups).forEach((group) => {
+                    subjectsTaught.push({
+                        // Use a stable, unique ID combining subject and section IDs
+                        id: `subject_${subject._id}_${group.sectionId}`,
+                        subjectName: subject.subjectName,
+                        gradeLevel: subject.gradeLevel,
+                        sectionId: group.sectionId, // Use the actual section ID
+                        quarter: Array.from(group.quarters), // Convert Set to array
+                        semester: Array.from(group.semesters), // Convert Set to array
+                        gradeWeights: subject.gradeWeights, // Include gradeWeights
+                    });
                 });
-            };
-        };
+            }
+        }
 
+        // Ensure all necessary user fields are returned explicitly
         return {
-            ...user,
+            _id: user._id,
+            _creationTime: user._creationTime,
+            email: user.email,
+            fullName: user.fullName,
+            role: user.role, // Explicitly return role
+            principalType: user.principalType, // Include principalType if it exists
+            isActive: user.isActive, // Include isActive if it exists
+            // Return the fetched sections and structured subjectsTaught
             sections,
             subjectsTaught,
         };

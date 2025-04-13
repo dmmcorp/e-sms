@@ -13,7 +13,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { PrincipalDepartmentType, RoleType } from "@/lib/types";
+import {
+  PrincipalDepartmentType,
+  RoleType,
+  SchoolYearTypes,
+} from "@/lib/types";
 import { UserFormData } from "@/lib/zod";
 import { useConvexMutation } from "@convex-dev/react-query";
 import { useMutation } from "@tanstack/react-query";
@@ -76,17 +80,42 @@ const EditUserPage: React.FC<EditUserModalProps> = ({
 
   // Load user data when available
   useEffect(() => {
+    // Only run if user data is available
     if (user) {
+      console.log("User data received:", JSON.stringify(user, null, 2)); // Log fetched data
+
+      // Map sections, ensuring correct types
+      const mappedSections = (user.sections || []).map((section) => ({
+        name: section.name,
+        gradeLevel: section.gradeLevel,
+        schoolYear: section.schoolYear as SchoolYearTypes | undefined,
+        // adviserId: section.adviserId,
+      }));
+
+      const mappedSubjects = (user.subjectsTaught || []).map((subject) => ({
+        subjectName: subject.subjectName || "",
+        gradeLevel: subject.gradeLevel,
+        // @ts-expect-error slight type issue
+        sectionId: subject.sectionId || "",
+        quarter: Array.isArray(subject.quarter) ? subject.quarter : [],
+        semester: Array.isArray(subject.semester) ? subject.semester : [],
+        gradeWeights: {
+          type: subject.gradeWeights?.type || "Face to face",
+          faceToFace: subject.gradeWeights?.faceToFace || undefined,
+          modular: subject.gradeWeights?.modular || undefined,
+          other: subject.gradeWeights?.other || undefined,
+        },
+      }));
+
+      // Set the entire form data state at once
       setFormData({
         role: user.role,
         principalType: user.principalType,
         fullName: user.fullName,
         email: user.email,
-        password: "", // Empty password field for security
-        // @ts-expect-error no errors here id is string should still work the same
-        subjectsTaught: user.subjectsTaught || [],
-        // @ts-expect-error no errors here id is string should still work the same
-        sections: user.sections || [],
+        password: "",
+        subjectsTaught: Array.isArray(mappedSubjects) ? mappedSubjects : [],
+        sections: Array.isArray(mappedSections) ? mappedSections : [],
       });
     }
   }, [user]);
@@ -254,6 +283,8 @@ const EditUserPage: React.FC<EditUserModalProps> = ({
       toast.error("An unexpected error occurred");
     }
   };
+
+  console.log(`FormData: ${JSON.stringify(formData)}`);
 
   return (
     <div className="container mx-auto">
@@ -430,7 +461,6 @@ const EditUserPage: React.FC<EditUserModalProps> = ({
                       formData={formData}
                       isPending={isPending}
                       setFormData={setFormData}
-                      handleChange={handleChange}
                     />
                   )}
 

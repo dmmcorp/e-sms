@@ -30,7 +30,6 @@ interface SectionFormProps {
 export const SectionForm = ({
   errors,
   formData,
-  handleChange,
   setFormData,
   isPending,
 }: SectionFormProps) => {
@@ -89,126 +88,130 @@ export const SectionForm = ({
         </Button>
       </div>
 
-      {formData.sections?.map((section, index) => (
-        <Card key={index} className="w-full">
-          <CardContent className="pt-4 space-y-3">
-            <div className="flex justify-between items-center">
-              <h4 className="font-medium">Section {index + 1}</h4>
-              {formData.sections!.length > 1 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeSection(index)}
-                  className="text-red-500"
-                  disabled={isPending}
-                >
-                  <Trash className="mr-2 h-4 w-4" />
-                  Remove
-                </Button>
-              )}
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-x-3 w-full">
-                <Label
-                  htmlFor={`section-schoolYear-${index}`}
-                  className="w-[20%]"
-                >
-                  School Year:
-                </Label>
-                <div className="w-[80%]">
-                  <Select
+      {formData.sections && formData.sections.length > 0 ? (
+        formData.sections.map((section, index) => (
+          <Card key={index} className="w-full">
+            <CardContent className="pt-4 space-y-3">
+              <div className="flex justify-between items-center">
+                <h4 className="font-medium">Section {index + 1}</h4>
+                {formData.sections!.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeSection(index)}
+                    className="text-red-500"
                     disabled={isPending}
-                    value={section.schoolYear || ""}
-                    onValueChange={(value) =>
-                      updateSection(index, "schoolYear", value)
-                    }
                   >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select school year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {schoolYears.map((year) => (
-                        <SelectItem key={year} value={year}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors[`section${index}SchoolYear`] && (
-                    <p className="text-xs text-red-600">
-                      {errors[`section${index}SchoolYear`]}
-                    </p>
-                  )}
-                </div>
+                    <Trash className="mr-2 h-4 w-4" />
+                    Remove
+                  </Button>
+                )}
               </div>
 
-              {section.schoolYear && (
-                <p>School Year: {section.schoolYear || ""}</p>
-              )}
-              <div className="flex items-center gap-x-3 w-full mt-11">
-                <Label
-                  htmlFor={`section-gradeLevel-${index}`}
-                  className="w-[20%]"
-                >
-                  Grade Level:
-                </Label>
-                <div className="w-[80%]">
-                  <Select
-                    disabled={isPending}
-                    value={section.gradeLevel || ""}
-                    onValueChange={(value) =>
-                      updateSection(index, "gradeLevel", value)
-                    }
+              <div className="space-y-3">
+                <div className="flex items-center gap-x-3 w-full">
+                  <Label
+                    htmlFor={`section-schoolYear-${index}`}
+                    className="w-[20%]"
                   >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select grade level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {gradeLevels.map((level) => (
-                        <SelectItem key={level} value={level}>
-                          {level}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors[`section${index}GradeLevel`] && (
-                    <p className="text-xs text-red-600">
-                      {errors[`section${index}GradeLevel`]}
-                    </p>
-                  )}
+                    School Year:
+                  </Label>
+                  <div className="w-[80%]">
+                    <Select
+                      disabled={isPending}
+                      value={section.schoolYear || ""}
+                      onValueChange={(value) =>
+                        updateSection(index, "schoolYear", value)
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select school year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {schoolYears.map((year) => (
+                          <SelectItem key={year} value={year}>
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors[`section${index}SchoolYear`] && (
+                      <p className="text-xs text-red-600">
+                        {errors[`section${index}SchoolYear`]}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <p className="font-bold underline underline-offset-4">
-                Add Section
-              </p>
-              <div className="flex items-center gap-x-3 w-full">
-                <Label htmlFor={`section-name-${index}`} className="w-[20%]">
-                  Section Name:
-                </Label>
-                <div className="w-[80%]">
-                  <Input
-                    id={`section-name-${index}`}
-                    disabled={isPending}
-                    placeholder="Enter section name"
-                    value={section.name}
-                    onChange={(e) =>
-                      updateSection(index, "name", e.target.value)
-                    }
-                  />
-                  {errors[`section${index}Name`] && (
-                    <p className="text-xs text-red-600">
-                      {errors[`section${index}Name`]}
-                    </p>
-                  )}
+                {section.schoolYear && (
+                  <p>School Year: {section.schoolYear || ""}</p>
+                )}
+                <div className="flex items-center gap-x-3 w-full mt-11">
+                  <Label
+                    htmlFor={`section-gradeLevel-${index}`}
+                    className="w-[20%]"
+                  >
+                    Grade Level:
+                  </Label>
+                  <div className="w-[80%]">
+                    <Select
+                      disabled={isPending}
+                      value={section.gradeLevel || ""}
+                      onValueChange={(value) =>
+                        updateSection(index, "gradeLevel", value)
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select grade level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {gradeLevels.map((level) => (
+                          <SelectItem key={level} value={level}>
+                            {level}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors[`section${index}GradeLevel`] && (
+                      <p className="text-xs text-red-600">
+                        {errors[`section${index}GradeLevel`]}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <p className="font-bold underline underline-offset-4">
+                  Add Section
+                </p>
+                <div className="flex items-center gap-x-3 w-full">
+                  <Label htmlFor={`section-name-${index}`} className="w-[20%]">
+                    Section Name:
+                  </Label>
+                  <div className="w-[80%]">
+                    <Input
+                      id={`section-name-${index}`}
+                      disabled={isPending}
+                      placeholder="Enter section name"
+                      value={section.name}
+                      onChange={(e) =>
+                        updateSection(index, "name", e.target.value)
+                      }
+                    />
+                    {errors[`section${index}Name`] && (
+                      <p className="text-xs text-red-600">
+                        {errors[`section${index}Name`]}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        ))
+      ) : (
+        <p className="text-sm text-muted-foreground">No sections added yet.</p>
+      )}
     </motion.div>
   );
 };

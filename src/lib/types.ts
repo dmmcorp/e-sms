@@ -1,4 +1,4 @@
-import { Doc } from "../../convex/_generated/dataModel";
+import { Doc, Id } from "../../convex/_generated/dataModel";
 
 export type SchoolYearTypes =
   "2024-2025" |
@@ -59,23 +59,23 @@ export type TeacherTypes = Doc<'users'>;
 export type SubjectTypes = Doc<'subjectThought'>;
 export type StudentTypes = Doc<'students'>;
 
-interface ClassRecordWithStudentInfo extends Doc<'classRecords'>{
-  student: Doc<'students'> 
+interface ClassRecordWithStudentInfo extends Doc<'classRecords'> {
+  student: Doc<'students'>
 }
-interface subjectThoughtWithTeacherInfo extends Doc<'subjectThought'>{
+interface subjectThoughtWithTeacherInfo extends Doc<'subjectThought'> {
   teacher: Doc<'users'> | null
 }
 
-interface EnrollmentWithSection extends Doc<'enrollment'>{
+interface EnrollmentWithSection extends Doc<'enrollment'> {
   section: Doc<'sections'> | null
 }
 
-export interface StudentWithEnrollment extends Doc<'students'>{
+export interface StudentWithEnrollment extends Doc<'students'> {
   enrollment: EnrollmentWithSection[],
   currentSection: EnrollmentWithSection | undefined
 }
 
-export interface TeachingLoadType extends Doc<'teachingLoad'>{
+export interface TeachingLoadType extends Doc<'teachingLoad'> {
   section: Doc<'sections'>
   subjectThought: subjectThoughtWithTeacherInfo;
   classRecords: ClassRecordWithStudentInfo[];
@@ -94,4 +94,14 @@ export type GradeWeights = {
   faceToFace?: { ww: number; pt: number; majorExam: number; };
   modular?: { ww: number; pt: number; };
   other?: OtherComponent[];
+};
+
+export type SubjectTaughtQueryResult = {
+  id: string;
+  subjectName: string;
+  gradeLevel: GradeLevelsTypes;
+  sectionId: Id<"sections">;
+  quarter: string[];
+  semester: string[];
+  gradeWeights: GradeWeights;
 };
