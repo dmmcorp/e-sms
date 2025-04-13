@@ -96,6 +96,23 @@ export const createUser = mutation({
                 }))),
             }),
         }))),
+
+        // FOR ADVISER
+
+        sections: v.optional(v.array(v.object({
+            name: v.string(),
+            gradeLevel: v.union(
+                v.literal('Grade 7'),
+                v.literal('Grade 8'),
+                v.literal('Grade 9'),
+                v.literal('Grade 10'),
+                v.literal('Grade 11'),
+                v.literal('Grade 12'),
+            ),
+            schoolYear: v.string(),
+        }))),
+
+        // FOR ADVISER/SUBJECT-TEACHER
     },
     handler: async (ctx, args) => {
         // Verify if there is a current user logged in
@@ -125,7 +142,7 @@ export const createUser = mutation({
         }
 
         // extract user input
-        const { email, password, subjectsTaught, ...userData } = args;
+        const { email, password, subjectsTaught, sections, ...userData } = args;
 
         // Create the user account in auth system
         // @ts-expect-error - type error in convex auth
@@ -145,6 +162,18 @@ export const createUser = mutation({
         // if no response throw an error
         if (!accountResponse?.user?._id) {
             throw new ConvexError("Failed to create account");
+        }
+
+        // Handle adviser sections
+        if ((args.role === "adviser" || args.role === "adviser/subject-teacher") && args.sections && args.sections.length > 0) {
+            for (const section of args.sections) {
+                await ctx.db.insert("sections", {
+                    adviserId: accountResponse.user._id,
+                    name: section.name,
+                    gradeLevel: section.gradeLevel,
+                    schooYear: section.schoolYear,
+                });
+            }
         }
 
         // create the subjects taught but since there are many subjects, we need to loop it first

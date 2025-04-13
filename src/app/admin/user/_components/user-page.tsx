@@ -24,6 +24,7 @@ import { SubjectTaughtForm } from "./subject-taught-form";
 import { Separator } from "@/components/ui/separator";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import { ConvexError } from "convex/values";
+import { SectionForm } from "./section-form";
 
 const roles = [
   {
@@ -75,6 +76,7 @@ function UserPage() {
     email: "",
     password: "",
     subjectsTaught: [],
+    sections: [],
   };
 
   const [formData, setFormData] = useState<UserFormData>(initialFormValues);
@@ -121,6 +123,31 @@ function UserPage() {
 
     if (formData.role === "principal" && !formData.principalType) {
       fieldErrors.principalType = "Department is required for principal role";
+    }
+
+    // Adviser validations
+    if (
+      formData.role === "adviser" ||
+      formData.role === "adviser/subject-teacher"
+    ) {
+      if (!formData.sections || formData.sections.length === 0) {
+        fieldErrors.sections = "At least one section is required";
+      } else {
+        // Validate each section
+        formData.sections.forEach((section, index) => {
+          if (!section.name) {
+            fieldErrors[`section${index}Name`] = "Section name is required";
+          }
+          if (!section.gradeLevel) {
+            fieldErrors[`section${index}GradeLevel`] =
+              "Grade level is required";
+          }
+          if (!section.schoolYear) {
+            fieldErrors[`section${index}SchoolYear`] =
+              "School year is required";
+          }
+        });
+      }
     }
 
     // Subject Teacher validations
@@ -222,6 +249,16 @@ function UserPage() {
         })
       );
 
+      const cleanedSections = formData.sections
+        ?.filter(
+          (section) => section.name && section.gradeLevel && section.schoolYear
+        )
+        .map(({ adviserId, ...section }) => ({
+          name: section.name,
+          gradeLevel: section.gradeLevel!, // Non-null assertion is safe because of filter
+          schoolYear: section.schoolYear!, // Non-null assertion is safe because of filter
+        }));
+
       console.log("Form passed validation, submitting data");
 
       // Only call createUser if validation passes
@@ -234,6 +271,11 @@ function UserPage() {
           principalType: formData.principalType,
           subjectsTaught:
             formData.role === "subject-teacher" ? cleanedSubjects : undefined,
+          sections:
+            formData.role === "adviser" ||
+            formData.role === "adviser/subject-teacher"
+              ? cleanedSections
+              : undefined,
         },
         {
           onSuccess: () => {
@@ -411,6 +453,16 @@ function UserPage() {
 
               <Separator className="my-3" />
 
+              {formData.role === "adviser" && (
+                <SectionForm
+                  formData={formData}
+                  setFormData={setFormData}
+                  errors={errors}
+                  handleChange={handleChange}
+                  isPending={isPending}
+                />
+              )}
+
               {/* Subject Teacher UI component */}
               {formData.role === "subject-teacher" && (
                 <SubjectTaughtForm
@@ -435,7 +487,7 @@ function UserPage() {
           </CardContent>
         </Card>
       </motion.div>
-      {formData.role === "adviser" && <AdviserForm />}
+      {/* {formData.role === "adviser" && <AdviserForm />} */}
     </div>
   );
 }
