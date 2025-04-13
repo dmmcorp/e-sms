@@ -22,3 +22,13 @@ export const get = query({
         return await ctx.db.query("sections").collect();
     }
 })
+
+
+export const handledSection = query({
+    args:{
+
+    },
+    handler: async(ctx, args) =>{
+        
+    }
+})

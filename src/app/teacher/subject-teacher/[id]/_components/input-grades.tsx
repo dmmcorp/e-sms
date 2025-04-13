@@ -16,12 +16,14 @@ function ClassRecordTemplate({teachingLoad}: ClassRecordTemplateProps ) {
     const highestScores = useQuery(api.highestScores.getScores, {loadId: teachingLoad._id});
     const [dialogOpen, setDialogOpen] = useState<boolean>(false);
     const [type, setType] = useState<DialogType | undefined>();
+    
     const section = teachingLoad.section;
     const subjectThought = teachingLoad.subjectThought;
     const classRecords = teachingLoad.classRecords;
     const gradeWeights = subjectThought.gradeWeights;
     const learningMode = gradeWeights.type;
     const OthersExam = gradeWeights.other?.some(weight => weight.component === 'Major Exam') ?? false;
+    
     let wwGradeWeights: number | undefined;
     switch (learningMode) {
         case "Face to face":
@@ -92,7 +94,7 @@ function ClassRecordTemplate({teachingLoad}: ClassRecordTemplateProps ) {
 
   return (
 
-    <div className='min-w-[1000px] text-primary'>
+    <div className='min-w-6xl text-primary'>
         <div className="flex w-full ">
             <h1 className='border w-[25%] px-3 py-1 uppercase border-y-black border-l-black text-[0.6rem] font-semibold text-center'>{teachingLoad.quarter}</h1>
             <h1 className='border w-[25%] px-3 py-1 uppercase border-x-black border-l-2 border-y-black text-[0.6rem] font-semibold text-left'>Grade & Section: {section.gradeLevel} - {section.name} </h1>

@@ -14,6 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as auth from "../auth.js";
+import type * as files from "../files.js";
 import type * as highestScores from "../highestScores.js";
 import type * as http from "../http.js";
 import type * as sections from "../sections.js";
