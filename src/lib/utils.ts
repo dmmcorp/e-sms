@@ -57,8 +57,12 @@ type Scores = {
   assessmentNo: number;
   score: number;
 }[] | undefined
-export function getTotalScore(scores:Scores, ){
-  if(!scores) return 0
+export function getTotalScore(scores: Scores,) {
+  if (!scores) return 0
 
-  return scores.reduce((sum, item)=> sum + item.score, 0)
+  return scores.reduce((sum, item) => sum + item.score, 0)
 }
+
+// Generate a unique ID for each subject
+export const generateId = () =>
+  `subject_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

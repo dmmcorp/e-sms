@@ -18,6 +18,6 @@ export const semesters = ["1st semester", "2nd semester"] as const;
 
 export const gradeComponentTypes = [
     "Written Works",
-    "Perfomance Tasks",
+    "Performance Tasks",
     "Major Exam",
 ] as const;

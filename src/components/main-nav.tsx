@@ -45,7 +45,7 @@ function MainNav() {
           <Image
             src={school?.schoolImage as string}
             alt={school?.schoolName as string}
-            className="w-16 h-10 object-contain"
+            className="w-16 h-16 object-contain"
             width={120}
             height={120}
           />
