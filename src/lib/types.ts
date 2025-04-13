@@ -41,6 +41,19 @@ export type QuarterType =
   "3rd quarter" |
   "4th quarter";
 
+export type RoleType =
+| "admin"
+| "subject-teacher"
+| "adviser"
+| "adviser/subject-teacher"
+| "principal"
+| "registrar";
+
+export type PrincipalDepartmentType =
+  "junior-department" |
+  "senior-department" |
+  "entire-school"
+
 export type TeacherTypes = Doc<'users'>;
 export type SubjectTypes = Doc<'subjectThought'>;
 
