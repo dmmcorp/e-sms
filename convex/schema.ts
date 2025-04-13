@@ -98,7 +98,12 @@ const schema = defineSchema({
     adviserId: v.id('users'),
     name: v.string(),
     gradeLevel: gradeLevel,
-    schooYear: v.string(),
+    schoolYear: v.optional(v.string()),
+    semester: v.optional(
+      v.union(
+        v.literal('1st semester'),
+        v.literal('2nd semester'),
+      ))
   }),
 
   // table for students record for subject teachers
@@ -178,10 +183,19 @@ const schema = defineSchema({
     sex: v.union(v.literal('male'), v.literal('female')),
     lrn: v.string(),
     dateOfBirth: v.string(),
-    dateOfAdminssion: v.string(),
-    prevSchool: v.string(),
-    prevSchoolAddress: v.string(),
-    alsRating: v.string(),
+    elementary:v.object({
+      genAve: v.string(),
+      school: v.string(),
+      address: v.string(),
+    }),
+    juniorHigh: v.optional(v.object({
+      genAve: v.string(),
+      school: v.string(),
+      address: v.string(),
+    })),
+    isArchived: v.optional(v.boolean()),
+    juniorHighDateOfAdmission: v.string(),
+    alsRating: v.optional(v.string()),
   }),
 
   enrollment: defineTable({
@@ -190,11 +204,13 @@ const schema = defineSchema({
     gradeLevel: gradeLevel,
     status: v.union(
       v.literal('enrolled'),
-      v.literal('dropped')
+      v.literal('dropped'),
+      v.literal('Passed'),
+      v.literal('Failed'),
     ),
     subjects: v.array(v.string()),
     isReturning: v.boolean(),
-    sectionId: v.optional(v.id('sections'))
+    sectionId: v.id('sections')
   }),
 
   systemSettings: defineTable({

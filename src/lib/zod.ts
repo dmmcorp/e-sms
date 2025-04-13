@@ -93,3 +93,45 @@ export const UserForm = z.object({
 });
 
 export type UserFormData = z.infer<typeof UserForm>;
+
+
+export const enrollmentSchema = z.object({
+  lastName: z.string()
+    .min(2, { message: "Last name must be at least 2 characters." })
+    .max(50, { message: "Last name must be at most 50 characters." })
+    .nonempty({ message: "Last name is required." }),
+
+  firstName: z.string()
+    .min(2, { message: "First name must be at least 2 characters." })
+    .max(50, { message: "First name must be at most 50 characters." })
+    .nonempty({ message: "First name is required." }),
+
+  middleName: z.string()
+    .min(2, { message: "Middle name must be at least 2 characters." })
+    .max(50, { message: "Middle name must be at most 50 characters." })
+    .nonempty({ message: "Middle name is required." }),
+
+  lrn: z.string()
+    .length(11, { message: "LRN must be exactly 11 digits." })
+    .nonempty({ message: "LRN is required." }),
+
+  dateOfBirth: z.date({
+    required_error: "Date of birth is required.",
+  }),
+
+  sex: z.string()
+    .nonempty({ message: "Sex is required." }),
+
+  elemGenAve: z.string().nonempty({ message: "Elementary general average is required." }),
+  elemPrevSchoolName: z.string().nonempty({ message: "Previous elementary school name is required." }),
+  elemPrevSchoolAddress: z.string().nonempty({ message: "Previous elementary school address is required." }),
+
+  jnrGenAve: z.string().nonempty({ message: "Junior high general average is required." }),
+  jnrPrevSchoolName: z.string().nonempty({ message: "Previous junior high school name is required." }),
+  jnrPrevSchoolAddress: z.string().nonempty({ message: "Previous junior high school address is required." }),
+  jnrDateOfAdmission: z.date({
+    required_error: "Date of admission is required.",
+  }),
+
+  alsRating: z.string().optional(),
+});

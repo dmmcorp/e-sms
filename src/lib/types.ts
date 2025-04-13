@@ -54,17 +54,28 @@ export type PrincipalDepartmentType =
   "senior-department" |
   "entire-school"
 
+export type SectionType = Doc<'sections'>;
 export type TeacherTypes = Doc<'users'>;
 export type SubjectTypes = Doc<'subjectThought'>;
+export type StudentTypes = Doc<'students'>;
 
-interface ClassRecordWithStudentInfo extends Doc<'classRecords'> {
-  student: Doc<'students'>
+interface ClassRecordWithStudentInfo extends Doc<'classRecords'>{
+  student: Doc<'students'> 
 }
-interface subjectThoughtWithTeacherInfo extends Doc<'subjectThought'> {
+interface subjectThoughtWithTeacherInfo extends Doc<'subjectThought'>{
   teacher: Doc<'users'> | null
 }
 
-export interface TeachingLoadType extends Doc<'teachingLoad'> {
+interface EnrollmentWithSection extends Doc<'enrollment'>{
+  section: Doc<'sections'> | null
+}
+
+export interface StudentWithEnrollment extends Doc<'students'>{
+  enrollment: EnrollmentWithSection[],
+  currentSection: EnrollmentWithSection | undefined
+}
+
+export interface TeachingLoadType extends Doc<'teachingLoad'>{
   section: Doc<'sections'>
   subjectThought: subjectThoughtWithTeacherInfo;
   classRecords: ClassRecordWithStudentInfo[];
