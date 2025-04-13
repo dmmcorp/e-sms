@@ -25,48 +25,7 @@ import { Separator } from "@/components/ui/separator";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import { ConvexError } from "convex/values";
 import { SectionForm } from "./section-form";
-
-const roles = [
-  {
-    display: "Admin",
-    value: "admin",
-  },
-  {
-    display: "Subject Teacher",
-    value: "subject-teacher",
-  },
-  {
-    display: "Adviser",
-    value: "adviser",
-  },
-  {
-    display: "Adviser/Subject Teacher",
-    value: "adviser/subject-teacher",
-  },
-  {
-    display: "Principal",
-    value: "principal",
-  },
-  {
-    display: "Registrar",
-    value: "registrar",
-  },
-];
-
-const principalDepartments = [
-  {
-    display: "Junior Department",
-    value: "junior-department",
-  },
-  {
-    display: "Senior Department",
-    value: "senior-department",
-  },
-  {
-    display: "Entire School",
-    value: "entire-school",
-  },
-];
+import { principalDepartments, roles } from "@/lib/constants";
 
 function UserPage() {
   const initialFormValues: UserFormData = {

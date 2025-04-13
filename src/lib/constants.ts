@@ -36,3 +36,46 @@ export const schoolYears = [
     "2043-2044",
     "2044-2045"
 ];
+
+
+export const roles = [
+    {
+        display: "Admin",
+        value: "admin",
+    },
+    {
+        display: "Subject Teacher",
+        value: "subject-teacher",
+    },
+    {
+        display: "Adviser",
+        value: "adviser",
+    },
+    {
+        display: "Adviser/Subject Teacher",
+        value: "adviser/subject-teacher",
+    },
+    {
+        display: "Principal",
+        value: "principal",
+    },
+    {
+        display: "Registrar",
+        value: "registrar",
+    },
+];
+
+export const principalDepartments = [
+    {
+        display: "Junior Department",
+        value: "junior-department",
+    },
+    {
+        display: "Senior Department",
+        value: "senior-department",
+    },
+    {
+        display: "Entire School",
+        value: "entire-school",
+    },
+];

@@ -73,7 +73,7 @@ const schema = defineSchema({
         pt: v.number(),
       }))
     })
-  }),
+  }).index('teacherId', ['teacherId']),
 
   //if the teacher teach on 1st, to 4th quarter then theere will be 4 teaching load will be created.
   //each teaching load has many classrecords(student records for the subject.).
@@ -92,7 +92,7 @@ const schema = defineSchema({
       v.literal('4th quarter'),
     ),
     sectionId: v.id('sections'),
-  }),
+  }).index('subjectThoughId', ['subjectThoughId']),
 
   sections: defineTable({
     adviserId: v.id('users'),
@@ -104,7 +104,7 @@ const schema = defineSchema({
         v.literal('1st semester'),
         v.literal('2nd semester'),
       ))
-  }),
+  }).index('adviserId', ['adviserId']),
 
   // table for students record for subject teachers
   classRecords: defineTable({
@@ -183,7 +183,7 @@ const schema = defineSchema({
     sex: v.union(v.literal('male'), v.literal('female')),
     lrn: v.string(),
     dateOfBirth: v.string(),
-    elementary:v.object({
+    elementary: v.object({
       genAve: v.string(),
       school: v.string(),
       address: v.string(),

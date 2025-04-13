@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ERMS-Teacher",
-  description: "Teacher Page",
+  title: "ERMS-Admin",
+  description: "Admin Page",
 };
 
 export default function RootLayout({
