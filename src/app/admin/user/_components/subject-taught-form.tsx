@@ -424,10 +424,30 @@ export const SubjectTaughtForm = ({
                           {section.name}
                         </SelectItem>
                       ))}
+
+                    {/* Show pending sections being created in this form */}
+                    {formData.role === "adviser/subject-teacher" &&
+                      formData.sections
+                        ?.filter(
+                          (section: any) =>
+                            section.name &&
+                            section.gradeLevel === subject.gradeLevel
+                        )
+                        .map((section: any, index: number) => (
+                          <SelectItem
+                            key={`pending-${index}`}
+                            value={`pending-section-${index}`}
+                            className="bg-blue-50"
+                          >
+                            {section.name}
+                          </SelectItem>
+                        ))}
                   </SelectContent>
                 </Select>
-                {errors.sectionId && (
-                  <p className="text-xs text-red-600">{errors.sectionId}</p>
+                {errors[`subject${index}Section`] && (
+                  <p className="text-xs text-red-600">
+                    {errors[`subject${index}Section`]}
+                  </p>
                 )}
               </div>
             </div>

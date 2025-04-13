@@ -255,8 +255,8 @@ function UserPage() {
         )
         .map(({ adviserId, ...section }) => ({
           name: section.name,
-          gradeLevel: section.gradeLevel!, // Non-null assertion is safe because of filter
-          schoolYear: section.schoolYear!, // Non-null assertion is safe because of filter
+          gradeLevel: section.gradeLevel!,
+          schoolYear: section.schoolYear!,
         }));
 
       console.log("Form passed validation, submitting data");
@@ -270,7 +270,10 @@ function UserPage() {
           password: formData.password,
           principalType: formData.principalType,
           subjectsTaught:
-            formData.role === "subject-teacher" ? cleanedSubjects : undefined,
+            formData.role === "subject-teacher" ||
+            formData.role === "adviser/subject-teacher"
+              ? cleanedSubjects
+              : undefined,
           sections:
             formData.role === "adviser" ||
             formData.role === "adviser/subject-teacher"
@@ -307,6 +310,15 @@ function UserPage() {
 
   return (
     <div className="w-full space-y-5 px-2 py-7">
+      {/* {formData.role === "adviser/subject-teacher" && (
+        <div className="bg-blue-50 p-2 rounded border border-blue-200 text-sm mb-3">
+          <p className="text-blue-700">
+            Note: Sections you define above will be available for selection in
+            the subjects below. They will appear with "(Pending)" next to them
+            and will be created when you submit the form.
+          </p>
+        </div>
+      )} */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -453,18 +465,24 @@ function UserPage() {
 
               <Separator className="my-3" />
 
-              {formData.role === "adviser" && (
-                <SectionForm
-                  formData={formData}
-                  setFormData={setFormData}
-                  errors={errors}
-                  handleChange={handleChange}
-                  isPending={isPending}
-                />
+              {(formData.role === "adviser" ||
+                formData.role === "adviser/subject-teacher") && (
+                <>
+                  <SectionForm
+                    formData={formData}
+                    setFormData={setFormData}
+                    errors={errors}
+                    handleChange={handleChange}
+                    isPending={isPending}
+                  />
+                  {formData.role === "adviser/subject-teacher" && (
+                    <Separator className="my-3" />
+                  )}
+                </>
               )}
 
-              {/* Subject Teacher UI component */}
-              {formData.role === "subject-teacher" && (
+              {(formData.role === "subject-teacher" ||
+                formData.role === "adviser/subject-teacher") && (
                 <SubjectTaughtForm
                   errors={errors}
                   formData={formData}
@@ -487,7 +505,6 @@ function UserPage() {
           </CardContent>
         </Card>
       </motion.div>
-      {/* {formData.role === "adviser" && <AdviserForm />} */}
     </div>
   );
 }

@@ -60,7 +60,7 @@ export const createUser = mutation({
                 v.literal('Grade 11'),
                 v.literal('Grade 12'),
             ),
-            sectionId: v.id("sections"),
+            sectionId: v.string(), // Changed from v.id to v.string to accept pending IDs
             quarter: v.array(v.union(
                 v.literal('1st quarter'),
                 v.literal('2nd quarter'),
@@ -112,7 +112,7 @@ export const createUser = mutation({
             schoolYear: v.string(),
         }))),
 
-        // FOR ADVISER/SUBJECT-TEACHER
+        // FOR OTHERS
     },
     handler: async (ctx, args) => {
         // Verify if there is a current user logged in
@@ -164,21 +164,48 @@ export const createUser = mutation({
             throw new ConvexError("Failed to create account");
         }
 
-        // Handle adviser sections
-        if ((args.role === "adviser" || args.role === "adviser/subject-teacher") && args.sections && args.sections.length > 0) {
-            for (const section of args.sections) {
-                await ctx.db.insert("sections", {
+        // Array to store created section IDs
+        const createdSections = [];
+
+        // Handle adviser sections first
+        if ((args.role === "adviser" || args.role === "adviser/subject-teacher") && sections && sections.length > 0) {
+            for (const section of sections) {
+                const sectionId = await ctx.db.insert("sections", {
                     adviserId: accountResponse.user._id,
                     name: section.name,
                     gradeLevel: section.gradeLevel,
                     schooYear: section.schoolYear,
                 });
+
+                createdSections.push({
+                    id: sectionId,
+                    name: section.name,
+                    gradeLevel: section.gradeLevel,
+                    index: createdSections.length,
+                });
             }
         }
 
-        // create the subjects taught but since there are many subjects, we need to loop it first
-        if (args.role === "subject-teacher" && subjectsTaught) {
+        // Handle subject teacher subjects (for both subject-teacher and adviser/subject-teacher roles)
+        if ((args.role === "subject-teacher" || args.role === "adviser/subject-teacher") && subjectsTaught) {
             for (const subject of subjectsTaught) {
+                // Check if this is a reference to a pending section
+                let sectionId = subject.sectionId;
+
+                // If it's a pending section reference (pending-section-X)
+                if (sectionId.startsWith('pending-section-')) {
+                    const pendingIndex = parseInt(sectionId.replace('pending-section-', ''));
+
+                    // Find the corresponding created section
+                    const createdSection = createdSections.find(s => s.index === pendingIndex);
+                    if (!createdSection) {
+                        throw new ConvexError(`Invalid pending section reference: ${sectionId}`);
+                    }
+
+                    // Use the actual created section ID instead
+                    sectionId = createdSection.id;
+                }
+
                 // First create the subject thought
                 const subjectThoughtId = await ctx.db.insert("subjectThought", {
                     teacherId: accountResponse.user._id,
@@ -196,7 +223,7 @@ export const createUser = mutation({
                             subjectThoughId: subjectThoughtId,
                             quarter: quarter,
                             semester: undefined,
-                            sectionId: subject.sectionId,
+                            sectionId: sectionId as Id<"sections">, // Use resolved sectionId
                         });
                     }
                 }
@@ -207,14 +234,14 @@ export const createUser = mutation({
                             subjectThoughId: subjectThoughtId,
                             semester: semester,
                             quarter: subject.quarter?.[0] || "1st quarter",
-                            sectionId: subject.sectionId,
+                            sectionId: sectionId as Id<"sections">, // Use resolved sectionId
                         });
                     }
                 }
             }
         }
 
-        // else return the created user meaning success
+        // return the created user
         return accountResponse.user;
     }
 })
