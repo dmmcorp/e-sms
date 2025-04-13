@@ -447,7 +447,6 @@ function UserPage() {
                   formData={formData}
                   isPending={isPending}
                   setFormData={setFormData}
-                  handleChange={handleChange}
                 />
               )}
 

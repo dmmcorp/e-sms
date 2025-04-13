@@ -40,17 +40,13 @@ import { SubjectTaughtForm } from "../../_components/subject-taught-form";
 import { principalDepartments, roles } from "@/lib/constants";
 import { useRouter } from "next/navigation";
 
-interface EditUserModalProps {
+interface EditUserPageProps {
   params: {
     userId: Id<"users">;
   };
-  onUserUpdated?: () => void;
 }
 
-const EditUserPage: React.FC<EditUserModalProps> = ({
-  params,
-  onUserUpdated,
-}) => {
+const EditUserPage = ({ params }: EditUserPageProps) => {
   const { userId } = params;
 
   const initialFormValues: UserFormData = {
@@ -265,7 +261,6 @@ const EditUserPage: React.FC<EditUserModalProps> = ({
         {
           onSuccess: () => {
             toast.success("User updated successfully");
-            onUserUpdated?.();
           },
           onError: (error: unknown) => {
             if (error instanceof ConvexError) {
