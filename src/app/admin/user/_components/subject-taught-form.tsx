@@ -22,38 +22,10 @@ import {
 } from "@/lib/constants";
 import { useQuery } from "convex/react";
 import { Plus, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { UserFormData } from "@/lib/zod";
 import { api } from "../../../../../convex/_generated/api";
 import { Doc } from "../../../../../convex/_generated/dataModel";
-
-// Define a subject interface to manage multiple subjects
-// interface Subject {
-//   id: string;
-//   subjectName: string;
-//   gradeLevel: string | undefined;
-//   sectionId: string | undefined;
-//   quarter: string[] | undefined;
-//   semester: string[] | undefined;
-//   gradeWeights: {
-//     type: "Face to face" | "Modular" | "Other";
-//     faceToFace?: {
-//       ww: number;
-//       pt: number;
-//       majorExam: number;
-//     };
-//     modular?: {
-//       ww: number;
-//       pt: number;
-//     };
-//     other?: {
-//       component: "Written Works" | "Performance Tasks" | "Major Exam";
-//       percentage: number;
-//     }[];
-//   };
-//   newComponentType?: string;
-//   newComponentPercentage?: string;
-// }
 
 interface SubjectTaughtFormProps {
   formData: UserFormData;
@@ -68,8 +40,8 @@ type SubjectData = NonNullable<UserFormData["subjectsTaught"]>[number];
 interface SubjectCardContentProps {
   subject: SubjectData;
   index: number;
-  sections: Doc<"sections">[] | undefined; // Pass sections data
-  formData: UserFormData; // Pass full formData for pending sections logic
+  sections: Doc<"sections">[] | undefined;
+  formData: UserFormData;
   errors: Record<string, string>;
   isPending: boolean;
   updateSubject: (index: number, field: keyof SubjectData, value: any) => void;
@@ -77,7 +49,7 @@ interface SubjectCardContentProps {
     index: number,
     gradeWeights: SubjectData["gradeWeights"]
   ) => void;
-  handleOGCButton: (index: number, type: string, percentage: string) => void; // Adjusted handler signature
+  handleOGCButton: (index: number, type: string, percentage: string) => void;
 }
 
 const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
@@ -89,7 +61,7 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
   isPending,
   updateSubject,
   updateGradeWeights,
-  handleOGCButton, // Receive the handler
+  handleOGCButton,
 }) => {
   const [localNewComponentType, setLocalNewComponentType] = useState<string>(
     gradeComponentTypes[0]
@@ -98,12 +70,17 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
     useState<string>("");
 
   const handleAddWeightClick = () => {
-    // Call the handler passed from parent with local state values
     handleOGCButton(index, localNewComponentType, localNewComponentPercentage);
-    // Reset local state after adding
+
     setLocalNewComponentType(gradeComponentTypes[0]);
     setLocalNewComponentPercentage("");
   };
+
+  const existingSectionNames = new Set(
+    sections
+      ?.filter((s) => s.gradeLevel === subject.gradeLevel)
+      .map((s) => s.name)
+  );
 
   return (
     <CardContent className="space-y-4">
@@ -173,29 +150,33 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
                     {section.name}
                   </SelectItem>
                 ))}
-              {/* Pending Sections */}
-              {formData.role === "adviser/subject-teacher" &&
+
+              {(formData.role === "adviser" ||
+                formData.role === "adviser/subject-teacher") &&
                 formData.sections
                   ?.filter(
-                    (section) =>
-                      section.name && section.gradeLevel === subject.gradeLevel
+                    (formSection) =>
+                      formSection.gradeLevel === subject.gradeLevel &&
+                      formSection.name &&
+                      !existingSectionNames.has(formSection.name)
                   )
-                  .map((section) => {
+                  .map((formSection) => {
                     const actualIndex = formData.sections?.findIndex(
                       (s) =>
-                        s.name === section.name &&
-                        s.gradeLevel === section.gradeLevel
+                        s.name === formSection.name &&
+                        s.gradeLevel === formSection.gradeLevel
                     );
-                    // Ensure actualIndex is found before rendering
+
                     if (actualIndex === undefined || actualIndex < 0)
                       return null;
+
                     return (
                       <SelectItem
                         key={`pending-${actualIndex}`}
                         value={`pending-section-${actualIndex}`}
                         className="bg-blue-50"
                       >
-                        {section.name} (Pending)
+                        {formSection.name}
                       </SelectItem>
                     );
                   })}
