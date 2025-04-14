@@ -547,3 +547,71 @@ export const updateUser = mutation({
     }
 });
 
+export const deleteUser = mutation({
+    args: {
+        userId: v.id("users"),
+    },
+    handler: async (ctx, args) => {
+        // 1. Verify Authentication
+        const adminId = await getAuthUserId(ctx)
+        if (!adminId) {
+            throw new ConvexError("Not authenticated")
+        }
+
+        const admin = await ctx.db.get(adminId)
+        if (!admin || admin.role !== "admin") {
+            throw new ConvexError("Unauthorized - Only admins can delete users")
+        }
+
+        // 2. Prevent Selft-Deletion
+        if (adminId === args.userId) {
+            throw new ConvexError("You cannot delete your own account")
+        }
+
+        // 3. Check if user to be deleted exists
+        const userToDelete = await ctx.db.get(args.userId)
+        if (!userToDelete) {
+            throw new ConvexError("User not found")
+        }
+
+        // 4. Deleting related data
+
+        // a) Sections for adviser role
+        // if (userToDelete.role === "adviser" || userToDelete.role === "adviser/subject-teacher") {
+        //     const sections = await ctx.db
+        //         .query("sections")
+        //         .withIndex("adviserId", q => q.eq("adviserId", args.userId))
+        //         .collect()
+
+        //     for (const section of sections) {
+        //         await ctx.db.delete(section._id)
+        //     }
+        // }
+
+        // b) Subjects and Teaching Loads (if subject-teacher role)
+        if (userToDelete.role === "subject-teacher" || userToDelete.role === "adviser/subject-teacher") {
+            const subjects = await ctx.db
+                .query("subjectThought")
+                .withIndex("teacherId", q => q.eq("teacherId", args.userId))
+                .collect()
+
+            for (const subject of subjects) {
+                const teachingLoads = await ctx.db
+                    .query("teachingLoad")
+                    .withIndex("subjectThoughId", q => q.eq("subjectThoughId", subject._id))
+                    .collect()
+
+                for (const load of teachingLoads) {
+                    await ctx.db.delete(load._id)
+                }
+
+                await ctx.db.delete(subject._id)
+            }
+        }
+
+        // 5. Delete the user account
+        await ctx.db.delete(args.userId)
+
+        return { success: true, deletedUserId: args.userId }
+    }
+})
