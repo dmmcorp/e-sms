@@ -5,12 +5,12 @@ import { ConvexClientProvider } from "@/components/convex-client-provider";
 import MainNav from "@/components/main-nav";
 import { TeacherGuard } from "@/components/guards/teacher-guard";
 import { Toaster } from "@/components/ui/sonner";
-
+import { ThemeProviderWithDynamicColors } from "@/components/theme-provider-with-dynamic-colors";
 
 export const metadata: Metadata = {
   title: "ERMS-Teacher",
   description: "Teacher Page",
-}
+};
 
 export default function RootLayout({
   children,
@@ -25,11 +25,12 @@ export default function RootLayout({
             className={`flex flex-col antialiased min-w-screen min-h-screen`}
           >
             <TeacherGuard>
-
-              <MainNav/>
-              {children}
+              <ThemeProviderWithDynamicColors>
+                <MainNav />
+                {children}
+              </ThemeProviderWithDynamicColors>
             </TeacherGuard>
-            <Toaster richColors/>
+            <Toaster richColors />
           </body>
         </html>
       </ConvexClientProvider>

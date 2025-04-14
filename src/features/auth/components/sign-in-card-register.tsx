@@ -184,7 +184,7 @@ export const SignInCardRegister = ({
             </div>
 
             <Button
-              className="w-full"
+              className="w-full bg-primary"
               type="submit"
               size="lg"
               disabled={pending}

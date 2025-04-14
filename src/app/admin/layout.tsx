@@ -5,8 +5,7 @@ import { ConvexClientProvider } from "@/components/convex-client-provider";
 import MainNav from "@/components/main-nav";
 import { SystemAdminGuard } from "@/components/guards/admin-guard";
 import { Toaster } from "@/components/ui/sonner";
-
-
+import { ThemeProviderWithDynamicColors } from "@/components/theme-provider-with-dynamic-colors";
 
 export const metadata: Metadata = {
   title: "ERMS-Admin",
@@ -21,14 +20,16 @@ export default function RootLayout({
   return (
     <ConvexAuthNextjsServerProvider>
       <ConvexClientProvider>
-        <html lang="en">
+        <html lang="en" suppressHydrationWarning>
           <body
             className={`antialiased min-w-screen min-h-screen flex flex-col bg-zinc-50`}
           >
             <SystemAdminGuard>
-              <MainNav />
-              <Toaster richColors />
-              <div className="flex-1 overflow-hidden">{children}</div>
+              <ThemeProviderWithDynamicColors>
+                <MainNav />
+                <Toaster richColors />
+                <div className="flex-1 overflow-hidden">{children}</div>
+              </ThemeProviderWithDynamicColors>
             </SystemAdminGuard>
           </body>
         </html>

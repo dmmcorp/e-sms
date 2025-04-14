@@ -11,7 +11,7 @@ function Page() {
 
   return (
     <div className="h-screen w-full lg:flex lg:flex-row">
-      <div className="h-full w-full lg:w-[50%] flex flex-col flex-1 items-center justify-center bg-zinc-800">
+      <div className="h-full w-full lg:w-[50%] flex flex-col flex-1 items-center justify-center bg-primary">
         <div className="h-full flex items-center justify-center ">
           <div className="md:h-auto md:w-[420px]">
             <Navigation />

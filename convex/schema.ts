@@ -229,6 +229,7 @@ const schema = defineSchema({
   systemSettings: defineTable({
     schoolImage: v.optional(v.string()),
     schoolName: v.optional(v.string()),
+    primaryColor: v.optional(v.string()),
   })
 });
 

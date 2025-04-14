@@ -32,9 +32,8 @@ function MainNav() {
         "px-3 md:px-10 w-full h-18 z-50 shadow-md py-5 justify-between items-center pr-3 sm:pr-5 md:pr-10 lg:pr-10"
       )}
       style={{
-        backgroundColor: "var(--nav-background, #1e293b)",
-        color: "var(--nav-foreground, white)",
-        borderColor: "var(--nav-border, rgba(255, 255, 255, 0.1))",
+        backgroundColor: "hsl(var(--primary))",
+        color: "hsl(var(--primary-foreground))",
       }}
     >
       <Link
@@ -52,7 +51,10 @@ function MainNav() {
         ) : (
           <h1>School Logo</h1>
         )}
-        <h1 className="hidden md:block text-textWhite  text-center  md:text-sm uppercase font-medium leading-relaxed">
+        <h1
+          className="hidden md:block text-textWhite text-bold text-center md:text-sm uppercase font-medium leading-relaxed"
+          style={{ color: "hsl(var(--primary-foreground))" }}
+        >
           {school?.schoolName}
         </h1>
       </Link>
