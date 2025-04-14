@@ -85,12 +85,12 @@ const schema = defineSchema({
       v.literal('1st semester'),
       v.literal('2nd semester')
     )),
-    quarter: v.union(
+    quarter: v.optional(v.union(
       v.literal('1st quarter'),
       v.literal('2nd quarter'),
       v.literal('3rd quarter'),
       v.literal('4th quarter'),
-    ),
+    )),
     sectionId: v.id('sections'),
   }).index('subjectThoughId', ['subjectThoughId']),
 

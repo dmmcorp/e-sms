@@ -26,6 +26,7 @@ import { useState } from "react";
 import { UserFormData } from "@/lib/zod";
 import { api } from "../../../../../convex/_generated/api";
 import { Doc } from "../../../../../convex/_generated/dataModel";
+import { GradeWeights } from "@/lib/types";
 
 interface SubjectTaughtFormProps {
   formData: UserFormData;
@@ -762,19 +763,50 @@ export const SubjectTaughtForm = ({
   };
 
   // Update grade weights for a specific subject
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateGradeWeights = (
     index: number,
-    gradeWeights: SubjectData["gradeWeights"]
+    newGradeWeightsInput: SubjectData["gradeWeights"]
   ) => {
     setFormData((prev) => {
       const updatedSubjects = [...(prev.subjectsTaught || [])];
       if (updatedSubjects[index]) {
-        // Ensure deep copy for safety, especially if 'other' exists
-        const newGradeWeights = JSON.parse(JSON.stringify(gradeWeights));
+        let finalGradeWeights: GradeWeights;
+
+        if (newGradeWeightsInput.type === "Face to face") {
+          finalGradeWeights = {
+            type: "Face to face",
+            faceToFace: {
+              ww: newGradeWeightsInput.faceToFace?.ww ?? 0,
+              pt: newGradeWeightsInput.faceToFace?.pt ?? 0,
+              majorExam: newGradeWeightsInput.faceToFace?.majorExam ?? 0,
+            },
+            modular: undefined,
+            other: undefined,
+          };
+        } else if (newGradeWeightsInput.type === "Modular") {
+          finalGradeWeights = {
+            type: "Modular",
+            modular: {
+              ww: newGradeWeightsInput.modular?.ww ?? 0,
+              pt: newGradeWeightsInput.modular?.pt ?? 0,
+            },
+            faceToFace: undefined,
+            other: undefined,
+          };
+        } else {
+          finalGradeWeights = {
+            type: "Other",
+            other: Array.isArray(newGradeWeightsInput.other)
+              ? newGradeWeightsInput.other
+              : [],
+            faceToFace: undefined,
+            modular: undefined,
+          };
+        }
+
         updatedSubjects[index] = {
           ...updatedSubjects[index],
-          gradeWeights: newGradeWeights,
+          gradeWeights: finalGradeWeights,
         };
       }
       return { ...prev, subjectsTaught: updatedSubjects };

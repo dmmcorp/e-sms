@@ -237,7 +237,7 @@ export const createUser = mutation({
                         await ctx.db.insert("teachingLoad", {
                             subjectThoughId: subjectThoughtId,
                             semester: semester,
-                            quarter: subject.quarter?.[0] || "1st quarter",
+                            quarter: undefined,
                             sectionId: sectionId as Id<"sections">, // Use resolved sectionId
                         });
                     }
@@ -535,7 +535,7 @@ export const updateUser = mutation({
                         await ctx.db.insert("teachingLoad", {
                             subjectThoughId: subjectThoughtId,
                             semester: semester,
-                            quarter: subject.quarter?.[0] || "1st quarter",
+                            quarter: undefined,
                             sectionId: sectionId as Id<"sections">,
                         });
                     }
