@@ -20,13 +20,11 @@ import {
   quarters,
   semesters,
 } from "@/lib/constants";
-import { useQuery } from "convex/react";
+import { GradeWeights } from "@/lib/types";
+import { UserFormData } from "@/lib/zod";
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { UserFormData } from "@/lib/zod";
-import { api } from "../../../../../convex/_generated/api";
 import { Doc } from "../../../../../convex/_generated/dataModel";
-import { GradeWeights } from "@/lib/types";
 
 interface SubjectTaughtFormProps {
   formData: UserFormData;
