@@ -33,6 +33,7 @@ interface SubjectTaughtFormProps {
   setFormData: React.Dispatch<React.SetStateAction<UserFormData>>;
   errors: Record<string, string>;
   isPending: boolean;
+  sections: Doc<"sections">[] | undefined;
 }
 
 type SubjectData = NonNullable<UserFormData["subjectsTaught"]>[number];
@@ -82,6 +83,43 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
       ?.filter((s) => s.gradeLevel === subject.gradeLevel)
       .map((s) => s.name)
   );
+
+  const availableDbSections = sections
+    ?.filter((section) => section.gradeLevel === subject.gradeLevel)
+    .map((section) => ({ id: section._id, name: section.name }));
+
+  const availablePendingSections =
+    formData.role === "adviser" || formData.role === "adviser/subject-teacher"
+      ? formData.sections
+          ?.filter(
+            (formSection) =>
+              formSection.gradeLevel === subject.gradeLevel &&
+              formSection.name &&
+              !existingSectionNames.has(formSection.name)
+          )
+          .map((formSection) => {
+            const actualIndex = formData.sections?.findIndex(
+              (s) =>
+                s.name === formSection.name &&
+                s.gradeLevel === formSection.gradeLevel
+            );
+            if (actualIndex === undefined || actualIndex < 0) return null;
+            return {
+              value: `pending-section-${actualIndex}`,
+              name: formSection.name,
+            };
+          })
+          .filter(Boolean) // Remove nulls if findIndex fails
+      : [];
+
+  console.log(`--- SubjectCardContent Render (Index: ${index}) ---`);
+  console.log(`Value passed to Select:`, subject.sectionId);
+  console.log(`Available DB Sections (Options):`, availableDbSections);
+  console.log(
+    `Available Pending Sections (Options):`,
+    availablePendingSections
+  );
+  console.log(`-------------------------------------------------`);
 
   return (
     <CardContent className="space-y-4">
@@ -144,43 +182,25 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
             </SelectTrigger>
             <SelectContent>
               {/* Existing Sections */}
-              {sections
-                ?.filter((section) => section.gradeLevel === subject.gradeLevel)
-                .map((section) => (
-                  <SelectItem key={section._id} value={section._id}>
-                    {section.name}
-                  </SelectItem>
-                ))}
+              {availableDbSections?.map((section) => (
+                <SelectItem key={section.id} value={section.id}>
+                  {section.name}
+                </SelectItem>
+              ))}
 
-              {(formData.role === "adviser" ||
-                formData.role === "adviser/subject-teacher") &&
-                formData.sections
-                  ?.filter(
-                    (formSection) =>
-                      formSection.gradeLevel === subject.gradeLevel &&
-                      formSection.name &&
-                      !existingSectionNames.has(formSection.name)
-                  )
-                  .map((formSection) => {
-                    const actualIndex = formData.sections?.findIndex(
-                      (s) =>
-                        s.name === formSection.name &&
-                        s.gradeLevel === formSection.gradeLevel
-                    );
-
-                    if (actualIndex === undefined || actualIndex < 0)
-                      return null;
-
-                    return (
-                      <SelectItem
-                        key={`pending-${actualIndex}`}
-                        value={`pending-section-${actualIndex}`}
-                        className="bg-blue-50"
-                      >
-                        {formSection.name}
-                      </SelectItem>
-                    );
-                  })}
+              {/* Pending Sections */}
+              {availablePendingSections?.map((formSection) => (
+                <SelectItem
+                  // @ts-expect-error value might be null
+                  key={formSection.value}
+                  // @ts-expect-error value might be null
+                  value={formSection.value}
+                  className="bg-blue-50"
+                >
+                  {/* @ts-expect-error name might be null */}
+                  {formSection.name} (Pending) {/* Add (Pending) back */}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           {errors[`subject${index}Section`] && (
@@ -714,9 +734,8 @@ export const SubjectTaughtForm = ({
   formData,
   setFormData,
   isPending,
+  sections,
 }: SubjectTaughtFormProps) => {
-  const sections = useQuery(api.sections.get, {});
-
   // Add a new empty subject directly to formData
   const addNewSubject = () => {
     const newSubject: SubjectData = {
@@ -855,7 +874,8 @@ export const SubjectTaughtForm = ({
     });
   };
 
-  console.log(formData);
+  console.log("SubjectTaughtForm formData:", JSON.stringify(formData, null, 2));
+  console.log("SubjectTaughtForm sections prop:", sections?.length);
 
   return (
     <div className="flex flex-col items-center justify-center space-y-6 w-full">
