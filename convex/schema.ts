@@ -2,7 +2,7 @@ import { defineSchema, defineTable } from "convex/server";
 import { authTables } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 
-const gradeLevel = v.union(
+export const gradeLevel = v.union(
   v.literal('Grade 7'),
   v.literal('Grade 8'),
   v.literal('Grade 9'),
@@ -98,12 +98,13 @@ const schema = defineSchema({
     adviserId: v.id('users'),
     name: v.string(),
     gradeLevel: gradeLevel,
-    schoolYear: v.optional(v.string()),
+    schoolYear: v.string(),
     semester: v.optional(
       v.union(
         v.literal('1st semester'),
         v.literal('2nd semester'),
-      ))
+      )),
+    subjects: v.optional(v.array(v.id('subjectThought')))
   }).index('adviserId', ['adviserId']),
 
   // table for students record for subject teachers
@@ -196,6 +197,12 @@ const schema = defineSchema({
     isArchived: v.optional(v.boolean()),
     juniorHighDateOfAdmission: v.string(),
     alsRating: v.optional(v.string()),
+    status: v.union(
+      v.literal("graduated"),
+      v.literal("enrolled"),
+      v.literal("not-enrolled"),
+    ),
+    currentGradeLevel: gradeLevel
   }),
 
   enrollment: defineTable({
@@ -210,7 +217,13 @@ const schema = defineSchema({
     ),
     subjects: v.array(v.string()),
     isReturning: v.boolean(),
-    sectionId: v.id('sections')
+    sectionId: v.id('sections'),
+    semester: v.optional(
+      v.union(
+        v.literal("1st semester"),
+        v.literal("2nd semester"),
+      )
+    )
   }),
 
   systemSettings: defineTable({

@@ -20,7 +20,7 @@ function SelectSemAndQtr({
 }: SelectProps) {
     
   return (
-    <div>
+    <div className='mb-5'>
         {isShs && (
             <div className="grid grid-cols-2">
                 <div className="space-y-3">

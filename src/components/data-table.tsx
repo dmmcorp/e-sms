@@ -59,7 +59,7 @@ export function DataTable<TData, TValue>({
     })
 
     return (
-        <div className="w-full overflow-hidden">
+        <div className="w-full ">
             {/* Input code */}
             <div className={cn(
                 customUI ? "justify-between" : "justify-start",

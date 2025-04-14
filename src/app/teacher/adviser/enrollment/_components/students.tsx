@@ -7,23 +7,34 @@ import { StudentTypes } from '@/lib/types'
 import { DataTable } from '@/components/data-table'
 
 import { Button } from '@/components/ui/button'
-import { Eye, MoreHorizontal, Trash2, UserPlus } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { ArrowLeft, Eye, MoreHorizontal, Trash2, UserPlus } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 import ActionCeil from './action-ceil'
+import { Id } from '../../../../../../convex/_generated/dataModel'
 
 export default function Students() {
-    const router = useRouter()
-    const students = useQuery(api.students.getStudents)
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const sectionId = searchParams.get('id');
+    const students = useQuery(api.students.getStudents, {sectionId: sectionId as Id<'sections'>})
     if(!students) return <div className="">Loading...</div>
   return (
     <div className='pt-5'>
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tighter">Student Management</h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            View and manage student information and their section assignments.
-          </p>
+
+        <div className="flex items-start gap-x-2">
+            <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="space-y-2 ">
+
+                <h1 className="text-3xl font-bold tracking-tighter">Student Management</h1>
+                
+            </div>
         </div>
+        <p className="text-gray-500 dark:text-gray-400">
+            View and manage student information and their section assignments.
+        </p>
         <DataTable
             columns={studentColumns}
             data={students}

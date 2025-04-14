@@ -1,6 +1,8 @@
-import { v } from "convex/values";
-import { query } from "./_generated/server";
+import { ConvexError, v } from "convex/values";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { asyncMap } from "convex-helpers";
+import { Doc } from "./_generated/dataModel";
 
 export const get = query({
     args: {
@@ -24,6 +26,33 @@ export const get = query({
     }
 })
 
+export const addSubjectThought = internalMutation({
+    args:{
+        sectionId: v.id('sections'),
+        id: v.id('subjectThought')
+    },
+    handler: async(ctx, args) =>{
+   
+        const section = await ctx.db.get(args.sectionId)
+        if(section === null) return
+        const a = section.subjects ? [...section.subjects, args.id] : [args.id];
+        await ctx.db.patch(section._id, {
+            subjects: a
+        })
+      
+        
+    }
+});
+
+export const getSection = query({
+    args:{
+        sectionId: v.optional(v.id('sections'))
+    },
+    handler: async(ctx, args) =>{
+        if(!args.sectionId) return undefined
+        return await ctx.db.get(args.sectionId)
+    }
+})
 
 export const handledSection = query({
     args:{
@@ -38,5 +67,32 @@ export const handledSection = query({
             .collect()
 
         return sections
+    }
+});
+
+export const getSectionSubject = query({
+    args:{
+        sectionId: v.optional(v.id('sections'))
+    },
+    handler: async(ctx,args)=>{
+        if(!args.sectionId) return undefined
+
+        const section = await ctx.db.get(args.sectionId)
+        if(section === null ) throw new ConvexError('Section not found.')
+
+        let subjects: Doc<'subjectThought'>[] | null
+        if(section.subjects) {
+
+          const s = await asyncMap(section.subjects, async(id)=>{
+            const subjectThought = await ctx.db.get(id)
+                if(subjectThought === null) return null
+                return subjectThought
+            });
+            subjects = s.filter(sub=>  sub !== null)
+        } else {
+            subjects = []
+        }
+
+        return subjects
     }
 })

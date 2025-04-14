@@ -1,14 +1,20 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { asyncMap } from "convex-helpers";
+import { gradeLevel } from "./schema";
 
 export const getStudents = query({
     args:{
-
+        sectionId: v.optional(v.id('sections'))
     },
     handler: async(ctx, args) =>{
+        if(!args.sectionId || args.sectionId === null) return
+        const section = await ctx.db.get(args.sectionId)
+        if(section === null) throw new Error
+
         const students = await ctx.db.query('students')
         .filter(q => q.eq(q.field('isArchived'), false))
+        .filter(q => q.eq(q.field('currentGradeLevel'), section.gradeLevel))
         .order('desc')
         .collect()
         return students
@@ -36,6 +42,7 @@ export const add = mutation({
         }),
         juniorHighDateOfAdmission: v.string(),
         alsRating: v.optional(v.string()),
+        currentGradeLevel: gradeLevel
     },
     handler: async(ctx, args) => {
         const isExistingStudent = await ctx.db.query('students').filter(q=> q.eq(q.field('lrn'), args.lrn)).first()
@@ -44,7 +51,8 @@ export const add = mutation({
             throw new ConvexError(`Student with the lrn:${isExistingStudent.lrn} is already exist.`)
         } else {
             await ctx.db.insert('students', {
-                ...args
+                ...args,
+                status: "not-enrolled"
             })
         }
        

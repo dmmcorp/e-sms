@@ -4,7 +4,8 @@ import { ConvexError, GenericId, v } from "convex/values";
 import { UserForm } from "../src/lib/zod"
 import { Doc, Id } from "./_generated/dataModel";
 import { SubjectTaughtQueryResult } from "../src/lib/types";
-
+import { addSubjectThought } from "./sections";
+import { internal } from "./_generated/api";
 // backend function to get the current logged in user
 export const current = query({
     args: {},
@@ -14,6 +15,8 @@ export const current = query({
         return await ctx.db.get(userId);
     },
 });
+
+
 
 // backend function to get the role of the current logged in user
 export const role = query({
@@ -219,7 +222,10 @@ export const createUser = mutation({
                     semester: subject.semester || [],
                     gradeWeights: subject.gradeWeights,
                 });
-
+                 await ctx.runMutation(internal.sections.addSubjectThought, {
+                    sectionId: sectionId as Id<'sections'>,
+                    id: subjectThoughtId
+                 })
                 // Then create teaching load entries based on quarters/semesters
                 if (subject.quarter && subject.quarter.length > 0) {
                     for (const quarter of subject.quarter) {

@@ -27,6 +27,8 @@ import { useMutation } from 'convex/react'
 import { api } from '../../../../../../convex/_generated/api'
 import { toast } from 'sonner'
 import { enrollmentSchema } from '@/lib/zod'
+import { GradeLevelsTypes } from '@/lib/types'
+import { gradeLevels } from '@/lib/constants'
 
 
 
@@ -84,6 +86,7 @@ function EnrollmentForm() {
           },
           juniorHighDateOfAdmission: values.jnrDateOfAdmission.toDateString(),
           alsRating: values.alsRating,
+          currentGradeLevel: values.enrollingTo as GradeLevelsTypes
         }),{
           loading: "Adding student...",
           success: () =>{ 
@@ -278,6 +281,30 @@ function EnrollmentForm() {
                             <Input placeholder="Enter learning reference number" {...field} />
                           </FormControl>
                           <FormDescription>Your unique student identifier</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
+                      control={form.control}
+                      name="enrollingTo"
+                      render={({ field }) => (
+                        <FormItem  className='flex flex-col'>
+                          <FormLabel>
+                            Grade Level for Enrollment  <span className="text-red-500">*</span>
+                          </FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select grade level" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {gradeLevels.map((level)=> (
+                                <SelectItem key={level} value={level}>{level}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}

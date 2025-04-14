@@ -114,6 +114,8 @@ export const enrollmentSchema = z.object({
   lrn: z.string()
     .length(11, { message: "LRN must be exactly 11 digits." })
     .nonempty({ message: "LRN is required." }),
+  
+  enrollingTo: z.string().nonempty({ message: "Select the grade level you are enrolling in" }),
 
   dateOfBirth: z.date({
     required_error: "Date of birth is required.",

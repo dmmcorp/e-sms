@@ -15,12 +15,14 @@ interface ChartProps {
         _creationTime: number; 
         teachingLoadId: Id<"teachingLoad">; 
         studentId: Id<"students">; 
-    }[]
+    }[];
+    label:string
 }
 
 // Chart component to display a bar chart of average scores
 function Chart({
-    classRecords
+    classRecords,
+    label
 }: ChartProps) {
 
     // Prepare the chart data by calculating the average scores for each type
@@ -73,7 +75,7 @@ function Chart({
     return (
         <div>
             {/* Title of the chart */}
-            <h1 className='text-center text-xs md:text-sm uppercase font-bold tracking-widest'>Graph</h1>
+            <h1 className='text-center text-xs md:text-sm uppercase font-bold tracking-widest'>{label}</h1>
             
             {/* Chart container with configuration */}
             <ChartContainer config={chartConfig} >

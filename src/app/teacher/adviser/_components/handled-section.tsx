@@ -18,12 +18,12 @@ function HandledSection() {
   const [selectedQtr, setSelectedQtr] = useState<QuarterType>("1st quarter")
 
   const sections = useQuery(api.sections.handledSection, {schoolYear: selectedSY});
-  console.log(sections)
+
 
   return (
-    <div>
+    <div className='mt-5 md:pt-10 p-5'>
       {/* Selection of section school year */}
-        <div className="w-full flex justify-end">
+        <div className="w-full hidden justify-end">
           <Select defaultValue='2024-2025' onValueChange={(value)=> setSelectedSY(value as SchoolYearTypes)}> 
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="School year" />
@@ -38,12 +38,13 @@ function HandledSection() {
             </SelectContent>
           </Select>
         </div>
+        <div className="space-y-10">
         {sections?.map((section)=> (
-          <Card key={section._id} className="">
-            <CardHeader>
+          <Card key={section._id} className=" pt-0">
+            <CardHeader className='pt-5 bg-muted pb-5'>
               <CardTitle  className='flex items-center justify-between'>
                 <h1 className='text-xl font-medium'>Section: {section.name}</h1> 
-                <Link href={'/teacher/adviser/enrollment'} className="">
+                <Link href={`/teacher/adviser/enrollment?id=${section._id}`} className="">
                   <Button variant={'default'} className=''>Enroll student</Button>
                 </Link>
               </CardTitle>
@@ -66,7 +67,6 @@ function HandledSection() {
                 />
               ) : (
                 <JuniorHigh 
-                  sectionName={section.name}
                   sectionId={section._id}
                   selectedQtr={selectedQtr}
                 />
@@ -74,7 +74,7 @@ function HandledSection() {
             </CardContent>
           </Card>
         ))}
-        
+        </div>
     </div>
   )
 }

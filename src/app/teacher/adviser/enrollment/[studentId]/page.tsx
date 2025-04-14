@@ -1,21 +1,15 @@
 'use client'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { useMutation, useQuery } from 'convex/react'
-import { ArrowLeft, Calendar, Pencil, UserPlus, Users } from 'lucide-react'
+import {  useQuery } from 'convex/react'
+import { ArrowLeft, Calendar, Pencil, Users } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 import { api } from '../../../../../../convex/_generated/api'
 import { Id } from '../../../../../../convex/_generated/dataModel'
 import { Badge } from '@/components/ui/badge'
-import { formatDate } from '@/lib/utils'
-import { Input } from '@/components/ui/input'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { enrollmentSchema } from '@/lib/zod'
-import { toast } from 'sonner'
+import { cn, formatDate } from '@/lib/utils'
 import EditStudent from './_components/edit-student'
 
 function Page() {
@@ -169,8 +163,17 @@ function Page() {
                   <div key={index} className="border-b pb-3 last:border-0 last:pb-0">
                     <div className="flex justify-between items-start">
                       <div className="font-medium">{history.section?.name}</div>
-                      <Badge variant="outline" className="text-xs">
-                        {history.section?.schoolYear}{history.section?.semester ? `- ${history.section.semester.charAt(3)}` : ""}
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "text-xs capitalize",
+                          history.status.toLowerCase() === "enrolled" && "bg-blue-100 text-blue-800 border-blue-200",
+                          history.status.toLowerCase() === "passed" && "bg-green-100 text-green-800 border-green-200",
+                          history.status.toLowerCase() === "failed" && "bg-red-100 text-red-800 border-red-200",
+                          history.status.toLowerCase() === "dropped" && "bg-yellow-100 text-yellow-800 border-yellow-200"
+                        )}
+                      >
+                        {history.status}
                       </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
