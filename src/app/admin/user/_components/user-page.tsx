@@ -10,22 +10,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserForm, UserFormData } from "@/lib/zod";
+import { Separator } from "@/components/ui/separator";
+import { principalDepartments, roles } from "@/lib/constants";
+import { PrincipalDepartmentType, RoleType } from "@/lib/types";
+import { UserFormData } from "@/lib/zod";
+import { useConvexMutation } from "@convex-dev/react-query";
+import { useMutation } from "@tanstack/react-query";
+import { ConvexError } from "convex/values";
 import { motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { containerVariants } from "../../_components/variants";
-import AdviserForm from "./adviser-form";
-import { useConvexMutation } from "@convex-dev/react-query";
-import { api } from "../../../../../convex/_generated/api";
 import { toast } from "sonner";
-import { PrincipalDepartmentType, RoleType } from "@/lib/types";
-import { SubjectTaughtForm } from "./subject-taught-form";
-import { Separator } from "@/components/ui/separator";
+import { api } from "../../../../../convex/_generated/api";
 import { Id } from "../../../../../convex/_generated/dataModel";
-import { ConvexError } from "convex/values";
+import { containerVariants } from "../../_components/variants";
 import { SectionForm } from "./section-form";
-import { principalDepartments, roles } from "@/lib/constants";
+import { SubjectTaughtForm } from "./subject-taught-form";
+import { useQuery } from "convex/react";
+import { Loader2Icon } from "lucide-react";
 
 function UserPage() {
   const initialFormValues: UserFormData = {
@@ -43,6 +44,25 @@ function UserPage() {
   const { mutate: createUser, isPending } = useMutation({
     mutationFn: useConvexMutation(api.users.createUser),
   });
+
+  const sections = useQuery(api.sections.get, {});
+
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      principalType: undefined,
+    }));
+  }, [formData.role]);
+
+  if (sections === undefined) {
+    // Check if sections data is still loading
+    return (
+      <div className="w-full flex justify-center items-center h-screen">
+        <Loader2Icon className="h-12 w-12 animate-spin text-primary" />
+        <span className="ml-2">Loading sections...</span>
+      </div>
+    );
+  }
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -255,17 +275,13 @@ function UserPage() {
         }
       );
     } catch (error) {
-      console.error("Unexpected error:", error);
-      toast.error("An unexpected error occurred");
+      if (error instanceof ConvexError) {
+        toast.error(error.data || "Failed to create user");
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     }
   };
-
-  useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      principalType: undefined,
-    }));
-  }, [formData.role]);
 
   return (
     <div className="w-full space-y-5 px-2 py-7">
@@ -447,6 +463,7 @@ function UserPage() {
                   formData={formData}
                   isPending={isPending}
                   setFormData={setFormData}
+                  sections={sections}
                 />
               )}
 

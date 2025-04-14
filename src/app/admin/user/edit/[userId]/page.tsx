@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
+  GradeWeights,
   PrincipalDepartmentType,
   RoleType,
   SchoolYearTypes,
@@ -49,76 +50,105 @@ interface EditUserPageProps {
 const EditUserPage = ({ params }: EditUserPageProps) => {
   const { userId } = params;
 
-  const initialFormValues: UserFormData = {
-    role: "admin",
-    principalType: undefined,
-    fullName: "",
-    email: "",
-    password: "", // Empty for editing
-    subjectsTaught: [],
-    sections: [],
-  };
+  // const initialFormValues: UserFormData = {
+  //   role: "admin",
+  //   principalType: undefined,
+  //   fullName: "",
+  //   email: "",
+  //   password: "", // Empty for editing
+  //   subjectsTaught: [],
+  //   sections: [],
+  // };
 
-  const router = useRouter();
-  const [formData, setFormData] = useState<UserFormData>(initialFormValues);
+  const [formData, setFormData] = useState<UserFormData | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const router = useRouter();
 
   // Fetch user data
-  const user = useQuery(api.users.getUser, { userId });
+  const user = useQuery(api.users.getUser, userId ? { userId } : "skip");
+  const sections = useQuery(api.sections.get, {});
 
   // Update user mutation
   const { mutate: updateUser, isPending } = useMutation({
     mutationFn: useConvexMutation(api.users.updateUser),
   });
 
-  // Load user data when available
   useEffect(() => {
-    // Only run if user data is available
-    if (user) {
-      console.log("User data received:", JSON.stringify(user, null, 2)); // Log fetched data
-
-      // Map sections, ensuring correct types
+    if (user && sections && !formData) {
       const mappedSections = (user.sections || []).map((section) => ({
         name: section.name,
         gradeLevel: section.gradeLevel,
         schoolYear: section.schoolYear as SchoolYearTypes | undefined,
-        // adviserId: section.adviserId,
       }));
 
-      const mappedSubjects = (user.subjectsTaught || []).map((subject) => ({
-        subjectName: subject.subjectName || "",
-        gradeLevel: subject.gradeLevel,
-        sectionId: subject.sectionId || "",
-        quarter: Array.isArray(subject.quarter) ? subject.quarter : [],
-        semester: Array.isArray(subject.semester) ? subject.semester : [],
-        gradeWeights: {
-          type: subject.gradeWeights?.type || "Face to face",
-          faceToFace: subject.gradeWeights?.faceToFace || undefined,
-          modular: subject.gradeWeights?.modular || undefined,
-          other: subject.gradeWeights?.other || undefined,
-        },
-      }));
+      const mappedSubjects = (user.subjectsTaught || []).map((subject) => {
+        const currentGradeWeights = subject.gradeWeights;
+        let finalGradeWeights: GradeWeights;
 
-      // Set the entire form data state at once
+        if (currentGradeWeights.type === "Face to face") {
+          finalGradeWeights = {
+            type: "Face to face",
+            faceToFace: currentGradeWeights.faceToFace,
+            modular: undefined,
+            other: undefined,
+          };
+        } else if (currentGradeWeights.type === "Modular") {
+          finalGradeWeights = {
+            type: "Modular",
+            modular: currentGradeWeights.modular,
+            faceToFace: undefined,
+            other: undefined,
+          };
+        } else {
+          // type === "Other"
+          finalGradeWeights = {
+            type: "Other",
+            other: currentGradeWeights.other,
+            faceToFace: undefined,
+            modular: undefined,
+          };
+        }
+
+        return {
+          subjectName: subject.subjectName || "",
+          gradeLevel: subject.gradeLevel,
+          sectionId: subject.sectionId ? subject.sectionId.toString() : "",
+          quarter: Array.isArray(subject.quarter) ? subject.quarter : [],
+          semester: Array.isArray(subject.semester) ? subject.semester : [],
+          gradeWeights: finalGradeWeights,
+        };
+      });
+
       setFormData({
         role: user.role,
         principalType: user.principalType,
         fullName: user.fullName,
         email: user.email,
-        password: "",
-        // @ts-expect-error slight type issue
+        password: "", // Keep password empty
+        // @ts-expect-error: slight type issue
         subjectsTaught: Array.isArray(mappedSubjects) ? mappedSubjects : [],
         sections: Array.isArray(mappedSections) ? mappedSections : [],
       });
     }
-  }, [user]);
+    // Dependency array: run when user data changes, but only set initial formData once
+  }, [user, sections, formData]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    setFormData((prev) => (prev ? { ...prev, [name]: value } : null));
   };
+
+  if (!formData || !sections) {
+    return (
+      <div className="container mx-auto flex justify-center items-center h-screen">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <span className="ml-2">Loading user data...</span>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -304,10 +334,14 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
                         value={formData.role || ""}
                         disabled={isPending}
                         onValueChange={(value) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            role: value as RoleType,
-                          }))
+                          setFormData((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  role: value as RoleType,
+                                }
+                              : null
+                          )
                         }
                       >
                         <SelectTrigger className="w-full">
@@ -337,10 +371,15 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
                           value={formData.principalType || ""}
                           disabled={isPending}
                           onValueChange={(value) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              principalType: value as PrincipalDepartmentType,
-                            }))
+                            setFormData((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    principalType:
+                                      value as PrincipalDepartmentType,
+                                  }
+                                : null
+                            )
                           }
                         >
                           <SelectTrigger className="w-full">
@@ -435,7 +474,9 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
                     <>
                       <SectionForm
                         formData={formData}
-                        setFormData={setFormData}
+                        setFormData={
+                          setFormData as Dispatch<SetStateAction<UserFormData>>
+                        }
                         errors={errors}
                         handleChange={handleChange}
                         isPending={isPending}
@@ -452,7 +493,10 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
                       errors={errors}
                       formData={formData}
                       isPending={isPending}
-                      setFormData={setFormData}
+                      setFormData={
+                        setFormData as Dispatch<SetStateAction<UserFormData>>
+                      }
+                      sections={sections}
                     />
                   )}
 

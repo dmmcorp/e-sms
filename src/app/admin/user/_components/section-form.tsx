@@ -128,7 +128,7 @@ export const SectionForm = ({
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select school year" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent position="item-aligned">
                         {schoolYears.map((year) => (
                           <SelectItem key={year} value={year}>
                             {year}

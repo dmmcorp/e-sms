@@ -20,46 +20,18 @@ import {
   quarters,
   semesters,
 } from "@/lib/constants";
-import { useQuery } from "convex/react";
-import { Plus, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { GradeWeights } from "@/lib/types";
 import { UserFormData } from "@/lib/zod";
-import { api } from "../../../../../convex/_generated/api";
+import { Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { Doc } from "../../../../../convex/_generated/dataModel";
-
-// Define a subject interface to manage multiple subjects
-// interface Subject {
-//   id: string;
-//   subjectName: string;
-//   gradeLevel: string | undefined;
-//   sectionId: string | undefined;
-//   quarter: string[] | undefined;
-//   semester: string[] | undefined;
-//   gradeWeights: {
-//     type: "Face to face" | "Modular" | "Other";
-//     faceToFace?: {
-//       ww: number;
-//       pt: number;
-//       majorExam: number;
-//     };
-//     modular?: {
-//       ww: number;
-//       pt: number;
-//     };
-//     other?: {
-//       component: "Written Works" | "Performance Tasks" | "Major Exam";
-//       percentage: number;
-//     }[];
-//   };
-//   newComponentType?: string;
-//   newComponentPercentage?: string;
-// }
 
 interface SubjectTaughtFormProps {
   formData: UserFormData;
   setFormData: React.Dispatch<React.SetStateAction<UserFormData>>;
   errors: Record<string, string>;
   isPending: boolean;
+  sections: Doc<"sections">[] | undefined;
 }
 
 type SubjectData = NonNullable<UserFormData["subjectsTaught"]>[number];
@@ -68,8 +40,8 @@ type SubjectData = NonNullable<UserFormData["subjectsTaught"]>[number];
 interface SubjectCardContentProps {
   subject: SubjectData;
   index: number;
-  sections: Doc<"sections">[] | undefined; // Pass sections data
-  formData: UserFormData; // Pass full formData for pending sections logic
+  sections: Doc<"sections">[] | undefined;
+  formData: UserFormData;
   errors: Record<string, string>;
   isPending: boolean;
   updateSubject: (index: number, field: keyof SubjectData, value: any) => void;
@@ -77,7 +49,7 @@ interface SubjectCardContentProps {
     index: number,
     gradeWeights: SubjectData["gradeWeights"]
   ) => void;
-  handleOGCButton: (index: number, type: string, percentage: string) => void; // Adjusted handler signature
+  handleOGCButton: (index: number, type: string, percentage: string) => void;
 }
 
 const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
@@ -89,7 +61,7 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
   isPending,
   updateSubject,
   updateGradeWeights,
-  handleOGCButton, // Receive the handler
+  handleOGCButton,
 }) => {
   const [localNewComponentType, setLocalNewComponentType] = useState<string>(
     gradeComponentTypes[0]
@@ -98,12 +70,54 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
     useState<string>("");
 
   const handleAddWeightClick = () => {
-    // Call the handler passed from parent with local state values
     handleOGCButton(index, localNewComponentType, localNewComponentPercentage);
-    // Reset local state after adding
+
     setLocalNewComponentType(gradeComponentTypes[0]);
     setLocalNewComponentPercentage("");
   };
+
+  const existingSectionNames = new Set(
+    sections
+      ?.filter((s) => s.gradeLevel === subject.gradeLevel)
+      .map((s) => s.name)
+  );
+
+  const availableDbSections = sections
+    ?.filter((section) => section.gradeLevel === subject.gradeLevel)
+    .map((section) => ({ id: section._id, name: section.name }));
+
+  const availablePendingSections =
+    formData.role === "adviser" || formData.role === "adviser/subject-teacher"
+      ? formData.sections
+          ?.filter(
+            (formSection) =>
+              formSection.gradeLevel === subject.gradeLevel &&
+              formSection.name &&
+              !existingSectionNames.has(formSection.name)
+          )
+          .map((formSection) => {
+            const actualIndex = formData.sections?.findIndex(
+              (s) =>
+                s.name === formSection.name &&
+                s.gradeLevel === formSection.gradeLevel
+            );
+            if (actualIndex === undefined || actualIndex < 0) return null;
+            return {
+              value: `pending-section-${actualIndex}`,
+              name: formSection.name,
+            };
+          })
+          .filter(Boolean) // Remove nulls if findIndex fails
+      : [];
+
+  console.log(`--- SubjectCardContent Render (Index: ${index}) ---`);
+  console.log(`Value passed to Select:`, subject.sectionId);
+  console.log(`Available DB Sections (Options):`, availableDbSections);
+  console.log(
+    `Available Pending Sections (Options):`,
+    availablePendingSections
+  );
+  console.log(`-------------------------------------------------`);
 
   return (
     <CardContent className="space-y-4">
@@ -166,39 +180,25 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
             </SelectTrigger>
             <SelectContent>
               {/* Existing Sections */}
-              {sections
-                ?.filter((section) => section.gradeLevel === subject.gradeLevel)
-                .map((section) => (
-                  <SelectItem key={section._id} value={section._id}>
-                    {section.name}
-                  </SelectItem>
-                ))}
+              {availableDbSections?.map((section) => (
+                <SelectItem key={section.id} value={section.id}>
+                  {section.name}
+                </SelectItem>
+              ))}
+
               {/* Pending Sections */}
-              {formData.role === "adviser/subject-teacher" &&
-                formData.sections
-                  ?.filter(
-                    (section) =>
-                      section.name && section.gradeLevel === subject.gradeLevel
-                  )
-                  .map((section) => {
-                    const actualIndex = formData.sections?.findIndex(
-                      (s) =>
-                        s.name === section.name &&
-                        s.gradeLevel === section.gradeLevel
-                    );
-                    // Ensure actualIndex is found before rendering
-                    if (actualIndex === undefined || actualIndex < 0)
-                      return null;
-                    return (
-                      <SelectItem
-                        key={`pending-${actualIndex}`}
-                        value={`pending-section-${actualIndex}`}
-                        className="bg-blue-50"
-                      >
-                        {section.name} (Pending)
-                      </SelectItem>
-                    );
-                  })}
+              {availablePendingSections?.map((formSection) => (
+                <SelectItem
+                  // @ts-expect-error value might be null
+                  key={formSection.value}
+                  // @ts-expect-error value might be null
+                  value={formSection.value}
+                  className="bg-blue-50"
+                >
+                  {/* @ts-expect-error name might be null */}
+                  {formSection.name} (Pending) {/* Add (Pending) back */}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           {errors[`subject${index}Section`] && (
@@ -732,9 +732,8 @@ export const SubjectTaughtForm = ({
   formData,
   setFormData,
   isPending,
+  sections,
 }: SubjectTaughtFormProps) => {
-  const sections = useQuery(api.sections.get, {});
-
   // Add a new empty subject directly to formData
   const addNewSubject = () => {
     const newSubject: SubjectData = {
@@ -781,19 +780,50 @@ export const SubjectTaughtForm = ({
   };
 
   // Update grade weights for a specific subject
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateGradeWeights = (
     index: number,
-    gradeWeights: SubjectData["gradeWeights"]
+    newGradeWeightsInput: SubjectData["gradeWeights"]
   ) => {
     setFormData((prev) => {
       const updatedSubjects = [...(prev.subjectsTaught || [])];
       if (updatedSubjects[index]) {
-        // Ensure deep copy for safety, especially if 'other' exists
-        const newGradeWeights = JSON.parse(JSON.stringify(gradeWeights));
+        let finalGradeWeights: GradeWeights;
+
+        if (newGradeWeightsInput.type === "Face to face") {
+          finalGradeWeights = {
+            type: "Face to face",
+            faceToFace: {
+              ww: newGradeWeightsInput.faceToFace?.ww ?? 0,
+              pt: newGradeWeightsInput.faceToFace?.pt ?? 0,
+              majorExam: newGradeWeightsInput.faceToFace?.majorExam ?? 0,
+            },
+            modular: undefined,
+            other: undefined,
+          };
+        } else if (newGradeWeightsInput.type === "Modular") {
+          finalGradeWeights = {
+            type: "Modular",
+            modular: {
+              ww: newGradeWeightsInput.modular?.ww ?? 0,
+              pt: newGradeWeightsInput.modular?.pt ?? 0,
+            },
+            faceToFace: undefined,
+            other: undefined,
+          };
+        } else {
+          finalGradeWeights = {
+            type: "Other",
+            other: Array.isArray(newGradeWeightsInput.other)
+              ? newGradeWeightsInput.other
+              : [],
+            faceToFace: undefined,
+            modular: undefined,
+          };
+        }
+
         updatedSubjects[index] = {
           ...updatedSubjects[index],
-          gradeWeights: newGradeWeights,
+          gradeWeights: finalGradeWeights,
         };
       }
       return { ...prev, subjectsTaught: updatedSubjects };
@@ -842,7 +872,8 @@ export const SubjectTaughtForm = ({
     });
   };
 
-  console.log(formData);
+  console.log("SubjectTaughtForm formData:", JSON.stringify(formData, null, 2));
+  console.log("SubjectTaughtForm sections prop:", sections?.length);
 
   return (
     <div className="flex flex-col items-center justify-center space-y-6 w-full">

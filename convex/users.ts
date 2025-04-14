@@ -243,7 +243,7 @@ export const createUser = mutation({
                         await ctx.db.insert("teachingLoad", {
                             subjectThoughId: subjectThoughtId,
                             semester: semester,
-                            quarter: subject.quarter?.[0] || "1st quarter",
+                            quarter: undefined,
                             sectionId: sectionId as Id<"sections">, // Use resolved sectionId
                         });
                     }
@@ -366,7 +366,8 @@ export const updateUser = mutation({
             v.literal("entire-school"),
         )),
         subjectsTaught: v.optional(v.array(v.object({
-            // Same schema as in createUser
+            // _id: v.optional(v.string()),
+            // subjectThoughtId: v.optional(v.id("subjectThought")),
             subjectName: v.string(),
             gradeLevel: v.union(
                 v.literal('Grade 7'),
@@ -413,6 +414,7 @@ export const updateUser = mutation({
             }),
         }))),
         sections: v.optional(v.array(v.object({
+            // _id: v.optional(v.id("sections")),
             name: v.string(),
             gradeLevel: v.union(
                 v.literal('Grade 7'),
@@ -455,96 +457,215 @@ export const updateUser = mutation({
         }
 
         // Extract user data
-        const { userId, password, subjectsTaught, sections, ...userData } = args;
+        const { userId, password, subjectsTaught: submittedSubjectsInput, sections: submittedSectionsInput, ...userData } = args;
 
         // Update basic user info
         await ctx.db.patch(userId, userData);
 
         // Handle sections if adviser role
-        if ((args.role === "adviser" || args.role === "adviser/subject-teacher") && sections) {
-            // Remove existing sections
-            const existingSections = await ctx.db
+        const managedSectionIds = new Set<Id<"sections">>();
+        const createdSectionsMap = new Map<number, Id<"sections">>();
+
+        if ((args.role === "adviser" || args.role === "adviser/subject-teacher")) {
+            const submittedSections = args.sections || [];
+            const existingDbSections = await ctx.db
                 .query("sections")
                 .withIndex("adviserId", q => q.eq("adviserId", userId))
                 .collect();
+            const existingDbSectionIds = new Set(existingDbSections.map(s => s._id));
 
-            for (const section of existingSections) {
-                await ctx.db.delete(section._id);
+            // Process submitted sections: Create new or identify existing
+            for (let i = 0; i < submittedSections.length; i++) {
+                const submittedSection = submittedSections[i];
+
+                const matchingDbSection = existingDbSections.find(dbSec =>
+                    dbSec.name === submittedSection.name &&
+                    dbSec.gradeLevel === submittedSection.gradeLevel &&
+                    dbSec.schoolYear === submittedSection.schoolYear
+                );
+
+                if (matchingDbSection) {
+                    // Section exists, keep it.
+                    managedSectionIds.add(matchingDbSection._id);
+                    existingDbSectionIds.delete(matchingDbSection._id);
+                    createdSectionsMap.set(i, matchingDbSection._id);
+                } else {
+                    // Section is new, insert it
+                    const newSectionId = await ctx.db.insert("sections", {
+                        adviserId: userId,
+                        name: submittedSection.name,
+                        gradeLevel: submittedSection.gradeLevel,
+                        schoolYear: submittedSection.schoolYear,
+                    });
+                    managedSectionIds.add(newSectionId);
+                    // Store mapping for potential pending subject references
+                    createdSectionsMap.set(i, newSectionId);
+                }
             }
 
-            // Create new sections
-            for (const section of sections) {
-                await ctx.db.insert("sections", {
-                    adviserId: userId,
-                    name: section.name,
-                    gradeLevel: section.gradeLevel,
-                    schoolYear: section.schoolYear,
+            // Delete sections that were in DB but not submitted
+            for (const sectionIdToDelete of existingDbSectionIds) {
+                await ctx.db.delete(sectionIdToDelete);
+            }
+        }
+        // else {
+        //     // If role changed away from adviser, delete all previously associated sections
+        //     const sectionsToDelete = await ctx.db
+        //         .query("sections")
+        //         .withIndex("adviserId", q => q.eq("adviserId", userId))
+        //         .collect();
+        //     for (const section of sectionsToDelete) {
+        //         await ctx.db.delete(section._id);
+        //          // Consider deleting related student data or other links here if necessary
+        //     }
+        // }
+
+        // Handle Subjects & Teaching Loads (For teacher roles)
+
+        const existingSubjectDocs = await ctx.db
+            .query("subjectThought")
+            .withIndex("teacherId", q => q.eq("teacherId", userId))
+            .collect();
+
+        const existingSubjectIds = existingSubjectDocs.map(s => s._id);
+        const existingLoadDocs = (await Promise.all(
+            existingSubjectIds.map(subjectId =>
+                ctx.db
+                    .query("teachingLoad")
+                    .withIndex("subjectThoughId", q => q.eq("subjectThoughId", subjectId))
+                    .collect()
+            )
+        )).flat()
+
+        const existingSubjectsMap = new Map<string, Doc<"subjectThought">>(
+            existingSubjectDocs.map(doc => [`${doc.subjectName}_${doc.gradeLevel}`, doc])
+        );
+
+        const existingLoadsMap = new Map<Id<"subjectThought">, Map<Id<"sections">, { quarters: Set<string>, semesters: Set<string>, loadIds: Set<Id<"teachingLoad">> }>>();
+
+        for (const load of existingLoadDocs) {
+            if (!existingLoadsMap.has(load.subjectThoughId)) {
+                existingLoadsMap.set(load.subjectThoughId, new Map());
+            }
+            const sectionMap = existingLoadsMap.get(load.subjectThoughId)!;
+            if (!sectionMap.has(load.sectionId)) {
+                sectionMap.set(load.sectionId, { quarters: new Set(), semesters: new Set(), loadIds: new Set() });
+            }
+            const loadInfo = sectionMap.get(load.sectionId)!;
+            loadInfo.loadIds.add(load._id);
+            if (load.quarter) loadInfo.quarters.add(load.quarter);
+            if (load.semester) loadInfo.semesters.add(load.semester);
+        }
+
+        const keptSubjectThoughtIds = new Set<Id<"subjectThought">>();
+        const processedLoadIds = new Set<Id<"teachingLoad">>();
+
+        if ((args.role === "subject-teacher" || args.role === "adviser/subject-teacher") && submittedSubjectsInput) {
+            for (const submittedSubject of submittedSubjectsInput) {
+                let subjectThoughtId: Id<"subjectThought">;
+                let resolvedSectionId: Id<"sections">;
+
+                if (submittedSubject.sectionId.startsWith('pending-section-')) {
+                    const pendingIndex = parseInt(submittedSubject.sectionId.replace('pending-section-', ''));
+                    const actualId = createdSectionsMap.get(pendingIndex);
+                    if (!actualId) throw new ConvexError(`Could not resolve pending section: ${submittedSubject.sectionId}`);
+                    resolvedSectionId = actualId;
+                } else {
+                    resolvedSectionId = submittedSubject.sectionId as Id<"sections">;
+                }
+
+                const subjectKey = `${submittedSubject.subjectName}_${submittedSubject.gradeLevel}`;
+                const existingSubjectDoc = existingSubjectsMap.get(subjectKey);
+
+                if (existingSubjectDoc) {
+                    subjectThoughtId = existingSubjectDoc._id;
+                    keptSubjectThoughtIds.add(subjectThoughtId);
+
+                    if (JSON.stringify(existingSubjectDoc.gradeWeights) !== JSON.stringify(submittedSubject.gradeWeights)) {
+                        await ctx.db.patch(subjectThoughtId, { gradeWeights: submittedSubject.gradeWeights });
+                    }
+
+                } else {
+                    // Insert new subjectThought
+                    subjectThoughtId = await ctx.db.insert("subjectThought", {
+                        teacherId: userId,
+                        gradeLevel: submittedSubject.gradeLevel,
+                        subjectName: submittedSubject.subjectName,
+                        gradeWeights: submittedSubject.gradeWeights,
+                        quarter: submittedSubject.quarter,
+                        semester: submittedSubject.semester || [],
+                    });
+                    keptSubjectThoughtIds.add(subjectThoughtId);
+                }
+
+                const submittedQuarters = new Set(submittedSubject.quarter || []);
+                const submittedSemesters = new Set(submittedSubject.semester || []);
+
+                const existingLoadInfo = existingLoadsMap.get(subjectThoughtId)?.get(resolvedSectionId);
+                const existingQuarters = existingLoadInfo?.quarters ?? new Set<string>();
+                const existingSemesters = existingLoadInfo?.semesters ?? new Set<string>();
+                const existingLoadIdsInSection = existingLoadInfo?.loadIds ?? new Set<Id<"teachingLoad">>();
+
+                // Loads to Add
+                for (const quarter of submittedQuarters) {
+                    if (!existingQuarters.has(quarter)) {
+                        await ctx.db.insert("teachingLoad", { subjectThoughId: subjectThoughtId, sectionId: resolvedSectionId, quarter: quarter, semester: undefined });
+                    }
+                }
+                for (const semester of submittedSemesters) {
+                    if (!existingSemesters.has(semester)) {
+                        await ctx.db.insert("teachingLoad", { subjectThoughId: subjectThoughtId, sectionId: resolvedSectionId, semester: semester, quarter: undefined });
+                    }
+                }
+
+                // Mark existing loads that are kept
+                existingLoadIdsInSection.forEach(loadId => {
+                    const loadDoc = existingLoadDocs.find(l => l._id === loadId);
+                    if (loadDoc) {
+                        if (loadDoc.quarter && submittedQuarters.has(loadDoc.quarter)) {
+                            processedLoadIds.add(loadId);
+                        } else if (loadDoc.semester && submittedSemesters.has(loadDoc.semester)) {
+                            processedLoadIds.add(loadId);
+                        }
+                    }
                 });
             }
         }
 
-        // Handle subjects if teacher role
-        if ((args.role === "subject-teacher" || args.role === "adviser/subject-teacher") && subjectsTaught) {
-            // Remove existing subjects and teaching loads
-            const existingSubjects = await ctx.db
-                .query("subjectThought")
-                .withIndex("teacherId", q => q.eq("teacherId", userId))
-                .collect();
-
-            for (const subject of existingSubjects) {
-                // Remove teaching loads
-                const teachingLoads = await ctx.db
-                    .query("teachingLoad")
-                    .withIndex("subjectThoughId", q => q.eq("subjectThoughId", subject._id))
-                    .collect();
-
-                for (const load of teachingLoads) {
-                    await ctx.db.delete(load._id);
-                }
-
-                // Remove subject
-                await ctx.db.delete(subject._id);
+        // DELETING LOADS THAT ARE REMOVED IN THE FORM.
+        for (const load of existingLoadDocs) {
+            if (!processedLoadIds.has(load._id)) {
+                await ctx.db.delete(load._id);
             }
+        }
 
-            // Create new subjects and teaching loads
-            for (const subject of subjectsTaught) {
-                // Check if sectionId is string or ID
-                let sectionId = subject.sectionId;
-                if (typeof sectionId === 'string' && !sectionId.startsWith('pending-section-')) {
-                    sectionId = sectionId as Id<"sections">;
-                }
-
-                // Create subject thought
-                const subjectThoughtId = await ctx.db.insert("subjectThought", {
-                    teacherId: userId,
-                    gradeLevel: subject.gradeLevel,
-                    subjectName: subject.subjectName,
-                    quarter: subject.quarter,
-                    semester: subject.semester || [],
-                    gradeWeights: subject.gradeWeights,
-                });
-
-                // Create teaching loads
-                if (subject.quarter && subject.quarter.length > 0) {
-                    for (const quarter of subject.quarter) {
-                        await ctx.db.insert("teachingLoad", {
-                            subjectThoughId: subjectThoughtId,
-                            quarter: quarter,
-                            semester: undefined,
-                            sectionId: sectionId as Id<"sections">,
-                        });
+        // Delete subjectThought documents that are no longer taught by this teacher
+        for (const subjectDoc of existingSubjectDocs) {
+            if (!keptSubjectThoughtIds.has(subjectDoc._id)) {
+                // Double-check: Ensure all loads for this subject were indeed deleted or processed for deletion
+                const loadsForSubject = existingLoadDocs.filter(l => l.subjectThoughId === subjectDoc._id);
+                let safeToDelete = true;
+                for (const load of loadsForSubject) {
+                    if (processedLoadIds.has(load._id)) {
+                        // Should not happen if logic is correct, but safety check
+                        console.warn(`Subject ${subjectDoc._id} marked for deletion, but load ${load._id} was kept.`);
+                        safeToDelete = false;
+                        break;
                     }
                 }
+                if (safeToDelete) {
+                    await ctx.db.delete(subjectDoc._id);
+                }
+            }
+        }
 
-                if (subject.semester && subject.semester.length > 0) {
-                    for (const semester of subject.semester) {
-                        await ctx.db.insert("teachingLoad", {
-                            subjectThoughId: subjectThoughtId,
-                            semester: semester,
-                            quarter: subject.quarter?.[0] || "1st quarter",
-                            sectionId: sectionId as Id<"sections">,
-                        });
-                    }
+        // If role changed away from teacher, ensure all subjects/loads are deleted
+        if (!(args.role === "subject-teacher" || args.role === "adviser/subject-teacher")) {
+            for (const subjectDoc of existingSubjectDocs) {
+                if (!keptSubjectThoughtIds.has(subjectDoc._id)) {
+                    const loads = await ctx.db.query("teachingLoad").withIndex("subjectThoughId", q => q.eq("subjectThoughId", subjectDoc._id)).collect();
+                    for (const load of loads) { await ctx.db.delete(load._id); }
+                    await ctx.db.delete(subjectDoc._id);
                 }
             }
         }
@@ -553,3 +674,71 @@ export const updateUser = mutation({
     }
 });
 
+export const deleteUser = mutation({
+    args: {
+        userId: v.id("users"),
+    },
+    handler: async (ctx, args) => {
+        // 1. Verify Authentication
+        const adminId = await getAuthUserId(ctx)
+        if (!adminId) {
+            throw new ConvexError("Not authenticated")
+        }
+
+        const admin = await ctx.db.get(adminId)
+        if (!admin || admin.role !== "admin") {
+            throw new ConvexError("Unauthorized - Only admins can delete users")
+        }
+
+        // 2. Prevent Selft-Deletion
+        if (adminId === args.userId) {
+            throw new ConvexError("You cannot delete your own account")
+        }
+
+        // 3. Check if user to be deleted exists
+        const userToDelete = await ctx.db.get(args.userId)
+        if (!userToDelete) {
+            throw new ConvexError("User not found")
+        }
+
+        // 4. Deleting related data
+
+        // a) Sections for adviser role
+        // if (userToDelete.role === "adviser" || userToDelete.role === "adviser/subject-teacher") {
+        //     const sections = await ctx.db
+        //         .query("sections")
+        //         .withIndex("adviserId", q => q.eq("adviserId", args.userId))
+        //         .collect()
+
+        //     for (const section of sections) {
+        //         await ctx.db.delete(section._id)
+        //     }
+        // }
+
+        // b) Subjects and Teaching Loads (if subject-teacher role)
+        if (userToDelete.role === "subject-teacher" || userToDelete.role === "adviser/subject-teacher") {
+            const subjects = await ctx.db
+                .query("subjectThought")
+                .withIndex("teacherId", q => q.eq("teacherId", args.userId))
+                .collect()
+
+            for (const subject of subjects) {
+                const teachingLoads = await ctx.db
+                    .query("teachingLoad")
+                    .withIndex("subjectThoughId", q => q.eq("subjectThoughId", subject._id))
+                    .collect()
+
+                for (const load of teachingLoads) {
+                    await ctx.db.delete(load._id)
+                }
+
+                await ctx.db.delete(subject._id)
+            }
+        }
+
+        // 5. Delete the user account
+        await ctx.db.delete(args.userId)
+
+        return { success: true, deletedUserId: args.userId }
+    }
+})

@@ -8,6 +8,10 @@ import { Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import { useConfirm } from "@/hooks/use-confirm";
+import { useMutation } from "@tanstack/react-query";
+import { useConvexMutation } from "@convex-dev/react-query";
+import { api } from "../../../../../convex/_generated/api";
+import { toast } from "sonner";
 
 // Define the User type kahit di na siguro Doc, but if needed just use Doc
 export type User = {
@@ -42,13 +46,26 @@ export const usercolumns: ColumnDef<User>[] = [
         "This action cannot be undone."
       );
       const user = row.original;
+      const { mutate: deleteUserMutation, isPending } = useMutation({
+        mutationFn: useConvexMutation(api.users.deleteUser),
+        onSuccess: () => {
+          toast.success("User deleted successfully.");
+        },
+        onError: () => {
+          toast.error("Failed to delete user.");
+        },
+      });
 
       const onDelete = async () => {
         const confirmed = await confirm();
 
         if (confirmed) {
-          // Call the delete function here
-          console.log("Delete user", user.id);
+          await deleteUserMutation({ userId: user.id });
+          // try {
+          //   toast.success("User deleted successfully.");
+          // } catch (error) {
+          //   toast.error("Failed to delete user.");
+          // }
         }
       };
 
@@ -62,11 +79,17 @@ export const usercolumns: ColumnDef<User>[] = [
               onClick={() => {
                 router.push(`/admin/user/edit/${user.id}`);
               }}
+              disabled={isPending}
             >
               <Edit className="h-4 w-4 mr-1" />
               Edit
             </Button>
-            <Button variant="destructive" size="sm" onClick={onDelete}>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={onDelete}
+              disabled={isPending}
+            >
               <Trash2 className="h-4 w-4 mr-1" />
               Delete
             </Button>
