@@ -6,7 +6,7 @@ import { ConvexClientProvider } from "@/components/convex-client-provider";
 export const metadata: Metadata = {
   title: "ERMS-Authentication",
   description: "Authentication Page",
-}
+};
 
 export default function RootLayout({
   children,
@@ -17,11 +17,7 @@ export default function RootLayout({
     <ConvexAuthNextjsServerProvider>
       <ConvexClientProvider>
         <html lang="en">
-          <body
-            className={` antialiased flex`}
-          >
-            {children}
-          </body>
+          <body className={`antialiased flex`}>{children}</body>
         </html>
       </ConvexClientProvider>
     </ConvexAuthNextjsServerProvider>
