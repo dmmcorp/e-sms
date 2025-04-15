@@ -1,10 +1,9 @@
 import { createAccount, getAuthUserId } from "@convex-dev/auth/server";
 import { mutation, query } from "./_generated/server";
-import { ConvexError, GenericId, v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { UserForm } from "../src/lib/zod"
 import { Doc, Id } from "./_generated/dataModel";
 import { SubjectTaughtQueryResult } from "../src/lib/types";
-import { addSubjectThought } from "./sections";
 import { internal } from "./_generated/api";
 // backend function to get the current logged in user
 export const current = query({
@@ -214,7 +213,7 @@ export const createUser = mutation({
                 }
 
                 // First create the subject thought
-                const subjectThoughtId = await ctx.db.insert("subjectThought", {
+                const subjectTaughtId = await ctx.db.insert("subjectTaught", {
                     teacherId: accountResponse.user._id,
                     gradeLevel: subject.gradeLevel,
                     subjectName: subject.subjectName,
@@ -222,15 +221,15 @@ export const createUser = mutation({
                     semester: subject.semester || [],
                     gradeWeights: subject.gradeWeights,
                 });
-                 await ctx.runMutation(internal.sections.addSubjectThought, {
+                 await ctx.runMutation(internal.sections.addSubjectTaught, {
                     sectionId: sectionId as Id<'sections'>,
-                    id: subjectThoughtId
+                    id: subjectTaughtId
                  })
                 // Then create teaching load entries based on quarters/semesters
                 if (subject.quarter && subject.quarter.length > 0) {
                     for (const quarter of subject.quarter) {
                         await ctx.db.insert("teachingLoad", {
-                            subjectThoughId: subjectThoughtId,
+                            subjectTaughtId: subjectTaughtId,
                             quarter: quarter,
                             semester: undefined,
                             sectionId: sectionId as Id<"sections">, // Use resolved sectionId
@@ -241,7 +240,7 @@ export const createUser = mutation({
                 if (subject.semester && subject.semester.length > 0) {
                     for (const semester of subject.semester) {
                         await ctx.db.insert("teachingLoad", {
-                            subjectThoughId: subjectThoughtId,
+                            subjectTaughtId: subjectTaughtId,
                             semester: semester,
                             quarter: undefined,
                             sectionId: sectionId as Id<"sections">, // Use resolved sectionId
@@ -292,14 +291,14 @@ export const getUser = query({
         let subjectsTaught: SubjectTaughtQueryResult[] = [];
         if (user.role === "subject-teacher" || user.role === "adviser/subject-teacher") {
             const subjects = await ctx.db
-                .query("subjectThought")
+                .query("subjectTaught")
                 .withIndex("teacherId", q => q.eq("teacherId", args.userId))
                 .collect();
 
             for (const subject of subjects) {
                 const teachingLoads = await ctx.db
                     .query("teachingLoad")
-                    .withIndex("subjectThoughId", q => q.eq("subjectThoughId", subject._id))
+                    .withIndex("subjectTaughtId", q => q.eq("subjectTaughtId", subject._id))
                     .collect();
 
                 // Group teaching loads by section to handle teaching the same subject in multiple sections
@@ -523,7 +522,7 @@ export const updateUser = mutation({
         // Handle Subjects & Teaching Loads (For teacher roles)
 
         const existingSubjectDocs = await ctx.db
-            .query("subjectThought")
+            .query("subjectTaught")
             .withIndex("teacherId", q => q.eq("teacherId", userId))
             .collect();
 
@@ -532,22 +531,22 @@ export const updateUser = mutation({
             existingSubjectIds.map(subjectId =>
                 ctx.db
                     .query("teachingLoad")
-                    .withIndex("subjectThoughId", q => q.eq("subjectThoughId", subjectId))
+                    .withIndex("subjectTaughtId", q => q.eq("subjectTaughtId", subjectId))
                     .collect()
             )
         )).flat()
 
-        const existingSubjectsMap = new Map<string, Doc<"subjectThought">>(
+        const existingSubjectsMap = new Map<string, Doc<"subjectTaught">>(
             existingSubjectDocs.map(doc => [`${doc.subjectName}_${doc.gradeLevel}`, doc])
         );
 
-        const existingLoadsMap = new Map<Id<"subjectThought">, Map<Id<"sections">, { quarters: Set<string>, semesters: Set<string>, loadIds: Set<Id<"teachingLoad">> }>>();
+        const existingLoadsMap = new Map<Id<"subjectTaught">, Map<Id<"sections">, { quarters: Set<string>, semesters: Set<string>, loadIds: Set<Id<"teachingLoad">> }>>();
 
         for (const load of existingLoadDocs) {
-            if (!existingLoadsMap.has(load.subjectThoughId)) {
-                existingLoadsMap.set(load.subjectThoughId, new Map());
+            if (!existingLoadsMap.has(load.subjectTaughtId)) {
+                existingLoadsMap.set(load.subjectTaughtId, new Map());
             }
-            const sectionMap = existingLoadsMap.get(load.subjectThoughId)!;
+            const sectionMap = existingLoadsMap.get(load.subjectTaughtId)!;
             if (!sectionMap.has(load.sectionId)) {
                 sectionMap.set(load.sectionId, { quarters: new Set(), semesters: new Set(), loadIds: new Set() });
             }
@@ -557,12 +556,12 @@ export const updateUser = mutation({
             if (load.semester) loadInfo.semesters.add(load.semester);
         }
 
-        const keptSubjectThoughtIds = new Set<Id<"subjectThought">>();
+        const keptSubjectThoughtIds = new Set<Id<"subjectTaught">>();
         const processedLoadIds = new Set<Id<"teachingLoad">>();
 
         if ((args.role === "subject-teacher" || args.role === "adviser/subject-teacher") && submittedSubjectsInput) {
             for (const submittedSubject of submittedSubjectsInput) {
-                let subjectThoughtId: Id<"subjectThought">;
+                let subjectTaughtId: Id<"subjectTaught">;
                 let resolvedSectionId: Id<"sections">;
 
                 if (submittedSubject.sectionId.startsWith('pending-section-')) {
@@ -578,16 +577,16 @@ export const updateUser = mutation({
                 const existingSubjectDoc = existingSubjectsMap.get(subjectKey);
 
                 if (existingSubjectDoc) {
-                    subjectThoughtId = existingSubjectDoc._id;
-                    keptSubjectThoughtIds.add(subjectThoughtId);
+                    subjectTaughtId = existingSubjectDoc._id;
+                    keptSubjectThoughtIds.add(subjectTaughtId);
 
                     if (JSON.stringify(existingSubjectDoc.gradeWeights) !== JSON.stringify(submittedSubject.gradeWeights)) {
-                        await ctx.db.patch(subjectThoughtId, { gradeWeights: submittedSubject.gradeWeights });
+                        await ctx.db.patch(subjectTaughtId, { gradeWeights: submittedSubject.gradeWeights });
                     }
 
                 } else {
                     // Insert new subjectThought
-                    subjectThoughtId = await ctx.db.insert("subjectThought", {
+                    subjectTaughtId = await ctx.db.insert("subjectTaught", {
                         teacherId: userId,
                         gradeLevel: submittedSubject.gradeLevel,
                         subjectName: submittedSubject.subjectName,
@@ -595,13 +594,13 @@ export const updateUser = mutation({
                         quarter: submittedSubject.quarter,
                         semester: submittedSubject.semester || [],
                     });
-                    keptSubjectThoughtIds.add(subjectThoughtId);
+                    keptSubjectThoughtIds.add(subjectTaughtId);
                 }
 
                 const submittedQuarters = new Set(submittedSubject.quarter || []);
                 const submittedSemesters = new Set(submittedSubject.semester || []);
 
-                const existingLoadInfo = existingLoadsMap.get(subjectThoughtId)?.get(resolvedSectionId);
+                const existingLoadInfo = existingLoadsMap.get(subjectTaughtId)?.get(resolvedSectionId);
                 const existingQuarters = existingLoadInfo?.quarters ?? new Set<string>();
                 const existingSemesters = existingLoadInfo?.semesters ?? new Set<string>();
                 const existingLoadIdsInSection = existingLoadInfo?.loadIds ?? new Set<Id<"teachingLoad">>();
@@ -609,12 +608,12 @@ export const updateUser = mutation({
                 // Loads to Add
                 for (const quarter of submittedQuarters) {
                     if (!existingQuarters.has(quarter)) {
-                        await ctx.db.insert("teachingLoad", { subjectThoughId: subjectThoughtId, sectionId: resolvedSectionId, quarter: quarter, semester: undefined });
+                        await ctx.db.insert("teachingLoad", { subjectTaughtId: subjectTaughtId, sectionId: resolvedSectionId, quarter: quarter, semester: undefined });
                     }
                 }
                 for (const semester of submittedSemesters) {
                     if (!existingSemesters.has(semester)) {
-                        await ctx.db.insert("teachingLoad", { subjectThoughId: subjectThoughtId, sectionId: resolvedSectionId, semester: semester, quarter: undefined });
+                        await ctx.db.insert("teachingLoad", { subjectTaughtId: subjectTaughtId, sectionId: resolvedSectionId, semester: semester, quarter: undefined });
                     }
                 }
 
@@ -643,7 +642,7 @@ export const updateUser = mutation({
         for (const subjectDoc of existingSubjectDocs) {
             if (!keptSubjectThoughtIds.has(subjectDoc._id)) {
                 // Double-check: Ensure all loads for this subject were indeed deleted or processed for deletion
-                const loadsForSubject = existingLoadDocs.filter(l => l.subjectThoughId === subjectDoc._id);
+                const loadsForSubject = existingLoadDocs.filter(l => l.subjectTaughtId === subjectDoc._id);
                 let safeToDelete = true;
                 for (const load of loadsForSubject) {
                     if (processedLoadIds.has(load._id)) {
@@ -663,7 +662,7 @@ export const updateUser = mutation({
         if (!(args.role === "subject-teacher" || args.role === "adviser/subject-teacher")) {
             for (const subjectDoc of existingSubjectDocs) {
                 if (!keptSubjectThoughtIds.has(subjectDoc._id)) {
-                    const loads = await ctx.db.query("teachingLoad").withIndex("subjectThoughId", q => q.eq("subjectThoughId", subjectDoc._id)).collect();
+                    const loads = await ctx.db.query("teachingLoad").withIndex("subjectTaughtId", q => q.eq("subjectTaughtId", subjectDoc._id)).collect();
                     for (const load of loads) { await ctx.db.delete(load._id); }
                     await ctx.db.delete(subjectDoc._id);
                 }
@@ -718,14 +717,14 @@ export const deleteUser = mutation({
         // b) Subjects and Teaching Loads (if subject-teacher role)
         if (userToDelete.role === "subject-teacher" || userToDelete.role === "adviser/subject-teacher") {
             const subjects = await ctx.db
-                .query("subjectThought")
+                .query("subjectTaught")
                 .withIndex("teacherId", q => q.eq("teacherId", args.userId))
                 .collect()
 
             for (const subject of subjects) {
                 const teachingLoads = await ctx.db
                     .query("teachingLoad")
-                    .withIndex("subjectThoughId", q => q.eq("subjectThoughId", subject._id))
+                    .withIndex("subjectTaughtId", q => q.eq("subjectTaughtId", subject._id))
                     .collect()
 
                 for (const load of teachingLoads) {

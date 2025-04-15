@@ -6,9 +6,9 @@ export const getSubjects = query({
     handler: async(ctx) =>{
         
         const teacherId = await getAuthUserId(ctx);
-        const subjectThought = await ctx.db.query("subjectThought").filter(q => q.eq(q.field('teacherId'), teacherId)).collect();
+        const subjectTaught = await ctx.db.query("subjectTaught").filter(q => q.eq(q.field('teacherId'), teacherId)).collect();
 
 
-        return subjectThought
+        return subjectTaught
     }
 })

@@ -25,7 +25,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
   const [type, setType] = useState<DialogType | undefined>();
 
   const section = teachingLoad.section;
-  const subjectThought = teachingLoad.subjectThought;
+  const subjectThought = teachingLoad.subjectTaught;
   const classRecords = teachingLoad.classRecords;
   const gradeWeights = subjectThought.gradeWeights;
   const learningMode = gradeWeights.type;

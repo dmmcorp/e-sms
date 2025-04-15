@@ -5,7 +5,7 @@ import {asyncMap} from "convex-helpers"
 export const getTeachingLoad = query({
     args: {
         // Optional ID of the subject being taught
-        subjectThoughtId: v.optional(v.id('subjectThought')),
+        subjectTaughtId: v.optional(v.id('subjectTaught')),
         // Quarter of the academic year
         quarter: v.union(
             v.literal('1st quarter'),
@@ -21,11 +21,11 @@ export const getTeachingLoad = query({
     },
     handler: async (ctx, args) => {
         // If no subjectThoughtId is provided, return undefined
-        if (!args.subjectThoughtId) return undefined;
+        if (!args.subjectTaughtId) return undefined;
 
         // Query the teachingLoad collection based on subjectThoughtId and quarter
         let teachingLoad = ctx.db.query('teachingLoad')
-            .filter(q => q.eq(q.field('subjectThoughId'), args.subjectThoughtId))
+            .filter(q => q.eq(q.field('subjectTaughtId'), args.subjectTaughtId))
             .filter(q => q.eq(q.field('quarter'), args.quarter));
 
         // If semester is provided, filter teachingLoad by semester
@@ -81,28 +81,28 @@ export const getTeachingLoad = query({
             });
 
             // Fetch dropped students and include their details
-            const droppedStudents = await asyncMap(
-                classRecords.filter(record => record.isDropped),
-                async (record) => {
-                    const student = await ctx.db.get(record.studentId);
-                    return {
-                        ...record,
-                        student: student
-                    };
-                }
-            );
+            // const droppedStudents = await asyncMap(
+            //     classRecords.filter(record => record.isDropped),
+            //     async (record) => {
+            //         const student = await ctx.db.get(record.studentId);
+            //         return {
+            //             ...record,
+            //             student: student
+            //         };
+            //     }
+            // );
 
             // Fetch returning students and include their details
-            const returningStudents = await asyncMap(
-                classRecords.filter(record => record.isReturning),
-                async (record) => {
-                    const student = await ctx.db.get(record.studentId);
-                    return {
-                        ...record,
-                        student: student
-                    };
-                }
-            );
+            // const returningStudents = await asyncMap(
+            //     classRecords.filter(record => record.isReturning),
+            //     async (record) => {
+            //         const student = await ctx.db.get(record.studentId);
+            //         return {
+            //             ...record,
+            //             student: student
+            //         };
+            //     }
+            // );
 
             // Fetch students needing interventions and include their details
             const needsInterventions = await asyncMap(
@@ -118,7 +118,7 @@ export const getTeachingLoad = query({
 
             // Fetch section and subject details for the teaching load
             const section = await ctx.db.get(load.sectionId);
-            const subject = await ctx.db.get(load.subjectThoughId);
+            const subject = await ctx.db.get(load.subjectTaughtId);
 
             // Return the teaching load with all associated data
             return {
@@ -126,8 +126,8 @@ export const getTeachingLoad = query({
                 section: section,
                 subject: subject,
                 classRecords: classRecords,
-                droppedStud: droppedStudents,
-                returningStud: returningStudents,
+                // droppedStud: droppedStudents,
+                // returningStud: returningStudents,
                 needsInterventions: needsInterventions
             };
         });
@@ -145,13 +145,13 @@ export const getById = query({
 
         if(load === null) return undefined;
 
-        const subjectThought = await ctx.db.get(load.subjectThoughId);
+        const subjectTaught = await ctx.db.get(load.subjectTaughtId);
         const section = await ctx.db.get(load.sectionId);
         
-        if(!subjectThought) throw new ConvexError('No subjectThought Found!');
+        if(!subjectTaught) throw new ConvexError('No subject Taught Found!');
         if(!section) throw new ConvexError('No section Found!');
 
-        const teacher = await ctx.db.get(subjectThought.teacherId)
+        const teacher = await ctx.db.get(subjectTaught.teacherId)
 
         const classRecords = await ctx.db.query('classRecords')
             .filter(q => q.eq(q.field('teachingLoadId'), load._id))
@@ -173,8 +173,8 @@ export const getById = query({
 
         return {
             ...load,
-            subjectThought: {
-                ...subjectThought,
+            subjectTaught: {
+                ...subjectTaught,
                 teacher: teacher
             },
             section: section,
@@ -288,28 +288,28 @@ export const getLoadUsingSectionId = query({
             });
 
              // Fetch dropped students and include their details
-             const droppedStudents = await asyncMap(
-                classRecords.filter(record => record.isDropped),
-                async (record) => {
-                    const student = await ctx.db.get(record.studentId);
-                    return {
-                        ...record,
-                        student: student
-                    };
-                }
-            );
+            //  const droppedStudents = await asyncMap(
+            //     classRecords.filter(record => record.isDropped),
+            //     async (record) => {
+            //         const student = await ctx.db.get(record.studentId);
+            //         return {
+            //             ...record,
+            //             student: student
+            //         };
+            //     }
+            // );
 
-            // Fetch returning students and include their details
-            const returningStudents = await asyncMap(
-                classRecords.filter(record => record.isReturning),
-                async (record) => {
-                    const student = await ctx.db.get(record.studentId);
-                    return {
-                        ...record,
-                        student: student
-                    };
-                }
-            );
+            // // Fetch returning students and include their details
+            // const returningStudents = await asyncMap(
+            //     classRecords.filter(record => record.isReturning),
+            //     async (record) => {
+            //         const student = await ctx.db.get(record.studentId);
+            //         return {
+            //             ...record,
+            //             student: student
+            //         };
+            //     }
+            // );
 
             // Fetch students needing interventions and include their details
             const needsInterventions = await asyncMap(
@@ -325,7 +325,7 @@ export const getLoadUsingSectionId = query({
 
             // Fetch subject details for the teaching load
 
-            const subject = await ctx.db.get(load.subjectThoughId);
+            const subject = await ctx.db.get(load.subjectTaughtId);
             if(subject === null) return null
             const teacher = await ctx.db.get(subject.teacherId);
             if(teacher === null) return null;
@@ -337,8 +337,8 @@ export const getLoadUsingSectionId = query({
                     teacher: teacher
                 },
                 classRecords: classRecords,
-                droppedStud: droppedStudents,
-                returningStud: returningStudents,
+                // droppedStud: droppedStudents,
+                // returningStud: returningStudents,
                 needsInterventions: needsInterventions
             }
         })

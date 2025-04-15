@@ -28,7 +28,7 @@ function Navigation() {
           <motion.h1
             whileHover={{scale: 1.06}}
             variants={itemVariants}
-            className='hover:underline uppercase'
+            className='hover:underline uppercase text-nowrap'
           >
             Subject Teacher
           </motion.h1>
