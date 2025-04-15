@@ -2,23 +2,45 @@ import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { asyncMap } from "convex-helpers";
 import { gradeLevel } from "./schema";
+import { getAuthUserId } from "@convex-dev/auth/server";
+import { Doc } from "./_generated/dataModel";
 
 export const getStudents = query({
     args:{
         sectionId: v.optional(v.id('sections'))
     },
-    handler: async(ctx, args) =>{
-        if(!args.sectionId || args.sectionId === null) return
-        const section = await ctx.db.get(args.sectionId)
-        if(section === null) throw new Error
-
-        const students = await ctx.db.query('students')
-        .filter(q => q.eq(q.field('isArchived'), false))
-        .filter(q => q.eq(q.field('currentGradeLevel'), section.gradeLevel))
-        .order('desc')
-        .collect()
-        return students
-    }
+    handler: async (ctx, args) => {
+        const adviserId = await getAuthUserId(ctx);
+      
+        let section: Doc<'sections'> | null = null;
+      
+        if (!args.sectionId) {
+          const sections = await ctx.db
+            .query('sections')
+            .filter(q => q.eq(q.field('adviserId'), adviserId))
+            .order('desc')
+            .collect();
+            section = sections.sort((a, b) => b.schoolYear.localeCompare(a.schoolYear))[0];
+          if (!section) {
+            throw new Error("No section found for the current adviser.");
+          }
+        } else {
+          section = await ctx.db.get(args.sectionId);
+      
+          if (!section) {
+            throw new Error("Section not found.");
+          }
+        }
+      
+        const students = await ctx.db
+          .query('students')
+          .filter(q => q.eq(q.field('isArchived'), false))
+          .filter(q => q.eq(q.field('enrollingIn'), section.gradeLevel))
+          .order('desc')
+          .collect();
+      
+        return students;
+      }
 })
 
 
@@ -35,14 +57,14 @@ export const add = mutation({
             school: v.string(),
             address: v.string(),
         }),
-        juniorHigh: v.object({
+        juniorHigh: v.optional(v.object({
             genAve: v.string(),
             school: v.string(),
             address: v.string(),
-        }),
+        })),
         juniorHighDateOfAdmission: v.string(),
         alsRating: v.optional(v.string()),
-        currentGradeLevel: gradeLevel
+        enrollingIn: gradeLevel
     },
     handler: async(ctx, args) => {
         const isExistingStudent = await ctx.db.query('students').filter(q=> q.eq(q.field('lrn'), args.lrn)).first()
@@ -52,7 +74,8 @@ export const add = mutation({
         } else {
             await ctx.db.insert('students', {
                 ...args,
-                status: "not-enrolled"
+                status: "not-enrolled",
+                isArchived: false,
             })
         }
        
@@ -80,7 +103,7 @@ export const edit = mutation({
         }),
         juniorHighDateOfAdmission: v.string(),
         alsRating: v.optional(v.string()),
-
+        enrollingIn: gradeLevel
     },
     handler: async (ctx, args) =>{
         if(!args.studentId) return undefined;
@@ -108,6 +131,7 @@ export const edit = mutation({
             },
             juniorHighDateOfAdmission: args.juniorHighDateOfAdmission,
             alsRating: args.alsRating,
+            enrollingIn: args.enrollingIn
         })    
     }
 })

@@ -128,9 +128,9 @@ export const enrollmentSchema = z.object({
   elemPrevSchoolName: z.string().nonempty({ message: "Previous elementary school name is required." }),
   elemPrevSchoolAddress: z.string().nonempty({ message: "Previous elementary school address is required." }),
 
-  jnrGenAve: z.string().nonempty({ message: "Junior high general average is required." }),
-  jnrPrevSchoolName: z.string().nonempty({ message: "Previous junior high school name is required." }),
-  jnrPrevSchoolAddress: z.string().nonempty({ message: "Previous junior high school address is required." }),
+  jnrGenAve: z.string().optional(),
+  jnrPrevSchoolName: z.string().optional(),
+  jnrPrevSchoolAddress: z.string().optional(),
   jnrDateOfAdmission: z.date({
     required_error: "Date of admission is required.",
   }),

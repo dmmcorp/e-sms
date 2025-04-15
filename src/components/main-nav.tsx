@@ -29,6 +29,7 @@ function MainNav() {
     <nav
       className={cn(
         pathName === "/admin" ? "hidden" : "flex",
+        pathName === "/teacher" ? "hidden" : "flex",
         "px-3 md:px-10 w-full h-18 z-50 shadow-md py-5 justify-between items-center pr-3 sm:pr-5 md:pr-10 lg:pr-10"
       )}
       style={{

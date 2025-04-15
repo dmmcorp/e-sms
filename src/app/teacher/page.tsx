@@ -4,7 +4,7 @@ import Loading from "./loading";
 
 const Page = () => {
     return (
-        <div className="size-full">
+        <div className="size-full h-screen">
             <Suspense fallback={<Loading/>}>
                 <TeacherPage />
             </Suspense>

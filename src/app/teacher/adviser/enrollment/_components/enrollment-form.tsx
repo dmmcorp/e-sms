@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils'
 import { Calendar } from '@/components/ui/calendar'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Separator } from '@/components/ui/separator'
 import { useMutation } from 'convex/react'
 import { api } from '../../../../../../convex/_generated/api'
@@ -29,16 +29,19 @@ import { toast } from 'sonner'
 import { enrollmentSchema } from '@/lib/zod'
 import { GradeLevelsTypes } from '@/lib/types'
 import { gradeLevels } from '@/lib/constants'
-
-
-
+import { CalendarRaw } from '@/components/DatePicker'
+import { Id } from '../../../../../../convex/_generated/dataModel'
 
 function EnrollmentForm() {
     const [step, setStep] = useState(1)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isComplete, setIsComplete] = useState(false)
+    const searchParams = useSearchParams();
+    const sectionId = searchParams.get('id') as Id<'sections'> | null;
     const addStudent  = useMutation(api.students.add)
-    const router = useRouter()
+    const router = useRouter();
+
+    //default values of the form
     const form = useForm<z.infer<typeof enrollmentSchema>>({
         resolver: zodResolver(enrollmentSchema),
         defaultValues: {
@@ -62,10 +65,8 @@ function EnrollmentForm() {
         },
       });
 
+    //this fuction is used the user click the save button
     function onSubmit(values: z.infer<typeof enrollmentSchema>) {
-        // Do something with the form values.
-        // ✅ This will be type-safe and validated.
-        console.log(values)
         setIsSubmitting(true)
         toast.promise(addStudent({
           lastName: values.lastName,
@@ -80,18 +81,18 @@ function EnrollmentForm() {
               address: values.elemPrevSchoolAddress,
           },
           juniorHigh: {
-            genAve: values.jnrGenAve,
-            school: values.jnrPrevSchoolName,
-            address: values.jnrPrevSchoolAddress,
+            genAve: values.jnrGenAve || "",
+            school: values.jnrPrevSchoolName || "",
+            address: values.jnrPrevSchoolAddress || "",
           },
           juniorHighDateOfAdmission: values.jnrDateOfAdmission.toDateString(),
           alsRating: values.alsRating,
-          currentGradeLevel: values.enrollingTo as GradeLevelsTypes
+          enrollingIn: values.enrollingTo as GradeLevelsTypes
         }),{
           loading: "Adding student...",
           success: () =>{ 
             form.reset()
-            router.replace('/teacher/adviser/enrollment')
+            router.replace(`/teacher/adviser/enrollment?id=${sectionId}`)
             return "Successfully Added a new student"
           },
           error: (error) => {
@@ -157,7 +158,7 @@ function EnrollmentForm() {
               {step === 1 && (
                 <div className="space-y-6">
                   <div className="text-lg font-medium">Personal Information</div>
-                  <div className="grid gap-6 sm:grid-cols-3">
+                  <div className="grid gap-6 sm:grid-cols-3 items-start">
                     <FormField
                       control={form.control}
                       name="firstName"
@@ -203,21 +204,22 @@ function EnrollmentForm() {
                     />
                   </div>
 
-                  <div className="grid gap-6 sm:grid-cols-2">
+                  <div className="grid gap-6 sm:grid-cols-2 items-start">
                     <FormField
                       control={form.control}
                       name="dateOfBirth"
                       render={({ field }) => (
-                        <FormItem className="flex flex-col">
+                        <FormItem className="">
                           <FormLabel>
                             Date of Birth <span className="text-red-500">*</span>
                           </FormLabel>
                           <Popover>
-                            <PopoverTrigger asChild>
+                            <PopoverTrigger className='flex w-full'>
                               <FormControl>
                                 <Button
+                                  type='button'
                                   variant={"outline"}
-                                  className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                  className={cn("pl-3 text-left font-normal w-full", !field.value && "text-muted-foreground")}
                                 >
                                   {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
                                   <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
@@ -225,12 +227,15 @@ function EnrollmentForm() {
                               </FormControl>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                                initialFocus
+                              <CalendarRaw
+                                  mode="single"
+                                  captionLayout="dropdown-buttons"
+                                  selected={field.value ? new Date(field.value) : undefined}
+                                  onSelect={(value) => {
+                                      field.onChange(value)
+                                  }}
+                                  fromYear={1960}
+                                  toYear={2030}
                               />
                             </PopoverContent>
                           </Popover>
@@ -318,16 +323,17 @@ function EnrollmentForm() {
                             Date of Admission <span className="text-red-500">*</span>
                           </FormLabel>
                           <Popover>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button
-                                  variant={"outline"}
-                                  className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                                >
-                                  {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                              </FormControl>
+                            <PopoverTrigger className='flex w-full'>
+                                <FormControl>
+                                  <Button
+                                    type='button'
+                                    variant={"outline"}
+                                    className={cn("pl-3 text-left font-normal w-full", !field.value && "text-muted-foreground")}
+                                  >
+                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                  </Button>
+                                </FormControl>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0" align="start">
                               <Calendar
@@ -344,6 +350,7 @@ function EnrollmentForm() {
                       )}
                     />
                   </div>
+                  
 
                   
                 </div>
@@ -412,7 +419,7 @@ function EnrollmentForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          School Name <span className="text-red-500">*</span>
+                          School Name 
                         </FormLabel>
                         <FormControl>
                           <Input placeholder="Enter previous school name" {...field} />
@@ -428,7 +435,7 @@ function EnrollmentForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          School Address <span className="text-red-500">*</span>
+                          School Address 
                         </FormLabel>
                         <FormControl>
                           <Input placeholder="Enter previous school address" {...field} />
@@ -443,7 +450,7 @@ function EnrollmentForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          General Average <span className="text-red-500">*</span>
+                          General Average
                         </FormLabel>
                         <FormControl>
                           <Input placeholder="Enter general average" {...field} />

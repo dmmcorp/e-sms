@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { Separator } from '@/components/ui/separator'
 
 function HandledSection() {
   const [selectedSY, setSelectedSY] = useState<SchoolYearTypes>("2024-2025");
@@ -41,7 +42,7 @@ function HandledSection() {
         <div className="space-y-10">
         {sections?.map((section)=> (
           <Card key={section._id} className=" pt-0">
-            <CardHeader className='pt-5 bg-muted pb-5'>
+            <CardHeader className='pt-5 '>
               <CardTitle  className='flex items-center justify-between'>
                 <h1 className='text-xl font-medium'>Section: {section.name}</h1> 
                 <Link href={`/teacher/adviser/enrollment?id=${section._id}`} className="">
@@ -50,6 +51,7 @@ function HandledSection() {
               </CardTitle>
               
             </CardHeader>
+            <Separator/>
             <CardContent>
               <SelectSemAndQtr
                 selectedSem={selectedSem}

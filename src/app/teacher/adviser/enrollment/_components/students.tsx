@@ -16,8 +16,10 @@ import { Id } from '../../../../../../convex/_generated/dataModel'
 export default function Students() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const sectionId = searchParams.get('id');
-    const students = useQuery(api.students.getStudents, {sectionId: sectionId as Id<'sections'>})
+    const sectionId = searchParams.get('id') as Id<'sections'> | null;
+    const students = useQuery(api.students.getStudents, {
+        sectionId: sectionId ?? undefined,
+    });
     if(!students) return <div className="">Loading...</div>
   return (
     <div className='pt-5'>

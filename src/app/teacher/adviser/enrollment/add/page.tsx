@@ -4,7 +4,9 @@ import EnrollmentForm from '../_components/enrollment-form'
 
 function Page() {
   return (
-    <div className='container mx-auto pt-5'><EnrollmentForm/></div>
+    <div className='container mx-auto pt-5'>
+      <EnrollmentForm/>
+    </div>
   )
 }
 

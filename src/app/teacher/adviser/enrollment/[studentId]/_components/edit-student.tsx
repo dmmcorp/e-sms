@@ -5,7 +5,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { StudentWithEnrollment } from '@/lib/types';
+import { GradeLevelsTypes, StudentWithEnrollment } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { enrollmentSchema } from '@/lib/zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,13 +13,14 @@ import { useMutation } from 'convex/react';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { api } from '../../../../../../../convex/_generated/api';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from '@/components/ui/dialog';
+import { gradeLevels } from '@/lib/constants';
 
 interface EditStudentProps {
     student: StudentWithEnrollment;
@@ -33,7 +34,6 @@ function EditStudent({
     setEditDialog
 }:EditStudentProps) {
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const router = useRouter();
     const updateStudent = useMutation(api.students.edit)
     const form = useForm<z.infer<typeof enrollmentSchema>>({
         resolver: zodResolver(enrollmentSchema),
@@ -53,7 +53,7 @@ function EditStudent({
             jnrPrevSchoolName: student?.juniorHigh?.school || "",
             jnrPrevSchoolAddress:  student?.juniorHigh?.address || "",
             jnrDateOfAdmission: student?.juniorHighDateOfAdmission ? new Date(student.juniorHighDateOfAdmission) : undefined,
-        
+            enrollingTo: student.enrollingIn,
             alsRating: student?.alsRating || "",
         },
     });
@@ -77,18 +77,19 @@ function EditStudent({
                 address: values.elemPrevSchoolAddress,
             },
             juniorHigh: {
-            genAve: values.jnrGenAve,
-            school: values.jnrPrevSchoolName,
-            address: values.jnrPrevSchoolAddress,
+                genAve: values.jnrGenAve || "",
+                school: values.jnrPrevSchoolName || "",
+                address: values.jnrPrevSchoolAddress || "",
             },
             juniorHighDateOfAdmission: values.jnrDateOfAdmission.toDateString(),
             alsRating: values.alsRating,
+            enrollingIn: values.enrollingTo as GradeLevelsTypes
         }),{
-            loading: "Adding student...",
+            loading: "Updating student information...",
             success: () =>{ 
                 form.reset()
                 setEditDialog(false)
-            return "Successfully Added a new student"
+            return "Updated student information"
             },
             error: (error) => {
             return (
@@ -98,17 +99,21 @@ function EditStudent({
         })
         setIsSubmitting(false)
     }
+
+    useEffect(()=>{
+        console.log(form.formState.errors)
+    },[form.formState.errors])
   return (
     <Dialog open={editDialog} onOpenChange={setEditDialog}>
-        <DialogContent className='max-h-screen overflow-auto md:max-w-1/2'>
+        <DialogContent className='max-h-[80vh] overflow-auto md:max-w-5xl'>
             <DialogTitle>
                 Edit Student
             </DialogTitle>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                     <div className="space-y-6">
-                        <div className="text-sm font-medium bg-muted w-full py-1 px-2">Personal Information</div>
-                        <div className="grid gap-6 sm:grid-cols-3">
+                        <div className="text-sm font-medium bg-primary/90 text-white w-full py-1 px-2">Personal Information</div>
+                        <div className="grid gap-6 sm:grid-cols-3 items-start">
                         <FormField
                             control={form.control}
                             name="firstName"
@@ -154,7 +159,7 @@ function EditStudent({
                         />
                         </div>
 
-                        <div className="grid gap-6 sm:grid-cols-2">
+                        <div className="grid gap-6 sm:grid-cols-2 items-start">
                         <FormField
                             control={form.control}
                             name="dateOfBirth"
@@ -216,8 +221,8 @@ function EditStudent({
                     </div>
 
                     <div className="space-y-6">
-                    <div className="text-sm font-medium w-full bg-muted py-1 px-2">Academic Information</div>
-                    <div className="grid gap-6 sm:grid-cols-2">
+                    <div className="text-sm font-medium w-full bg-primary/90 text-white py-1 px-2">Academic Information</div>
+                    <div className="grid gap-6 sm:grid-cols-2 items-start">
                         <FormField
                         control={form.control}
                         name="lrn"
@@ -233,6 +238,30 @@ function EditStudent({
                             <FormMessage />
                             </FormItem>
                         )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="enrollingTo"
+                            render={({ field }) => (
+                            <FormItem  className=''>
+                                <FormLabel>
+                                Grade Level for Enrollment  <span className="text-red-500">*</span>
+                                </FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                    <SelectTrigger className='w-full'>
+                                    <SelectValue placeholder="Select grade level" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {gradeLevels.map((level)=> (
+                                    <SelectItem key={level} value={level}>{level}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                            )}
                         />
                         <FormField
                         control={form.control}
@@ -274,7 +303,7 @@ function EditStudent({
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-10'>
                         {/* Elementary school information */}
                         <div className="space-y-6">
-                            <div className="text-sm font-medium w-full bg-muted py-1 px-2">School Information <span className='italic'>(Elementary)</span></div>
+                            <div className="text-sm font-medium w-full bg-primary/90 text-white py-1 px-2">School Information <span className='italic'>(Elementary)</span></div>
                             <FormField
                             control={form.control}
                             name="elemPrevSchoolName"
@@ -325,14 +354,14 @@ function EditStudent({
                         </div>
                         {/* Junior High school information */}
                         <div className="space-y-6">
-                            <div className="text-sm font-medium w-full bg-muted py-1 px-2">School Information <span className='italic'>(Junior High School)</span></div>
+                            <div className="text-sm font-medium w-full bg-primary/90 text-white py-1 px-2">School Information <span className='italic'>(Junior High School)</span></div>
                             <FormField
                                 control={form.control}
                                 name="jnrPrevSchoolName"
                                 render={({ field }) => (
                                     <FormItem>
                                     <FormLabel>
-                                        School Name <span className="text-red-500">*</span>
+                                        School Name 
                                     </FormLabel>
                                     <FormControl>
                                         <Input placeholder="Enter previous school name" {...field} />
@@ -348,7 +377,7 @@ function EditStudent({
                                 render={({ field }) => (
                                     <FormItem>
                                     <FormLabel>
-                                        School Address <span className="text-red-500">*</span>
+                                        School Address
                                     </FormLabel>
                                     <FormControl>
                                         <Input placeholder="Enter previous school address" {...field} />
@@ -363,7 +392,7 @@ function EditStudent({
                                 render={({ field }) => (
                                     <FormItem>
                                     <FormLabel>
-                                        General Average <span className="text-red-500">*</span>
+                                        General Average 
                                     </FormLabel>
                                     <FormControl>
                                         <Input placeholder="Enter general average" {...field} />

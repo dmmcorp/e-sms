@@ -22,7 +22,7 @@ export default function RootLayout({
       <ConvexClientProvider>
         <html lang="en">
           <body
-            className={`flex flex-col antialiased min-w-screen min-h-screen`}
+            className={`flex flex-col antialiased min-w-screen min-h-screen bg-zinc-50`}
           >
             <TeacherGuard>
               <ThemeProviderWithDynamicColors>

@@ -201,8 +201,8 @@ const schema = defineSchema({
       v.literal("graduated"),
       v.literal("enrolled"),
       v.literal("not-enrolled"),
-    ),
-    currentGradeLevel: gradeLevel
+    ), // once promoted or retained it needs to update
+    enrollingIn: v.optional(gradeLevel) // once promoted or retained it needs to update
   }),
 
   enrollment: defineTable({
@@ -214,7 +214,7 @@ const schema = defineSchema({
       v.literal('dropped'),
       v.literal('Passed'),
       v.literal('Failed'),
-    ),
+    ), // once promoted it needs to update
     subjects: v.array(v.string()),
     isReturning: v.boolean(),
     sectionId: v.id('sections'),

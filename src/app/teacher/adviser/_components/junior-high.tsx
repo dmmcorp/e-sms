@@ -6,7 +6,6 @@ import { Id } from '../../../../../convex/_generated/dataModel'
 import { QuarterType } from '@/lib/types'
 import { Card, CardContent } from '@/components/ui/card'
 import Chart from './chart'
-import { Separator } from '@/components/ui/separator'
 import CustomTooltip from '@/components/custom-tooltip'
 
 interface JuniorHighProps {

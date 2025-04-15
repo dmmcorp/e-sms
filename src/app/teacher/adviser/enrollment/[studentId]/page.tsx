@@ -30,16 +30,15 @@ function Page() {
 
     <div className="grid gap-6 md:grid-cols-3">
       <Card className="md:col-span-2 pt-0">
-        <CardHeader className='bg-muted py-3 flex items-center justify-between'>
+        <CardHeader className='bg-primary/90 py-3 flex text-primary-foreground items-center justify-between'>
             <div className="">
 
             <CardTitle>Student Information</CardTitle>
-            <CardDescription>Personal and academic details</CardDescription>
+            <CardDescription className='text-muted'>Personal and academic details</CardDescription>
             </div>
             <div className="flex justify-between">
-                <Button variant="outline" onClick={() => setEditDialog(true)}>
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Edit Information
+                <Button variant="outline" size={'icon'} onClick={() => setEditDialog(true)}>
+                    <Pencil className="h-4 w-4" />
                 </Button>
             </div>
         </CardHeader>
@@ -64,7 +63,7 @@ function Page() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="">
-                <h1 className='text-sm p-1 px-2 font-medium w-full bg-muted mb-3 italic'>Elementary School Background</h1>
+                <h1 className='text-sm p-1 px-2 font-medium w-full bg-primary/90 text-primary-foreground mb-3 italic'>Elementary School Background</h1>
                 <div className="grid gap-4 sm:grid-cols-2 px-2">
                     <div className="space-y-1">
                         <p className="text-sm text-muted-foreground">School Name</p>
@@ -82,7 +81,7 @@ function Page() {
             </div>
             {student?.juniorHigh && (
                 <div>
-                    <h1 className='text-sm p-1 px-2 font-medium w-full bg-muted mb-3 italic'>Junior High Background</h1>
+                    <h1 className='text-sm p-1 px-2 font-medium w-full bg-primary/90 text-primary-foreground mb-3 italic'>Junior High Background</h1>
                     <div className="grid gap-4 sm:grid-cols-2 px-3">
                         <div className="space-y-1">
                             <p className="text-sm text-muted-foreground">School Name</p>

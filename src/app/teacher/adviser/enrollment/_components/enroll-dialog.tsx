@@ -106,7 +106,7 @@ function EnrollDialog({
      
   return (
     <Dialog open={assignDialog} onOpenChange={setAssignDialog}>
-    <DialogContent>
+    <DialogContent >
         <DialogTitle>
             Are you sure you want to add this student to your section?
         </DialogTitle>
@@ -180,7 +180,7 @@ function EnrollDialog({
         
         <DialogFooter>
             <Button variant={'secondary'} onClick={()=> setAssignDialog(false)}> Cancel</Button>
-            <Button variant={'default'} onClick={handleEnroll}><UserPlus /> Yes</Button>
+            <Button variant={'default'} onClick={handleEnroll}><UserPlus /> {isLoading ? "Adding..." : "Yes"}</Button>
         </DialogFooter>
     </DialogContent>
 </Dialog>
