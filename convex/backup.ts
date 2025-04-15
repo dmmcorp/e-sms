@@ -126,7 +126,7 @@ export const fetchData = internalQuery({
 
 export const fetchRelatedTeachingLoads = internalQuery({
     args: {
-        subjectIds: v.array(v.id("subjectThought")),
+        subjectIds: v.array(v.id("subjectTaught")),
     },
     handler: async (ctx, args) => {
         if (args.subjectIds.length === 0) return [];
@@ -135,7 +135,7 @@ export const fetchRelatedTeachingLoads = internalQuery({
             args.subjectIds.map(id =>
                 ctx.db
                     .query("teachingLoad")
-                    .withIndex("subjectThoughId", q => q.eq("subjectThoughId", id))
+                    .withIndex("subjectTaughtId", q => q.eq("subjectTaughtId", id))
                     .collect()
             )
         );
@@ -230,7 +230,7 @@ export const exportData = mutation({
 
                 // Fetch related data
                 if (moduleName === 'subjects' && data.length > 0) {
-                    const subjectIds = data.map((d: Doc<"subjectThought">) => d._id);
+                    const subjectIds = data.map((d: Doc<"subjectTaught">) => d._id);
                     relatedData.teachingLoads = await ctx.runQuery(internal.backup.fetchRelatedTeachingLoads, {
                         subjectIds
                     });
