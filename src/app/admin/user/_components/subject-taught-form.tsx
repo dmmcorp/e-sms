@@ -23,7 +23,7 @@ import {
 import { GradeWeights } from "@/lib/types";
 import { UserFormData } from "@/lib/zod";
 import { Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Doc } from "../../../../../convex/_generated/dataModel";
 
 interface SubjectTaughtFormProps {

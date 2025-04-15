@@ -19,7 +19,9 @@ export default function RootLayout({
       <ConvexClientProvider>
         <html lang="en" suppressHydrationWarning>
           <ThemeProviderWithDynamicColors>
-            <body className={`antialiased flex`}>{children}</body>
+            <body className={`antialiased flex`} suppressHydrationWarning>
+              {children}
+            </body>
           </ThemeProviderWithDynamicColors>
         </html>
       </ConvexClientProvider>

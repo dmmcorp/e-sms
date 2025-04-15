@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,8 +20,8 @@ import { useDynamicTheme } from "@/components/theme-provider-with-dynamic-colors
 export function ColorSettingsForm() {
   const settings = useQuery(api.systemSettings.getColor);
   const updatePrimaryColor = useMutation(api.systemSettings.updatePrimaryColor);
-  const { primaryColor } = useDynamicTheme();
-  const [color, setColor] = useState(primaryColor);
+  const { primaryColor: currentThemeColor } = useDynamicTheme();
+  const [color, setColor] = useState(currentThemeColor);
 
   // Update state when settings are loaded
   useState(() => {
@@ -29,6 +29,11 @@ export function ColorSettingsForm() {
       setColor(settings.primaryColor);
     }
   });
+
+  useEffect(() => {
+    const initialColor = settings?.primaryColor || currentThemeColor;
+    setColor(initialColor);
+  }, [settings, currentThemeColor]);
 
   const handleSave = async () => {
     try {

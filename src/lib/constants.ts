@@ -1,3 +1,5 @@
+export const DEFAULT_COLOR = "#3962c0";
+
 export const gradeLevels = [
     "Grade 7",
     "Grade 8",
