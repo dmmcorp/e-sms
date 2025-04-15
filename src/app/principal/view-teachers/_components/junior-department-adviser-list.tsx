@@ -105,8 +105,15 @@ export function JuniorDepartmentAdviserList() {
                         <Users className="h-4 w-4 text-primary" />
                         <span className="font-medium"># of Students:</span>
                         <Badge variant="outline" className="ml-auto">
-                          {/* TODO: Calculate students for relevant sections */}
-                          N/A
+                          {adviser.sections
+                            .filter(
+                              (section) => section.gradeLevel === gradeLevel
+                            )
+                            .reduce(
+                              (total, section) =>
+                                total + (section.studentCount || 0),
+                              0
+                            )}
                         </Badge>
                       </div>
                       <div className="space-y-3">

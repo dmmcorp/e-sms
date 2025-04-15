@@ -10,6 +10,12 @@ export const getTeachers = query({
             .order("desc")
             .collect()
 
+        const allSectionStudents = await ctx.db.query("sectionStudents").collect();
+
+        const studentCounts: Record<string, number> = allSectionStudents.reduce((acc, record) => {
+            acc[record.sectionId] = (acc[record.sectionId] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>)
 
         // 2. Filter users by teacher roles
         const advisers = users.filter(user => user.role === "adviser")
@@ -23,9 +29,14 @@ export const getTeachers = query({
                 .filter(q => q.eq(q.field("adviserId"), adviser._id))
                 .collect()
 
+            const sectionsWithCount = sections.map(section => ({
+                ...section,
+                studentCount: studentCounts[section._id] || 0,
+            }))
+
             return {
                 ...adviser,
-                sections,
+                sections: sectionsWithCount,
             }
         }))
 
@@ -51,7 +62,8 @@ export const getTeachers = query({
                     gradeLevel: section.gradeLevel,
                     schoolYear: section.schoolYear,
                     semester: section.semester,
-                    subjects: fetchedSubjects.filter(subject => subject !== null)
+                    subjects: fetchedSubjects.filter(subject => subject !== null),
+                    studentCount: studentCounts[section._id] || 0,
                 }
             }))
 
@@ -86,6 +98,7 @@ export const getTeachers = query({
                         gradeLevel: s.gradeLevel,
                         schoolYear: s.schoolYear,
                         semester: s.semester,
+                        studentCount: studentCounts[s._id] || 0,
                     }))
                 }
             });
