@@ -40,7 +40,7 @@ export const schoolYears = [
 ];
 
 export function formatDate(convexDate: number | undefined) {
-  if(!convexDate) return undefined
+  if (!convexDate) return undefined
   const roundedTimestamp = Math.floor(convexDate);
 
   const readableDate = new Date(roundedTimestamp);
@@ -71,12 +71,12 @@ type Scores = {
 export function getTotalScore(scores: Scores,) {
   if (!scores) return 0
 
-  return scores.reduce((sum, item)=> sum + item.score, 0)
+  return scores.reduce((sum, item) => sum + item.score, 0)
 };
 
-export function isSHS(section: SectionType){
+export function isSHS(section: SectionType) {
   const gradeLevel = section.gradeLevel
-  if(gradeLevel === "Grade 11" || gradeLevel === "Grade 12"){
+  if (gradeLevel === "Grade 11" || gradeLevel === "Grade 12") {
     return true
   } else {
     return false

@@ -79,3 +79,13 @@ export const principalDepartments = [
         value: "entire-school",
     },
 ];
+
+export const modules = [
+    { id: "users", label: "Users" },
+    { id: "systemSettings", label: "System Settings" },
+    { id: "students", label: "Students" },
+    { id: "enrollments", label: "Enrollments" },
+    { id: "sections", label: "Sections" },
+    { id: "subjects", label: "Subjects & Teaching Loads" },
+    { id: "grades", label: "Grades & Class Records" },
+];

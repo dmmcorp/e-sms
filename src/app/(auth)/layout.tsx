@@ -17,7 +17,7 @@ export default function RootLayout({
   return (
     <ConvexAuthNextjsServerProvider>
       <ConvexClientProvider>
-        <html lang="en">
+        <html lang="en" suppressHydrationWarning>
           <ThemeProviderWithDynamicColors>
             <body className={`antialiased flex`}>{children}</body>
           </ThemeProviderWithDynamicColors>
