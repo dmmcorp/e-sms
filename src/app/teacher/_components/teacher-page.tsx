@@ -18,7 +18,7 @@ function TeacherPage() {
 
     if(user.role === "adviser/subject-teacher") {
       return (
-        <div className="h-[calc(100vh-4.5rem)] w-full lg:flex lg:flex-row">
+        <div className="h-screen w-full lg:flex lg:flex-row">
              
         {school === undefined ? (
             <div className="w-full h-full lg:w-[50%] lg:flex lg:flex-col lg:justify-center lg:items-center">

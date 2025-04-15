@@ -33,7 +33,7 @@ function EnrollDialog({
     fullName,
     student,
 }: EnrollDialogProps) {
-    const [subjects, setSubjects] = useState<Id<'subjectThought'>[]>([]);
+    const [subjects, setSubjects] = useState<Id<'subjectTaught'>[]>([]);
     const [selectedAll, setSelectedAll] = useState<boolean>(false);
     const [isReturning, setIsReturning] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);

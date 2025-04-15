@@ -26,10 +26,10 @@ export const get = query({
     }
 })
 
-export const addSubjectThought = internalMutation({
+export const addSubjectTaught = internalMutation({
     args:{
         sectionId: v.id('sections'),
-        id: v.id('subjectThought')
+        id: v.id('subjectTaught')
     },
     handler: async(ctx, args) =>{
    
@@ -80,7 +80,7 @@ export const getSectionSubject = query({
         const section = await ctx.db.get(args.sectionId)
         if(section === null ) throw new ConvexError('Section not found.')
 
-        let subjects: Doc<'subjectThought'>[] | null
+        let subjects: Doc<'subjectTaught'>[] | null
         if(section.subjects) {
 
           const s = await asyncMap(section.subjects, async(id)=>{

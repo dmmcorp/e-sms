@@ -38,6 +38,8 @@ export const addToSection = mutation({
             throw new ConvexError('Student already graduated.')
         }
 
+     
+
         
         await ctx.db.insert('enrollment',{
             ...args
@@ -45,6 +47,10 @@ export const addToSection = mutation({
 
         await ctx.db.patch(args.studentId,{
             status: 'enrolled'
+        })
+        await ctx.db.insert('sectionStudents',{
+            sectionId: args.sectionId,
+            studentId: args.studentId
         })
     }
 })

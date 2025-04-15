@@ -17,7 +17,7 @@ function SubjectThought() {
   const [selectedSubject, setSelectedSubject] = useState<SubjectTypes | undefined>()
 
   // Show a loading state while the subjects are being fetched
-  if (!subjects) return <div className="flex-">Loading...</div>
+  if (!subjects) return <div className="flex-">Fetching subjects...</div>
 
   // Show a message if no subjects are found
   if (subjects.length === 0) {

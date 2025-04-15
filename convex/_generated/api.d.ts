@@ -15,6 +15,7 @@ import type {
 } from "convex/server";
 import type * as auth from "../auth.js";
 import type * as backup from "../backup.js";
+import type * as classRecords from "../classRecords.js";
 import type * as enrollment from "../enrollment.js";
 import type * as files from "../files.js";
 import type * as highestScores from "../highestScores.js";
@@ -37,6 +38,7 @@ import type * as users from "../users.js";
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   backup: typeof backup;
+  classRecords: typeof classRecords;
   enrollment: typeof enrollment;
   files: typeof files;
   highestScores: typeof highestScores;

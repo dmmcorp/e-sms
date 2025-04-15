@@ -34,7 +34,7 @@ const schema = defineSchema({
     emailVerified: v.optional(v.boolean()),
   }).index('email', ['email']),
 
-  subjectThought: defineTable({
+  subjectTaught: defineTable({
     teacherId: v.id('users'),
     gradeLevel: gradeLevel,
     subjectName: v.string(),
@@ -80,7 +80,7 @@ const schema = defineSchema({
   //if the student enroll only on math then find the teaching load that has a subject thought with a subject name of Math. then use the teaching load Id to create a class record for the student
 
   teachingLoad: defineTable({
-    subjectThoughId: v.id('subjectThought'),
+    subjectTaughtId: v.id('subjectTaught'),
     semester: v.optional(v.union(
       v.literal('1st semester'),
       v.literal('2nd semester')
@@ -91,8 +91,14 @@ const schema = defineSchema({
       v.literal('3rd quarter'),
       v.literal('4th quarter'),
     )),
+    subComponent: v.optional(v.union(
+      v.literal('Music'),
+      v.literal('Arts'),
+      v.literal('Physical Education'),
+      v.literal('Health'),
+    )),
     sectionId: v.id('sections'),
-  }).index('subjectThoughId', ['subjectThoughId']),
+  }).index('subjectTaughtId', ['subjectTaughtId']),
 
   sections: defineTable({
     adviserId: v.id('users'),
@@ -104,20 +110,26 @@ const schema = defineSchema({
         v.literal('1st semester'),
         v.literal('2nd semester'),
       )),
-    subjects: v.optional(v.array(v.id('subjectThought')))
+    subjects: v.optional(v.array(v.id('subjectTaught')))
   }).index('adviserId', ['adviserId']),
+
+  //add column to this table when assigning students to a section
+  sectionStudents: defineTable({
+    sectionId: v.id('sections'),
+    studentId: v.id('students'),
+  }).index('by_sectionId', ['sectionId'])
+    .index('by_studentId', ['studentId']),
 
   // table for students record for subject teachers
   classRecords: defineTable({
     teachingLoadId: v.id('teachingLoad'),
     studentId: v.id('students'),
-    isDropped: v.boolean(), // change this when the enrollment status of the student becomes dropped
-    isReturning: v.boolean(), // get the value from the student enrollment isReturning column
     needsIntervention: v.optional(v.boolean()),
     interventionGrade: v.optional(v.number()),
     interventionUsed: v.optional(v.array(v.string())), // ex. Big book, General remarks
     interventionRemarks: v.optional(v.string())
-  }),
+  }).index('by_teachingLoadId', ['teachingLoadId'])
+    .index('by_studentId', ['studentId']),
 
   highestScores: defineTable({
     teachingLoadId: v.id("teachingLoad"),
@@ -130,7 +142,7 @@ const schema = defineSchema({
       assessmentNo: v.number(),
       score: v.number()
     }))
-  }),
+  }).index('by_teachingLoadId', ['teachingLoadId']),
 
   writtenWorks: defineTable({
     classRecordId: v.id('classRecords'),
@@ -148,7 +160,7 @@ const schema = defineSchema({
     ),
     score: v.number(),
     highestPossibleScore: v.number(),
-  }),
+  }).index('by_classRecordId', ['classRecordId']),
 
   performanceTasks: defineTable({
     classRecordId: v.id('classRecords'),
@@ -166,7 +178,7 @@ const schema = defineSchema({
     ),
     score: v.number(),
     highestPossibleScore: v.number()
-  }),
+  }).index('by_classRecordId', ['classRecordId']),
 
   majorExams: defineTable({
     classRecordId: v.id('classRecords'),
@@ -175,7 +187,7 @@ const schema = defineSchema({
     ),
     score: v.number(),
     highestPossibleScore: v.number()
-  }),
+  }).index('by_classRecordId', ['classRecordId']),
 
   students: defineTable({
     lastName: v.string(),

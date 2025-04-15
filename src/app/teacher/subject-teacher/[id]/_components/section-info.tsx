@@ -7,7 +7,7 @@ interface SectionInfoType {
 }
 function SectionInfo({teachingLoad}: SectionInfoType) {
   const section = teachingLoad.section
-  const subject = teachingLoad.subjectThought
+  const subject = teachingLoad.subjectTaught
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 font-bold text-sm">
         <h1>Section: <span className='font-normal'>{section.name}</span></h1>

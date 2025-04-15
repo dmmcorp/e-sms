@@ -25,7 +25,7 @@ function SectionSummary({
 
   // Fetch the teaching loads using the useQuery hook from Convex API
   const loads = useQuery(api.teachingLoad.getTeachingLoad, {
-    subjectThoughtId: selectedSubject?._id, // Pass the selected subject ID
+    subjectTaughtId: selectedSubject?._id, // Pass the selected subject ID
     quarter: selectedQtr, // Pass the selected quarter
     semester: selectedSem // Pass the selected semester
   })
@@ -64,16 +64,16 @@ function SectionSummary({
                   <div className="">
                     {/* // Display the number of dropped students with a tooltip showing names of the students} */}
                     <CustomTooltip 
-                      trigger={<h1 className=''>Dropped: {load.droppedStud.length}</h1>}
+                      trigger={<h1 className=''>Dropped: {}</h1>}
                       content={
                         <div className="flex items-center justify-center min-h-56 min-w-56">
-                          {load.droppedStud.length !== 0 ? load.droppedStud.map((student,index)=>(
+                          {/* {load.droppedStud.length !== 0 ? load.droppedStud.map((student,index)=>(
                             <h3 key={"dropped" + student.student?._id}>{index + 1}.{student.student?.lastName}, {student.student?.firstName} {student.student?.middleName.charAt(0)} </h3>
                           )): (
                             <div className="flex items-center justify-center text-center w-full h-full">
                               No students has been dropped for this quarter.
                             </div>
-                          )}
+                          )} */}
                         </div>
                       }
                       />
@@ -81,16 +81,16 @@ function SectionSummary({
                   <div className="">
                     {/* // Display the number of returning students with a tooltip showing names of the students} */}
                     <CustomTooltip 
-                      trigger={ <h1 className=''>Returning: {load.returningStud.length}</h1>}
+                      trigger={ <h1 className=''>Returning: {}</h1>}
                       content={
                         <div className="flex items-center justify-center min-h-56 min-w-56">
-                          {load.returningStud.length !== 0 ? load.returningStud.map((student, index)=>(
+                          {/* {load.returningStud.length !== 0 ? load.returningStud.map((student, index)=>(
                             <h3 key={"returning" + student.student?._id}>{index + 1}.{student.student?.lastName}, {student.student?.firstName} {student.student?.middleName.charAt(0)} </h3>
                           )): (
                             <div className="flex items-center justify-center text-center w-full h-full">
                               No students have returned for this quarter.
                             </div>
-                          )}
+                          )} */}
                         </div>
                       }
                     />
