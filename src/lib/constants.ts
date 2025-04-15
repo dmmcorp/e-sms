@@ -91,3 +91,7 @@ export const modules = [
     { id: "subjects", label: "Subjects & Teaching Loads" },
     { id: "grades", label: "Grades & Class Records" },
 ];
+
+export const juniorHighGrades = ["Grade 7", "Grade 8", "Grade 9", "Grade 10"];
+
+export const seniorHighGrades = ["Grade 11", "Grade 12"];
