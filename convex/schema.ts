@@ -37,6 +37,11 @@ const schema = defineSchema({
   subjectTaught: defineTable({
     teacherId: v.id('users'),
     gradeLevel: gradeLevel,
+    category: v.optional(v.union(
+      v.literal('core'),
+      v.literal('specialized'),
+      v.literal('applied'),
+    )), // for senior high 
     subjectName: v.string(),
     quarter: v.array(v.union(
       v.literal('1st quarter'),
@@ -159,7 +164,6 @@ const schema = defineSchema({
       v.literal(10),
     ),
     score: v.number(),
-    highestPossibleScore: v.number(),
   }).index('by_classRecordId', ['classRecordId']),
 
   performanceTasks: defineTable({
@@ -177,7 +181,6 @@ const schema = defineSchema({
       v.literal(10),
     ),
     score: v.number(),
-    highestPossibleScore: v.number()
   }).index('by_classRecordId', ['classRecordId']),
 
   majorExams: defineTable({
@@ -186,13 +189,12 @@ const schema = defineSchema({
       v.literal(1),
     ),
     score: v.number(),
-    highestPossibleScore: v.number()
   }).index('by_classRecordId', ['classRecordId']),
 
   students: defineTable({
     lastName: v.string(),
     firstName: v.string(),
-    middleName: v.string(),
+    middleName: v.optional(v.string()),
     sex: v.union(v.literal('male'), v.literal('female')),
     lrn: v.string(),
     dateOfBirth: v.string(),
@@ -227,7 +229,7 @@ const schema = defineSchema({
       v.literal('Passed'),
       v.literal('Failed'),
     ), // once promoted it needs to update
-    subjects: v.array(v.string()),
+    subjects: v.array(v.id('subjectTaught')),
     isReturning: v.boolean(),
     sectionId: v.id('sections'),
     semester: v.optional(

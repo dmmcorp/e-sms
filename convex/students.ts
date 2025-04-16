@@ -1,9 +1,10 @@
 import { ConvexError, v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalQuery, mutation, query } from "./_generated/server";
 import { asyncMap } from "convex-helpers";
 import { gradeLevel } from "./schema";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { Doc } from "./_generated/dataModel";
+import { internal } from "./_generated/api";
 
 export const getStudents = query({
     args:{
@@ -175,3 +176,51 @@ export const getStudentById = query({
         }
     }
 })
+
+export const sectionStudents = query({
+    args:{
+        sectionId: v.optional(v.id('sections')),
+        teachingLoadId: v.id('teachingLoad')
+    },
+    handler: async(ctx, args)=>{
+        if(!args.sectionId) return undefined;
+
+        const initStudents = await ctx.db.query('sectionStudents').filter((q) => q.eq(q.field('sectionId'), args.sectionId)).collect()
+
+        const students = await asyncMap(initStudents, async(data)=>{
+
+            const student = await ctx.db.get(data.studentId)
+            if(student === null) return null;
+           
+            const classRecord = await ctx.db.query('classRecords').withIndex('by_teachingLoadId', q => q.eq('teachingLoadId', args.teachingLoadId)).first()
+            if(classRecord === null) throw new ConvexError('No class record found in db.')
+    
+            const written = await ctx.db.query('writtenWorks')
+                .withIndex("by_classRecordId", q => q.eq("classRecordId", classRecord._id))
+                .collect();
+    
+            const performance = await ctx.db.query('performanceTasks')
+                .withIndex("by_classRecordId", q => q.eq("classRecordId", classRecord._id))
+                .collect();
+    
+            const exam = await ctx.db.query('majorExams')
+                .withIndex("by_classRecordId", q => q.eq("classRecordId", classRecord._id))
+                .collect();
+
+            const sortedWritten = written.sort((a,b)=> a.assessmentNo - b.assessmentNo)
+            const sortedPerformance = performance.sort((a,b)=> a.assessmentNo - b.assessmentNo)
+            const sortedExam = exam.sort((a,b)=> a.assessmentNo - b.assessmentNo)
+
+            return {
+                ...student,
+                written: sortedWritten,
+                performance: sortedPerformance,
+                exam: sortedExam,
+                classRecord: classRecord
+            }
+        });
+
+        return students
+
+    }
+});

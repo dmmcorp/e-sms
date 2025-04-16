@@ -52,7 +52,10 @@ export type RoleType =
 export type PrincipalDepartmentType =
   "junior-department" |
   "senior-department" |
-  "entire-school"
+  "entire-school";
+
+  
+export type AssessmentNoType = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10
 
 export type SectionType = Doc<'sections'>;
 export type TeacherTypes = Doc<'users'>;
@@ -105,3 +108,10 @@ export type SubjectTaughtQueryResult = {
   semester: string[];
   gradeWeights: GradeWeights;
 };
+
+export interface StudentScoresType extends Doc<'students'>{
+  written: Doc<'writtenWorks'>[];
+  performance: Doc<'performanceTasks'>[];
+  exam: Doc<'majorExams'>[];
+  classRecord: Doc<'classRecords'>
+}

@@ -13,6 +13,7 @@ import { Doc, Id } from '../../../../../../convex/_generated/dataModel';
 import { useMutation } from 'convex/react';
 import { api } from '../../../../../../convex/_generated/api';
 import { toast } from 'sonner';
+import { StudentScoresType } from '@/lib/types';
 
 interface InputDialogProps {
     dialogOpen: boolean;
@@ -24,6 +25,7 @@ interface InputDialogProps {
     ptGradeWeights: number | undefined;
     meGradeWeights: number | undefined;
     loadId: Id<'teachingLoad'>;
+    studentScores: StudentScoresType | undefined;
 }
 type GradeComponentsType = 'Written Works' | 'Performance Tasks'| 'Major Exam';
 
@@ -37,13 +39,18 @@ function InputDialog({
     ptGradeWeights,
     meGradeWeights,
     loadId,
+    studentScores,
 }: InputDialogProps ) {
     const [scoresInput, setScoresInput] = useState<{ [key: number]: number }>({});
+    const [maxInputs, setMaxInputs] = useState<number>(0);
     const [isSaving, setIsSaving] = useState<boolean>(false)
     const gradeComponents = ['Written Works', 'Performance Tasks', 'Major Exam']
     const [selectedContent, setSelectedContent ] = useState<GradeComponentsType>("Written Works")        
     const totalScore = Object.values(scoresInput).reduce((acc, curr) => acc + curr, 0);
-    const saveScore = useMutation(api.teachingLoad.saveScores)
+    
+    const saveHighestScores = useMutation(api.teachingLoad.saveHighestScores)
+    const createComponentScore = useMutation(api.classRecords.createComponentScore)
+
     let gradeWeight
     switch (selectedContent) {
         case "Written Works":
@@ -61,13 +68,44 @@ function InputDialog({
     };
 
     useEffect(() => {
-        const currentScores = highestScores.find(s => s.componentType === selectedContent)?.scores || [];
+        if (!dialogOpen) return;
+    
         const formattedScores: { [key: number]: number } = {};
-        currentScores.forEach(score => {
-          formattedScores[score.assessmentNo] = score.score;
-        });
-        setScoresInput(formattedScores);
-      }, [selectedContent, highestScores]);
+        let currentScores;
+    
+        if (title === 'highest scores') {
+            // Highest scores: fixed limits
+            if (selectedContent === 'Written Works' || selectedContent === 'Performance Tasks') {
+                setMaxInputs(10);
+            } else if (selectedContent === 'Major Exam') {
+                setMaxInputs(1);
+            }
+    
+            currentScores = highestScores.find(s => s.componentType === selectedContent)?.scores || [];
+        } else {
+            // Student scores: limit to number of items in highest scores
+            const highest = highestScores.find(s => s.componentType === selectedContent);
+            setMaxInputs(highest?.scores.length || 0);
+    
+            if (selectedContent === 'Written Works') {
+                currentScores = studentScores?.written || [];
+            }
+            if (selectedContent === 'Performance Tasks') {
+                currentScores = studentScores?.performance || [];
+            }
+            if (selectedContent === 'Major Exam') {
+                currentScores = studentScores?.exam || [];
+            }
+        }
+    
+        if (currentScores) {
+            currentScores.forEach(score => {
+                formattedScores[score.assessmentNo] = score.score;
+            });
+            setScoresInput(formattedScores);
+        }
+    }, [dialogOpen, selectedContent, highestScores, studentScores, title]);
+    
 
     const handleSaveScore = () =>{
         setIsSaving(true)
@@ -77,17 +115,44 @@ function InputDialog({
             assessmentNo: parseInt(assessmentNo),
             score: Number(score),
         }));
-        toast.promise(saveScore({
-            loadId: loadId,
-            componentType: selectedContent,
-            scores: transformedScores
-        }),{
-            loading: "Saving scores...",
-            success: "Scores saved successfully.",
-            error: "Unable to save the scores"
-        })
+        if(title === 'highest scores') {
+            toast.promise(saveHighestScores({
+                loadId: loadId,
+                componentType: selectedContent,
+                scores: transformedScores
+            }),{
+                loading: "Saving scores...",
+                success: "Scores saved successfully.",
+                error: "Unable to save the scores"
+            })
+        } else {
+            toast.promise(createComponentScore({
+                classRecordId: studentScores?.classRecord._id,
+                componentType: selectedContent,
+                scores: transformedScores
+            }),{
+                loading: "Saving scores...",
+                success: "Scores saved successfully.",
+                error: "Unable to save the scores"
+            })
+        }
         setIsSaving(false)
         setDialogOpen(false)
+    };
+
+    const handleOnChange = (e:React.ChangeEvent<HTMLInputElement> ,index: number) =>{
+        const rawValue = parseFloat(e.target.value);
+        const highestScoreObj = highestScores.find(hs => hs.componentType === selectedContent);
+        const maxScore = highestScoreObj?.scores.find(s => s.assessmentNo === index + 1)?.score ?? Infinity;
+
+        if (!isNaN(rawValue) && rawValue <= maxScore) {
+            setScoresInput(prev => ({
+                ...prev,
+                [index + 1]: rawValue
+            }));
+        } else if (rawValue > maxScore) {
+            toast.warning(`Score cannot exceed the highest score (${maxScore})`);
+        }
     }
 
   return (
@@ -109,12 +174,20 @@ function InputDialog({
                                     name={selectedContent + ("1")}
                                     placeholder={`Enter exam score`}
                                     value={scoresInput["1"] ?? ''}
-                                    onChange={(e) =>
-                                    setScoresInput(prev => ({
-                                        ...prev,
-                                        ["1"]: parseFloat(e.target.value) || 0
-                                    }))
-                                    }
+                                    onChange={(e) => {
+                                        const rawValue = parseFloat(e.target.value);
+                                        const highestScoreObj = highestScores.find(hs => hs.componentType === selectedContent);
+                                        const maxScore = highestScoreObj?.scores.find(s => s.assessmentNo === 1)?.score ?? Infinity;
+                                    
+                                        if (!isNaN(rawValue) && rawValue <= maxScore) {
+                                            setScoresInput(prev => ({
+                                                ...prev,
+                                                ["1"]: rawValue
+                                            }));
+                                        } else if (rawValue > maxScore) {
+                                            toast.warning(`Score cannot exceed the highest score (${maxScore})`);
+                                        }
+                                    }}
                                 />
                             </div>
                             <div className="bg-muted p-1">
@@ -138,36 +211,54 @@ function InputDialog({
                     <div className="space-y-2">
                     
                         <div className="grid grid-cols-5 gap-3">
-                            {Array.from({ length: 10 }).map((_, index)=>(
-                                <div key={index} className="space-y-3">
-                                    <Label htmlFor={selectedContent+(index+1)} className='text-nowrap'>Score # {index + 1} </Label>
-                                    <Input
-                                        id={selectedContent + (index + 1)}
-                                        name={selectedContent + (index + 1)}
-                                        placeholder={`Score`}
-                                        type="number"
-                                        value={scoresInput[index + 1] ?? ''}
-                                        onChange={(e) =>
-                                        setScoresInput(prev => ({
-                                            ...prev,
-                                            [index + 1]: parseFloat(e.target.value) || 0
-                                        }))
-                                        }
-                                    />
+                        {Array.from({ length: maxInputs }).map((_, index) => (
+                            <div key={index} className="space-y-3">
+                                <Label htmlFor={selectedContent+(index+1)} className='text-nowrap'>Score # {index + 1} </Label>
+                                <Input
+                                    id={selectedContent + (index + 1)}
+                                    name={selectedContent + (index + 1)}
+                                    placeholder={`Score`}
+                                    type="number"
+                                    value={scoresInput[index + 1] ?? ''}
+                                    onChange={(e) => handleOnChange(e,index)}
+                                />
 
-                                </div>
-                            ))}
+                            </div>
+                        ))}
                         </div>
                         <div className="bg-muted p-4 rounded-lg">
-                                <h3 className='flex items-center justify-between font-medium'>Total: <span className='text-xl font-bold'>{totalScore}</span></h3>
-                                <h3 className='flex items-center justify-between font-medium'>Percentage Score: <span className='text-xl font-bold'>{calculatePercentageScore(totalScore, totalScore)}</span></h3>
-                                <h3 className='flex items-center justify-between font-medium'>Weighted Score: <span className='text-xl font-bold'>{
-                                calculateWeightedScore(
-                                    calculatePercentageScore(totalScore, totalScore),
+                            <h3 className='flex items-center justify-between font-medium'>
+                                Total:
+                                <span className='text-xl font-bold'>{totalScore}</span>
+                            </h3>
+                            <h3 className='flex items-center justify-between font-medium'>
+                                Percentage Score:
+                                <span className='text-xl font-bold'>
+                                {
+                                    calculatePercentageScore(
+                                    totalScore,
+                                    highestScores.find(s => s.componentType === selectedContent)?.scores
+                                        .reduce((acc, score) => acc + score.score, 0) || 1 // prevent divide by 0
+                                    )
+                                }
+                                </span>
+                            </h3>
+                            <h3 className='flex items-center justify-between font-medium'>
+                                Weighted Score:
+                                <span className='text-xl font-bold'>
+                                {
+                                    calculateWeightedScore(
+                                    calculatePercentageScore(
+                                        totalScore,
+                                        highestScores.find(s => s.componentType === selectedContent)?.scores
+                                        .reduce((acc, score) => acc + score.score, 0) || 1
+                                    ),
                                     gradeWeight ?? 0
-                            )}</span></h3>
-                            </div>
-                        
+                                    )
+                                }
+                                </span>
+                            </h3>
+                        </div>
                     </div>
                     )}
                     

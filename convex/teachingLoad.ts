@@ -184,7 +184,7 @@ export const getById = query({
     }
 });
 
-export const saveScores = mutation({
+export const saveHighestScores = mutation({
     args:{
         loadId: v.id('teachingLoad'),
         componentType: v.union(
