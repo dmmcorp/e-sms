@@ -236,7 +236,8 @@ const schema = defineSchema({
         v.literal("2nd semester"),
       )
     )
-  }),
+  }).index('by_studentId', ['studentId'])
+    .index('by_sectionId', ['sectionId']),
 
   systemSettings: defineTable({
     schoolImage: v.optional(v.string()),
