@@ -221,10 +221,10 @@ export const createUser = mutation({
                     semester: subject.semester || [],
                     gradeWeights: subject.gradeWeights,
                 });
-                 await ctx.runMutation(internal.sections.addSubjectTaught, {
+                await ctx.runMutation(internal.sections.addSubjectTaught, {
                     sectionId: sectionId as Id<'sections'>,
                     id: subjectTaughtId
-                 })
+                })
                 // Then create teaching load entries based on quarters/semesters
                 if (subject.quarter && subject.quarter.length > 0) {
                     for (const quarter of subject.quarter) {
@@ -595,6 +595,15 @@ export const updateUser = mutation({
                         semester: submittedSubject.semester || [],
                     });
                     keptSubjectThoughtIds.add(subjectTaughtId);
+                }
+
+                try {
+                    await ctx.runMutation(internal.sections.addSubjectTaught, {
+                        sectionId: resolvedSectionId,
+                        id: subjectTaughtId
+                    });
+                } catch (error) {
+                    console.error(`Failed to add subject ${subjectTaughtId} to section ${resolvedSectionId}:`, error);
                 }
 
                 const submittedQuarters = new Set(submittedSubject.quarter || []);

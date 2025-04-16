@@ -10,8 +10,12 @@ export const getTeachers = query({
             .order("desc")
             .collect()
 
-        const allSectionStudents = await ctx.db.query("sectionStudents").collect();
+        // Fetch all sections once for lookup
+        const allSections = await ctx.db.query("sections").collect();
+        const sectionMap = new Map(allSections.map(s => [s._id, s]));
 
+        // Fetch all sectionStudents once for student counts
+        const allSectionStudents = await ctx.db.query("sectionStudents").collect();
         const studentCounts: Record<string, number> = allSectionStudents.reduce((acc, record) => {
             acc[record.sectionId] = (acc[record.sectionId] || 0) + 1;
             return acc;
@@ -24,11 +28,7 @@ export const getTeachers = query({
 
         // 3. get advisers section
         const adviserWithSection = await Promise.all(advisers.map(async (adviser) => {
-            const sections = await ctx.db
-                .query("sections")
-                .filter(q => q.eq(q.field("adviserId"), adviser._id))
-                .collect()
-
+            const sections = allSections.filter(s => s.adviserId === adviser._id);
             const sectionsWithCount = sections.map(section => ({
                 ...section,
                 studentCount: studentCounts[section._id] || 0,
@@ -42,36 +42,40 @@ export const getTeachers = query({
 
         // 4. Get adviserSubjectTeacher section and subject taught
         const adviserWithSectionAndSubjectTaught = await Promise.all(adviserSubjectTeacher.map(async (adviser) => {
-            const sections = await ctx.db
-                .query("sections")
-                .filter(q => q.eq(q.field("adviserId"), adviser._id))
-                .collect()
+            const advisorySections = allSections.filter(s => s.adviserId === adviser._id);
+            const advisorySectionsWithCount = advisorySections.map(section => ({
+                ...section,
+                studentCount: studentCounts[section._id] || 0,
+            }));
 
-            const sectionsWithSubjects = await Promise.all(sections.map(async (section) => {
-                let fetchedSubjects: (Doc<"subjectTaught"> | null)[] = []
-                if (section.subjects && section.subjects.length > 0) {
-                    fetchedSubjects = await Promise.all(section.subjects.map(async (subjectId) => {
-                        const subjectTaught = await ctx.db.get(subjectId)
-                        return subjectTaught
-                    }))
-                }
+            const subjectTaughtDocs = await ctx.db
+                .query("subjectTaught")
+                .withIndex("teacherId", q => q.eq("teacherId", adviser._id))
+                .collect();
 
-                return {
-                    id: section._id,
-                    name: section.name,
-                    gradeLevel: section.gradeLevel,
-                    schoolYear: section.schoolYear,
-                    semester: section.semester,
-                    subjects: fetchedSubjects.filter(subject => subject !== null),
-                    studentCount: studentCounts[section._id] || 0,
+            const allSubjectsTaughtList = [];
+
+            for (const st of subjectTaughtDocs) {
+                const sectionsWhereSubjectIsTaught = allSections.filter(section =>
+                    section.subjects?.includes(st._id)
+                );
+
+                for (const section of sectionsWhereSubjectIsTaught) {
+                    allSubjectsTaughtList.push({
+                        key: `${st._id}-${section._id}`,
+                        subjectName: st.subjectName,
+                        sectionName: section.name,
+                    });
                 }
-            }))
+            }
+
+            const uniqueSubjectsTaught = Array.from(new Map(allSubjectsTaughtList.map(item => [item.key, item])).values());
 
             return {
                 ...adviser,
-                sections: sectionsWithSubjects,
-
-            }
+                sections: advisorySectionsWithCount,
+                allSubjectsTaught: allSubjectsTaughtList,
+            };
         }))
 
         // 5. subjectTeachers with subject taught
@@ -81,18 +85,14 @@ export const getTeachers = query({
                 .withIndex("teacherId", q => q.eq("teacherId", subjectTeacher._id))
                 .collect()
 
-            const allSections = await ctx.db
-                .query("sections")
-                .collect()
-
-            const subjectsWithTheirSections = subjectsTaughtByTeacher.map((subjectTaught) => {
-                const sectionsWhereTaught = allSections.filter(section =>
-                    section.subjects?.includes(subjectTaught._id)
+            const subjectsWithTheirSections = [];
+            for (const st of subjectsTaughtByTeacher) {
+                const sectionsWhereSubjectIsTaught = allSections.filter(section =>
+                    section.subjects?.includes(st._id)
                 );
-
-                return {
-                    ...subjectTaught,
-                    sections: sectionsWhereTaught.map(s => ({
+                subjectsWithTheirSections.push({
+                    ...st,
+                    sections: sectionsWhereSubjectIsTaught.map(s => ({
                         id: s._id,
                         name: s.name,
                         gradeLevel: s.gradeLevel,
@@ -100,9 +100,8 @@ export const getTeachers = query({
                         semester: s.semester,
                         studentCount: studentCounts[s._id] || 0,
                     }))
-                }
-            });
-
+                });
+            }
 
             return {
                 ...subjectTeacher,

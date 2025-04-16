@@ -39,30 +39,26 @@ export function JuniorDepartmentAdviserList() {
     return <Loader />;
   }
 
-  const juniorAdvisers = teachersData.adviserSubjectTeacher
-    .map((adviser) => {
-      const filteredSections = adviser.sections.filter((section) =>
-        juniorHighGrades.includes(section.gradeLevel)
-      );
+  const adviserSubjectTeachers = teachersData.adviserSubjectTeacher;
 
-      return {
-        ...adviser,
-        sections: filteredSections,
-      };
-    })
-    .filter((adviser) => adviser.sections.length > 0);
-
-  if (juniorAdvisers.length === 0) {
-    return <p>No Junior Department advisers found.</p>;
+  if (!adviserSubjectTeachers || adviserSubjectTeachers.length === 0) {
+    const anyJuniorAdviser = teachersData.adviserSubjectTeacher.some((adv) =>
+      adv.sections.some((sec) => juniorHighGrades.includes(sec.gradeLevel))
+    );
+    if (!anyJuniorAdviser) {
+      return <p>No Junior Department advisers (Grade 7-10) found.</p>;
+    }
   }
 
   return (
     <div className="space-y-8">
       {juniorHighGrades.map((gradeLevel) => {
-        const advisersForGrade = juniorAdvisers.filter((adviser) =>
+        // Filter advisers who advise at least one section in *this specific* grade level
+        const advisersForGrade = adviserSubjectTeachers.filter((adviser) =>
           adviser.sections.some((section) => section.gradeLevel === gradeLevel)
         );
 
+        // If no advisers advise for this specific grade, skip rendering this section
         if (advisersForGrade.length === 0) {
           return null;
         }
@@ -78,90 +74,94 @@ export function JuniorDepartmentAdviserList() {
               initial="hidden"
               animate="visible"
             >
-              {advisersForGrade.map((adviser) => (
-                <motion.div key={adviser._id} variants={itemVariants}>
-                  <Card className="overflow-hidden border-t-4 border-t-primary hover:shadow-lg transition-all duration-300 h-full flex flex-col">
+              {advisersForGrade.map((adviser) => {
+                // Get only the advisory sections for *this specific grade level*
+                const advisorySectionsInGrade = adviser.sections.filter(
+                  (section) => section.gradeLevel === gradeLevel
+                );
+
+                return (
+                  <motion.div
+                    key={`${adviser._id}-${gradeLevel}`}
+                    variants={itemVariants}
+                  >
                     {" "}
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <h3 className="font-semibold text-lg">
-                            {adviser.fullName}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {adviser.sections
-                              .filter(
-                                (section) => section.gradeLevel === gradeLevel
-                              )
-                              .map((section) => section.name)
-                              .join(", ")}
-                          </p>
+                    {/* Ensure unique key per grade */}
+                    <Card className="overflow-hidden border-t-4 border-t-primary hover:shadow-lg transition-all duration-300 h-full flex flex-col">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center gap-4">
+                          <div>
+                            <h3 className="font-semibold text-lg">
+                              {adviser.fullName}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              {/* Display only advisory section names for this grade */}
+                              {advisorySectionsInGrade
+                                .map((section) => section.name)
+                                .join(", ")}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4 flex-grow">
-                      {" "}
-                      <div className="flex items-center gap-2 text-sm">
-                        <Users className="h-4 w-4 text-primary" />
-                        <span className="font-medium"># of Students:</span>
-                        <Badge variant="outline" className="ml-auto">
-                          {adviser.sections
-                            .filter(
-                              (section) => section.gradeLevel === gradeLevel
-                            )
-                            .reduce(
+                      </CardHeader>
+                      <CardContent className="space-y-4 flex-grow">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Users className="h-4 w-4 text-primary" />
+                          <span className="font-medium"># of Students:</span>
+                          <Badge variant="outline" className="ml-auto">
+                            {/* Sum student count only for advisory sections in this grade */}
+                            {advisorySectionsInGrade.reduce(
                               (total, section) =>
                                 total + (section.studentCount || 0),
                               0
                             )}
-                        </Badge>
-                      </div>
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <BookOpen className="h-4 w-4 text-primary" />
-                          <h4 className="font-medium text-sm">
-                            Subjects Taught in {gradeLevel}:
-                          </h4>
+                          </Badge>
                         </div>
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <BookOpen className="h-4 w-4 text-primary" />
+                            <h4 className="font-medium text-sm">
+                              Subjects Taught:
+                            </h4>
+                          </div>
 
-                        {adviser.sections
-                          .filter(
-                            (section) => section.gradeLevel === gradeLevel
-                          )
-                          .map((section) => (
-                            <React.Fragment key={section.id}>
-                              {section.subjects.length > 0 ? (
-                                section.subjects.map((subject) => (
-                                  <div
-                                    key={`${section.id}-${subject._id}`} // Unique key
-                                    className="bg-muted/50 rounded-lg p-3 space-y-2"
-                                  >
-                                    <div className="flex items-center justify-between text-sm">
-                                      <div className="flex items-center gap-2">
-                                        <GraduationCap className="h-4 w-4 text-primary" />
-                                        {subject.subjectName}
-                                      </div>
-                                      <Badge
-                                        variant="secondary"
-                                        className="font-normal"
-                                      >
-                                        <span>{section.name}</span>
-                                      </Badge>
-                                    </div>
+                          {/* --- MODIFIED SECTION START --- */}
+                          {/* Iterate through the new allSubjectsTaught array */}
+                          {adviser.allSubjectsTaught &&
+                          adviser.allSubjectsTaught.length > 0 ? (
+                            adviser.allSubjectsTaught.map((subjectInfo) => (
+                              <div
+                                // Use the unique key generated in the backend
+                                key={subjectInfo.key}
+                                className="bg-muted/50 rounded-lg p-3 space-y-2"
+                              >
+                                <div className="flex items-center justify-between text-sm">
+                                  <div className="flex items-center gap-2">
+                                    <GraduationCap className="h-4 w-4 text-primary" />
+                                    {/* Display subject name */}
+                                    {subjectInfo.subjectName}
                                   </div>
-                                ))
-                              ) : (
-                                <p className="text-xs text-muted-foreground pl-3 italic">
-                                  No subjects listed for {section.name}.
-                                </p>
-                              )}
-                            </React.Fragment>
-                          ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
+                                  <Badge
+                                    variant="secondary"
+                                    className="font-normal"
+                                  >
+                                    {/* Display section name where this subject is taught */}
+                                    <span>{subjectInfo.sectionName}</span>
+                                  </Badge>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-xs text-muted-foreground pl-6 italic">
+                              No subjects listed for this adviser.
+                            </p>
+                          )}
+                          {/* --- MODIFIED SECTION END --- */}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
             </motion.div>
           </React.Fragment>
         );
