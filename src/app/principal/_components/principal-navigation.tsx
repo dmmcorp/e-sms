@@ -28,7 +28,7 @@ export function PrincipalNavigation() {
             variants={itemVariants}
             className="hover:underline uppercase"
           >
-            Teachers
+            TEACHERS
           </motion.h1>
         </Link>
         <Link

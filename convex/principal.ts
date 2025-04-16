@@ -65,6 +65,9 @@ export const getTeachers = query({
                         key: `${st._id}-${section._id}`,
                         subjectName: st.subjectName,
                         sectionName: section.name,
+                        gradeLevel: section.gradeLevel,
+                        subjectSemester: st.semester,
+                        semester: section.semester,
                     });
                 }
             }
@@ -97,8 +100,9 @@ export const getTeachers = query({
                         key: `${st._id}-${section._id}`,
                         subjectName: st.subjectName,
                         sectionName: section.name,
-                        // Include gradeLevel of the section where it's taught for filtering purposes
                         gradeLevel: section.gradeLevel,
+                        subjectSemester: st.semester,
+                        semester: section.semester,
                     });
                 }
             }
