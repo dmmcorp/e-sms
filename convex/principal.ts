@@ -1,5 +1,7 @@
+import { getAuthUserId } from "@convex-dev/auth/server";
 import { Doc } from "./_generated/dataModel";
 import { query } from "./_generated/server";
+import { ConvexError } from "convex/values";
 
 export const getTeachers = query({
     args: {},
@@ -119,5 +121,17 @@ export const getTeachers = query({
             adviserSubjectTeacher: adviserWithSectionAndSubjectTaught,
             subjectTeachers: subjectTeacherWithAllSubjectsTaught,
         }
+    }
+})
+
+export const getPrincipal = query({
+    args: {},
+    handler: async (ctx, args) => {
+        const userId = await getAuthUserId(ctx)
+        if (!userId) {
+            throw new ConvexError("Unauthorized")
+        }
+
+        return await ctx.db.get(userId)
     }
 })
