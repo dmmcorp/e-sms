@@ -74,45 +74,46 @@ export const getTeachers = query({
             return {
                 ...adviser,
                 sections: advisorySectionsWithCount,
-                allSubjectsTaught: allSubjectsTaughtList,
+                allSubjectsTaught: uniqueSubjectsTaught,
             };
         }))
 
-        // 5. subjectTeachers with subject taught
-        const subjectTeacherWithSubjectsAndSections = await Promise.all(subjectTeachers.map(async (subjectTeacher) => {
+        // 5. subjectTeachers with ALL subjects taught (consistent structure)
+        const subjectTeacherWithAllSubjectsTaught = await Promise.all(subjectTeachers.map(async (subjectTeacher) => {
             const subjectsTaughtByTeacher = await ctx.db
                 .query("subjectTaught")
                 .withIndex("teacherId", q => q.eq("teacherId", subjectTeacher._id))
-                .collect()
+                .collect();
 
-            const subjectsWithTheirSections = [];
+            // Create the flat list: { subjectName, sectionName } for ALL subjects taught by this teacher
+            const allSubjectsTaughtList = [];
             for (const st of subjectsTaughtByTeacher) {
                 const sectionsWhereSubjectIsTaught = allSections.filter(section =>
-                    section.subjects?.includes(st._id)
+                    section.subjects?.map(String).includes(String(st._id)) // Compare as strings
                 );
-                subjectsWithTheirSections.push({
-                    ...st,
-                    sections: sectionsWhereSubjectIsTaught.map(s => ({
-                        id: s._id,
-                        name: s.name,
-                        gradeLevel: s.gradeLevel,
-                        schoolYear: s.schoolYear,
-                        semester: s.semester,
-                        studentCount: studentCounts[s._id] || 0,
-                    }))
-                });
+
+                for (const section of sectionsWhereSubjectIsTaught) {
+                    allSubjectsTaughtList.push({
+                        key: `${st._id}-${section._id}`,
+                        subjectName: st.subjectName,
+                        sectionName: section.name,
+                        // Include gradeLevel of the section where it's taught for filtering purposes
+                        gradeLevel: section.gradeLevel,
+                    });
+                }
             }
+            const uniqueSubjectsTaught = Array.from(new Map(allSubjectsTaughtList.map(item => [item.key, item])).values());
 
             return {
                 ...subjectTeacher,
-                subjects: subjectsWithTheirSections,
-            }
-        }))
+                allSubjectsTaught: uniqueSubjectsTaught,
+            };
+        }));
 
         return {
             advisers: adviserWithSection,
             adviserSubjectTeacher: adviserWithSectionAndSubjectTaught,
-            subjectTeachers: subjectTeacherWithSubjectsAndSections,
+            subjectTeachers: subjectTeacherWithAllSubjectsTaught,
         }
     }
 })
