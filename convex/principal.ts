@@ -1,7 +1,7 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { Doc } from "./_generated/dataModel";
 import { query } from "./_generated/server";
-import { ConvexError } from "convex/values";
+import { ConvexError, convexToJson, v } from "convex/values";
 
 export const getTeachers = query({
     args: {},
@@ -133,5 +133,102 @@ export const getPrincipal = query({
         }
 
         return await ctx.db.get(userId)
+    }
+})
+
+export const getSectionsGroupedByGrade = query({
+    args: {},
+    handler: async (ctx) => {
+        const sections = await ctx.db
+            .query("sections")
+            .order("asc")
+            .collect();
+
+        const groupedSections = sections.reduce((acc, section) => {
+            const grade = section.gradeLevel;
+            if (!acc[grade]) {
+                acc[grade] = [];
+            }
+
+            acc[grade].push(section);
+            acc[grade].sort((a, b) => a.name.localeCompare(b.name));
+            return acc;
+        }, {} as Record<string, Doc<"sections">[]>);
+
+        return groupedSections;
+    },
+});
+
+export const getStudentsBySection = query({
+    args: { sectionId: v.id("sections") },
+    handler: async (ctx, args) => {
+        if (!args.sectionId) {
+            return []
+        }
+
+        const sectionStudentLinks = await ctx.db
+            .query("sectionStudents")
+            .withIndex("by_sectionId", q => q.eq("sectionId", args.sectionId))
+            .collect()
+
+        const studentIds = sectionStudentLinks.map((link) => link.studentId)
+
+        if (studentIds.length === 0) {
+            return []
+        }
+
+        const students = await Promise.all(
+            studentIds.map((studentId) => ctx.db.get(studentId))
+        )
+
+        const validStudents = students
+            .filter((student): student is Doc<"students"> => student !== null)
+            .sort((a, b) => {
+                const lastNameComparison = a.lastName.localeCompare(b.lastName);
+                if (lastNameComparison !== 0) return lastNameComparison;
+                return a.firstName.localeCompare(b.firstName);
+            });
+
+        const studentsWithStatus = await Promise.all(validStudents.map(async (student) => {
+            const latestEnrollment = await ctx.db
+                .query("enrollment")
+                .withIndex("by_studentId", q => q.eq("studentId", student._id))
+                .order("desc")
+                .first();
+
+            return {
+                ...student,
+                currentStatus: latestEnrollment?.status || "not-enrolled",
+                enrollmentId: latestEnrollment?._id,
+            };
+        }));
+
+        return studentsWithStatus;
+    }
+})
+
+export const getStudentStatusDetails = query({
+    args: {
+        studentId: v.id("students"),
+        enrollmentId: v.optional(v.id("enrollment"))
+    },
+    handler: async (ctx, args) => {
+        if (!args.studentId || !args.enrollmentId) {
+            return null;
+        }
+
+        const enrollment = await ctx.db.get(args.enrollmentId);
+
+        return {
+            studentId: args.studentId,
+            overallStatus: enrollment?.status ?? "Unknown",
+            // Placeholder for quarterly status
+            quarterlyStatus: [
+                { quarter: "1st quarter", status: "N/A" },
+                { quarter: "2nd quarter", status: "N/A" },
+                { quarter: "3rd quarter", status: "N/A" },
+                { quarter: "4th quarter", status: "N/A" },
+            ],
+        };
     }
 })
