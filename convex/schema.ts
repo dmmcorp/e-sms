@@ -217,7 +217,11 @@ const schema = defineSchema({
       v.literal("not-enrolled"),
     ), // once promoted or retained it needs to update
     enrollingIn: v.optional(gradeLevel) // once promoted or retained it needs to update
-  }),
+  }).index("by_lrn", ["lrn"])
+    .searchIndex("search_name", {
+      searchField: "firstName",
+      filterFields: ["isArchived"]
+    }),
 
   enrollment: defineTable({
     studentId: v.id('students'),
