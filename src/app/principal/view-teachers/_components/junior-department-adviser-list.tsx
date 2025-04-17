@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useQuery } from "convex/react";
 import { motion } from "framer-motion";
-import { BookOpen, GraduationCap, Users } from "lucide-react";
+import { BookOpen, GraduationCap, UserMinus, Users } from "lucide-react";
 import { api } from "../../../../../convex/_generated/api";
 import { Loader } from "@/components/loader";
 import { juniorHighGrades } from "@/lib/constants";
@@ -98,6 +98,12 @@ export function JuniorDepartmentAdviserList() {
                       (section) => section.gradeLevel === gradeLevel
                     );
 
+                    const totalDroppedStudents = advisorySectionsInGrade.reduce(
+                      (total, section) =>
+                        total + (section.droppedStudentCount || 0),
+                      0
+                    );
+
                     return (
                       <motion.div
                         key={`${adviser._id}-adviser-${gradeLevel}`} // Unique key
@@ -130,6 +136,16 @@ export function JuniorDepartmentAdviserList() {
                                     total + (section.studentCount || 0),
                                   0
                                 )}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <UserMinus className="h-4 w-4" />{" "}
+                              {/* Icon for dropped */}
+                              <span className="font-medium"># of Dropped:</span>
+                              <Badge variant="destructive" className="ml-auto">
+                                {" "}
+                                {/* Destructive badge */}
+                                {totalDroppedStudents}
                               </Badge>
                             </div>
                             <div className="space-y-3">

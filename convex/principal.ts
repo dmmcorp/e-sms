@@ -1,7 +1,7 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { ConvexError, v } from "convex/values";
 import { Doc } from "./_generated/dataModel";
 import { query } from "./_generated/server";
-import { ConvexError, convexToJson, v } from "convex/values";
 
 export const getTeachers = query({
     args: {},
@@ -18,10 +18,20 @@ export const getTeachers = query({
 
         // Fetch all sectionStudents once for student counts
         const allSectionStudents = await ctx.db.query("sectionStudents").collect();
-        const studentCounts: Record<string, number> = allSectionStudents.reduce((acc, record) => {
-            acc[record.sectionId] = (acc[record.sectionId] || 0) + 1;
+        const totalStudentCounts: Record<string, number> = allSectionStudents.reduce((acc, record) => {
+            const sectionIdStr = String(record.sectionId);
+            acc[sectionIdStr] = (acc[sectionIdStr] || 0) + 1;
             return acc;
         }, {} as Record<string, number>)
+
+        const allEnrollments = await ctx.db.query("enrollment").collect();
+        const droppedStudentCounts: Record<string, number> = allEnrollments.reduce((acc, enrollment) => {
+            if (enrollment.status === "dropped") {
+                const sectionIdStr = String(enrollment.sectionId);
+                acc[sectionIdStr] = (acc[sectionIdStr] || 0) + 1;
+            }
+            return acc;
+        }, {} as Record<string, number>);
 
         // 2. Filter users by teacher roles
         const advisers = users.filter(user => user.role === "adviser")
@@ -30,11 +40,15 @@ export const getTeachers = query({
 
         // 3. get advisers section
         const adviserWithSection = await Promise.all(advisers.map(async (adviser) => {
-            const sections = allSections.filter(s => s.adviserId === adviser._id);
-            const sectionsWithCount = sections.map(section => ({
-                ...section,
-                studentCount: studentCounts[section._id] || 0,
-            }))
+            const sections = allSections.filter(s => String(s.adviserId) === String(adviser._id));
+            const sectionsWithCount = sections.map(section => {
+                const sectionIdStr = String(section._id);
+                return {
+                    ...section,
+                    studentCount: totalStudentCounts[sectionIdStr] || 0, // Total assigned
+                    droppedStudentCount: droppedStudentCounts[sectionIdStr] || 0, // Dropped count
+                };
+            })
 
             return {
                 ...adviser,
@@ -44,11 +58,15 @@ export const getTeachers = query({
 
         // 4. Get adviserSubjectTeacher section and subject taught
         const adviserWithSectionAndSubjectTaught = await Promise.all(adviserSubjectTeacher.map(async (adviser) => {
-            const advisorySections = allSections.filter(s => s.adviserId === adviser._id);
-            const advisorySectionsWithCount = advisorySections.map(section => ({
-                ...section,
-                studentCount: studentCounts[section._id] || 0,
-            }));
+            const advisorySections = allSections.filter(s => String(s.adviserId) === String(adviser._id));
+            const advisorySectionsWithCount = advisorySections.map(section => {
+                const sectionIdStr = String(section._id);
+                return {
+                    ...section,
+                    studentCount: totalStudentCounts[sectionIdStr] || 0, // Total assigned
+                    droppedStudentCount: droppedStudentCounts[sectionIdStr] || 0, // Dropped count
+                };
+            });
 
             const subjectTaughtDocs = await ctx.db
                 .query("subjectTaught")
@@ -59,7 +77,7 @@ export const getTeachers = query({
 
             for (const st of subjectTaughtDocs) {
                 const sectionsWhereSubjectIsTaught = allSections.filter(section =>
-                    section.subjects?.includes(st._id)
+                    section.subjects?.map(String).includes(String(st._id))
                 );
 
                 for (const section of sectionsWhereSubjectIsTaught) {
@@ -69,7 +87,7 @@ export const getTeachers = query({
                         sectionName: section.name,
                         gradeLevel: section.gradeLevel,
                         subjectSemester: st.semester,
-                        semester: section.semester,
+                        sectionSemester: section.semester,
                     });
                 }
             }
