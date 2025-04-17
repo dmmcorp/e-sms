@@ -129,6 +129,7 @@ const schema = defineSchema({
   classRecords: defineTable({
     teachingLoadId: v.id('teachingLoad'),
     studentId: v.id('students'),
+    quarterlyGrade: v.optional(v.number()),
     needsIntervention: v.optional(v.boolean()),
     interventionGrade: v.optional(v.number()),
     interventionUsed: v.optional(v.array(v.string())), // ex. Big book, General remarks

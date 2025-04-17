@@ -27,8 +27,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
   });
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [type, setType] = useState<DialogType | undefined>();
-  const [selectedTransmutedGrade, setSelectedTransmutedGrade] = useState<number>(60);
-  const [selectedInitGrade, setSelectedInitGrade] = useState<number>(0);
+  const [selectedTransmutedGrade, setSelectedTransmutedGrade] = useState<number | undefined>(60);
   const [studentScores, setStudentScores] = useState<StudentScoresType | undefined>();
 
   const section = teachingLoad.section;
@@ -123,18 +122,17 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
     .filter((student) => student.sex.toLowerCase() === "female")
     .sort((a, b) => a.lastName.localeCompare(b.lastName));
 
-  const handleDialogOpen = (type?: DialogType, student?: StudentScoresType, transmutedGrade?: number, initialGrade?: number) => {
+  const handleDialogOpen = (type: DialogType, student?: StudentScoresType, transmutedGrade?:number) => {
     if(type === 'highest scores') {
       setType(type);
       setDialogOpen(true);
+      setStudentScores(undefined);
+      setSelectedTransmutedGrade(undefined)
     } else {
-      if(student && transmutedGrade && initialGrade) {
-        setDialogOpen(true)
-        setType(`${student.lastName}, ${student.firstName} ${student.middleName?.charAt(0) ?? ""}`)
-        setStudentScores(student)
-        setSelectedTransmutedGrade(transmutedGrade)
-        setSelectedInitGrade(initialGrade)
-      }
+      setDialogOpen(true);
+      setType(type);
+      setStudentScores(student);
+      setSelectedTransmutedGrade(transmutedGrade)
     }
   };
 
@@ -423,6 +421,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
         ></h1>
       </div>
       {males.map((student, index)=>{
+        const fullName = `${student.lastName}, ${student.firstName} ${student.middleName?.charAt(0) ?? ""}`;
         const wwTotalScore =  calculateTotalScore(student.written.map(w => w.score))
         const wwPercentageScore = calculatePercentageScore(wwTotalScore, wwTotal)
         const wwWeightedScore = calculateWeightedScore(wwPercentageScore, wwGradeWeights ?? 0)
@@ -440,7 +439,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
         return (
           <div 
             key={student._id}
-            onClick={()=> {handleDialogOpen(undefined, student,transmutedGrade,initialGrade)}} 
+            onClick={()=> {handleDialogOpen(fullName, student, transmutedGrade)}} 
             className="flex max-w-full hover:bg-gray-200 "
           >
           <h1 className="w-[3%] uppercase border-x-black border-x border-b-black border-b text-sm font-semibold text-center">
@@ -509,8 +508,8 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
               " uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-2 justify-center items-center font-semibold text-center"
             )}
           >
-            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade}</h1>
-            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{transmutedGrade}</h1>
+            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "": initialGrade}</h1>
+            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{transmutedGrade === 60 ? "": transmutedGrade}</h1>
           </div>
           </div>
       )})}
@@ -566,6 +565,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
         ></h1>
       </div>
       {females.map((student, index)=>{
+        const fullName = `${student.lastName}, ${student.firstName} ${student.middleName?.charAt(0) ?? ""}`;
         const wwTotalScore =  calculateTotalScore(student.written.map(w => w.score))
         const wwPercentageScore = calculatePercentageScore(wwTotalScore, wwTotal)
         const wwWeightedScore = calculateWeightedScore(wwPercentageScore, wwGradeWeights ?? 0)
@@ -583,7 +583,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
         return (
           <div 
             key={student._id}
-            onClick={()=> {handleDialogOpen(undefined, student,transmutedGrade,initialGrade)}} 
+            onClick={()=> {handleDialogOpen(fullName, student, transmutedGrade)}} 
             className="flex max-w-full hover:bg-gray-200 "
           >
           <h1 className="w-[3%] uppercase border-x-black border-x border-b-black border-b text-sm font-semibold text-center">
@@ -652,8 +652,8 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
               " uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-2 justify-center items-center font-semibold text-center"
             )}
           >
-            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade}</h1>
-            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{transmutedGrade}</h1>
+            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "": initialGrade}</h1>
+            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{transmutedGrade === 60 ? "": transmutedGrade}</h1>
           </div>
           </div>
       )})}
@@ -669,7 +669,6 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
         loadId={teachingLoad._id}
         studentScores={studentScores}
         transmutedGrade={selectedTransmutedGrade}
-        initialGrade={selectedInitGrade}
       />
     </div>
   );

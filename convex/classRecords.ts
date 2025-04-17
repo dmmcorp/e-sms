@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
 import { asyncMap } from "convex-helpers";
 import { Doc } from "./_generated/dataModel";
@@ -89,4 +89,35 @@ export const createComponentScore = mutation({
         
       
     }
+})
+
+export const saveQuarterlyGrades = mutation({
+    args:{
+        loadId: v.id('teachingLoad'),
+        studentId: v.optional(v.id('students')),
+        transmutedGrade: v.optional(v.number()),
+
+    },  
+    handler: async(ctx, args)=>{
+        if(!args.studentId) return
+        if(!args.transmutedGrade) return
+        
+        const teachingLoad = await ctx.db.get(args.loadId)
+        const student = await ctx.db.get(args.studentId)
+
+        if(!teachingLoad || !student) throw new ConvexError('Unable to save grades.')
+        
+        const classRecord = await ctx.db.query('classRecords')
+            .withIndex('by_teachingLoadId', (q) => q.eq('teachingLoadId', teachingLoad._id))
+            .filter(q => q.eq(q.field('studentId'), student._id))
+            .first()
+        
+        if(!classRecord) throw new ConvexError('No class record found.')
+
+        await ctx.db.patch(classRecord._id, {
+            needsIntervention: args.transmutedGrade <= 74 ? true : false,
+            quarterlyGrade: args.transmutedGrade,
+        })
+
+    }   
 })

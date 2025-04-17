@@ -1,5 +1,5 @@
 'use client'
-import { Dialog, DialogContent, DialogFooter, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogTitle } from '@/components/ui/dialog'
 import React, { useEffect, useState } from 'react'
 import { DialogType } from './input-grades';
 import { Label } from '@/components/ui/label';
@@ -7,13 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsTrigger } from '@/components/ui/tabs';
 import { TabsList } from '@radix-ui/react-tabs';
 import { Button } from '@/components/ui/button';
-import { Check, X } from 'lucide-react';
-import { calculatePercentageScore, calculateWeightedScore } from '@/lib/utils';
+import { Check, Lock, X } from 'lucide-react';
+import { calculatePercentageScore, calculateWeightedScore, cn } from '@/lib/utils';
 import { Doc, Id } from '../../../../../../convex/_generated/dataModel';
 import { useMutation } from 'convex/react';
 import { api } from '../../../../../../convex/_generated/api';
 import { toast } from 'sonner';
 import { StudentScoresType } from '@/lib/types';
+import SubmitDialog from './submit-dialog';
 
 interface InputDialogProps {
     dialogOpen: boolean;
@@ -25,9 +26,8 @@ interface InputDialogProps {
     ptGradeWeights: number | undefined;
     meGradeWeights: number | undefined;
     loadId: Id<'teachingLoad'>;
-    transmutedGrade: number;
     studentScores: StudentScoresType | undefined;
-    initialGrade: number
+    transmutedGrade: number | undefined
 }
 type GradeComponentsType = 'Written Works' | 'Performance Tasks'| 'Major Exam';
 
@@ -35,24 +35,25 @@ function InputDialog({
     dialogOpen, 
     setDialogOpen,
     title,
-    transmutedGrade,
     highestScores,
     wwGradeWeights,
     ptGradeWeights,
     meGradeWeights,
     loadId,
     studentScores,
-    initialGrade,
+    transmutedGrade
 }: InputDialogProps ) {
     const [scoresInput, setScoresInput] = useState<{ [key: number]: number }>({});
     const [maxInputs, setMaxInputs] = useState<number>(0);
     const [isSaving, setIsSaving] = useState<boolean>(false)
+    const [open, setOpen] = useState<boolean>(false);
     const gradeComponents = ['Written Works', 'Performance Tasks', 'Major Exam']
     const [selectedContent, setSelectedContent ] = useState<GradeComponentsType>("Written Works")        
     const totalScore = Object.values(scoresInput).reduce((acc, curr) => acc + curr, 0);
     
-    const saveHighestScores = useMutation(api.teachingLoad.saveHighestScores)
-    const createComponentScore = useMutation(api.classRecords.createComponentScore)
+    const saveHighestScores = useMutation(api.teachingLoad.saveHighestScores);
+    const createComponentScore = useMutation(api.classRecords.createComponentScore);
+    const saveQuarterlyGrades = useMutation(api.classRecords.saveQuarterlyGrades);
 
     let gradeWeight
     switch (selectedContent) {
@@ -158,11 +159,65 @@ function InputDialog({
         }
     }
 
+    const handleSubmitGrades = () =>{
+        setIsSaving(true)
+
+        toast.promise(saveQuarterlyGrades({
+            loadId: loadId,
+            studentId: studentScores?._id,
+            transmutedGrade: transmutedGrade,
+        }),{
+            loading: "Submitting grades...",
+            success: "Submitted successfully/",
+            error: "Failed to submit grades.",
+        })
+        setOpen(false)
+        setDialogOpen(false)
+        setIsSaving(false)
+    }
+
+    const isReadyToSubmit = () => {
+        if (!studentScores) return false;
+      
+        return (
+          studentScores.written.length >= 1 &&
+          studentScores.performance.length >= 1 &&
+          studentScores.exam.length >= 1
+        );
+      };
+      
+
   return (
-    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen} >
         <DialogContent className=''>
-            <DialogTitle className='capitalize'>{title}</DialogTitle>
-            <Tabs onValueChange={(value) => setSelectedContent(value as GradeComponentsType)}>
+          
+            <div className="flex items-center justify-between w-full ">
+
+                <DialogTitle className='capitalize '>
+                    {title}
+                </DialogTitle>
+                <div className="">
+                    <Button 
+                        variant="default" 
+                        onClick={() => {setOpen(true)}}
+                        className={cn(
+                            !transmutedGrade ? "hidden" : "flex",
+                        )}
+                        disabled={!isReadyToSubmit() || isSaving }
+                        >
+                        <Lock className="mr-2 h-4 w-4" />
+                        Submit Grades
+                    </Button>
+                    <SubmitDialog 
+                        transmutedGrade={transmutedGrade}
+                        onOpenDialog={open}
+                        setOpenDialog={setOpen}
+                        isSaving={isSaving}
+                        handleSumbit={handleSubmitGrades}
+                    />
+                </div>
+            </div>
+            <Tabs defaultValue='Written Works' onValueChange={(value) => setSelectedContent(value as GradeComponentsType)}>
                 <TabsList className='bg-muted p-1 grid grid-cols-3'>
                     {gradeComponents.map(c => (
                         <TabsTrigger key={c} value={c} className='rounded-none'>{c}</TabsTrigger>
@@ -193,22 +248,39 @@ function InputDialog({
                                     }}
                                 />
                             </div>
-                            <div className="bg-muted p-1">
-                                <h3 className='flex items-center justify-between'>Total: 
-                                    <span>{totalScore}</span>
-                                </h3>
-                                <h3 className='flex items-center justify-between'>Percentage Score: 
-                                    <span>{calculatePercentageScore(totalScore, totalScore)}</span>
-                                </h3>
-                                <h3 className='flex items-center justify-between'>Weighted Score: 
-                                    <span>{ 
-                                        calculateWeightedScore(
-                                            calculatePercentageScore(totalScore, totalScore),
-                                            gradeWeight ?? 0
-                                    )}
-                                    </span>
-                                </h3>
-                            </div>
+                            <div className="bg-muted p-4 rounded-lg">
+                            <h3 className='flex items-center justify-between font-medium'>
+                                Total:
+                                <span className='text-xl font-bold'>{totalScore}</span>
+                            </h3>
+                            <h3 className='flex items-center justify-between font-medium'>
+                                Percentage Score:
+                                <span className='text-xl font-bold'>
+                                {
+                                    calculatePercentageScore(
+                                    totalScore,
+                                    highestScores.find(s => s.componentType === selectedContent)?.scores
+                                        .reduce((acc, score) => acc + score.score, 0) || 1 // prevent divide by 0
+                                    )
+                                }
+                                </span>
+                            </h3>
+                            <h3 className='flex items-center justify-between font-medium'>
+                                Weighted Score:
+                                <span className='text-xl font-bold'>
+                                {
+                                    calculateWeightedScore(
+                                    calculatePercentageScore(
+                                        totalScore,
+                                        highestScores.find(s => s.componentType === selectedContent)?.scores
+                                        .reduce((acc, score) => acc + score.score, 0) || 1
+                                    ),
+                                    gradeWeight ?? 0
+                                    )
+                                }
+                                </span>
+                            </h3>
+                        </div>
                         </div>
                     ):(
                     <div className="space-y-2">
@@ -268,26 +340,25 @@ function InputDialog({
                 </TabsContent>
             </Tabs>
             <DialogFooter>
-                <Button variant="outline" onClick={() => {setDialogOpen(false)}}>
-                    <X className="mr-2 h-4 w-4" />
-                    Cancel
-                </Button>
-                <Button onClick={handleSaveScore} >
-                {isSaving ? (
-                    <span className="flex items-center">
-                      <span className="animate-spin mr-2">⏳</span> Saving...
-                  </span>
-                ): (
-                    <>
-                        <Check className="mr-2 h-4 w-4" />
-                        Save
-                    </>
-                )}
-                  
-               
-                  
             
-                </Button>
+                <div className="flex gap-x-5">
+                    <Button variant="outline" onClick={() => {setDialogOpen(false)}}>
+                        <X className="mr-2 h-4 w-4" />
+                        Cancel
+                    </Button>
+                    <Button onClick={handleSaveScore} >
+                    {isSaving ? (
+                        <span className="flex items-center">
+                        <span className="animate-spin mr-2">⏳</span> Saving...
+                    </span>
+                    ): (
+                        <>
+                            <Check className="mr-2 h-4 w-4" />
+                            Save
+                        </>
+                    )}
+                    </Button>
+                </div>
             </DialogFooter>
         </DialogContent>
     </Dialog>
