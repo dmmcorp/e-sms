@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useQuery } from "convex/react";
 import { motion } from "framer-motion";
-import { BookOpen, GraduationCap, Users } from "lucide-react";
+import { BookOpen, GraduationCap, UserMinus, Users } from "lucide-react";
 import { api } from "../../../../../convex/_generated/api";
 import { Loader } from "@/components/loader";
 import { seniorHighGrades } from "@/lib/constants";
@@ -52,6 +52,7 @@ interface Teacher {
     gradeLevel: string;
     studentCount?: number;
     semester?: string;
+    droppedStudentCount?: number;
   }>;
   allSubjectsTaught: SubjectInfo[];
 }
@@ -172,6 +173,13 @@ export function SeniorDepartmentList() {
                         adviser.allSubjectsTaught
                       );
 
+                    const totalDroppedStudents =
+                      advisorySectionsToDisplay.reduce(
+                        (total, section) =>
+                          total + (section.droppedStudentCount || 0),
+                        0
+                      );
+
                     return (
                       <motion.div
                         key={`${adviser._id}-adviser-${gradeLevel}`}
@@ -197,19 +205,34 @@ export function SeniorDepartmentList() {
                           <CardContent className="space-y-4 flex-grow">
                             {/* Display student count for the relevant advisory sections */}
                             {advisorySectionsToDisplay.length > 0 && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <Users className="h-4 w-4 text-primary" />
-                                <span className="font-medium">
-                                  # of Students (Advisory):
-                                </span>
-                                <Badge variant="outline" className="ml-auto">
-                                  {advisorySectionsToDisplay.reduce(
-                                    (total, section) =>
-                                      total + (section.studentCount || 0),
-                                    0
-                                  )}
-                                </Badge>
-                              </div>
+                              <>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Users className="h-4 w-4 text-primary" />
+                                  <span className="font-medium">
+                                    # of Students:
+                                  </span>
+                                  <Badge variant="outline" className="ml-auto">
+                                    {advisorySectionsToDisplay.reduce(
+                                      (total, section) =>
+                                        total + (section.studentCount || 0),
+                                      0
+                                    )}
+                                  </Badge>
+                                </div>
+
+                                <div className="flex items-center gap-2 text-sm">
+                                  <UserMinus className="h-4 w-4 text-destructive" />
+                                  <span className="font-medium">
+                                    # of Dropped:
+                                  </span>
+                                  <Badge
+                                    variant="destructive"
+                                    className="ml-auto"
+                                  >
+                                    {totalDroppedStudents}
+                                  </Badge>
+                                </div>
+                              </>
                             )}
 
                             {/* Display Subjects Taught based on teaching semester filter */}
