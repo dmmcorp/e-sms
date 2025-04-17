@@ -4,7 +4,6 @@ import { asyncMap } from "convex-helpers";
 import { gradeLevel } from "./schema";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { Doc } from "./_generated/dataModel";
-import { internal } from "./_generated/api";
 
 export const getStudents = query({
     args:{
@@ -192,7 +191,11 @@ export const sectionStudents = query({
             const student = await ctx.db.get(data.studentId)
             if(student === null) return null;
            
-            const classRecord = await ctx.db.query('classRecords').withIndex('by_teachingLoadId', q => q.eq('teachingLoadId', args.teachingLoadId)).first()
+            const classRecord = await ctx.db.query('classRecords')
+            .withIndex('by_teachingLoadId', q => q.eq('teachingLoadId', args.teachingLoadId))
+            .filter(q => q.eq(q.field('studentId'), student._id))
+            .first()
+
             if(classRecord === null) throw new ConvexError('No class record found in db.')
     
             const written = await ctx.db.query('writtenWorks')

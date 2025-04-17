@@ -25,7 +25,9 @@ interface InputDialogProps {
     ptGradeWeights: number | undefined;
     meGradeWeights: number | undefined;
     loadId: Id<'teachingLoad'>;
+    transmutedGrade: number;
     studentScores: StudentScoresType | undefined;
+    initialGrade: number
 }
 type GradeComponentsType = 'Written Works' | 'Performance Tasks'| 'Major Exam';
 
@@ -33,13 +35,14 @@ function InputDialog({
     dialogOpen, 
     setDialogOpen,
     title,
-    learningMode,
+    transmutedGrade,
     highestScores,
     wwGradeWeights,
     ptGradeWeights,
     meGradeWeights,
     loadId,
     studentScores,
+    initialGrade,
 }: InputDialogProps ) {
     const [scoresInput, setScoresInput] = useState<{ [key: number]: number }>({});
     const [maxInputs, setMaxInputs] = useState<number>(0);
