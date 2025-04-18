@@ -113,5 +113,6 @@ export interface StudentScoresType extends Doc<'students'>{
   written: Doc<'writtenWorks'>[];
   performance: Doc<'performanceTasks'>[];
   exam: Doc<'majorExams'>[];
-  classRecord: Doc<'classRecords'>
+  classRecord: Doc<'classRecords'>;
+  isSubmitted: boolean | undefined
 }

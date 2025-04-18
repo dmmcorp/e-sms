@@ -213,13 +213,15 @@ export const sectionStudents = query({
             const sortedWritten = written.sort((a,b)=> a.assessmentNo - b.assessmentNo)
             const sortedPerformance = performance.sort((a,b)=> a.assessmentNo - b.assessmentNo)
             const sortedExam = exam.sort((a,b)=> a.assessmentNo - b.assessmentNo)
-
+            const isSubmitted = classRecord.needsIntervention !== undefined && classRecord.needsIntervention !== null;
+            
             return {
                 ...student,
                 written: sortedWritten,
                 performance: sortedPerformance,
                 exam: sortedExam,
-                classRecord: classRecord
+                classRecord: classRecord,
+                isSubmitted: isSubmitted
             }
         });
 

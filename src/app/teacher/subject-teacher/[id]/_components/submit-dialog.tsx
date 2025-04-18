@@ -16,7 +16,7 @@ function SubmitDialog({
     setOpenDialog,
     onOpenDialog,
     handleSumbit,
-    isSaving
+    isSaving,
 
 }:SubmitDialogProps) {
     if(transmutedGrade)

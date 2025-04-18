@@ -27,7 +27,8 @@ interface InputDialogProps {
     meGradeWeights: number | undefined;
     loadId: Id<'teachingLoad'>;
     studentScores: StudentScoresType | undefined;
-    transmutedGrade: number | undefined
+    transmutedGrade: number | undefined;
+    isSubmitted: boolean | undefined
 }
 type GradeComponentsType = 'Written Works' | 'Performance Tasks'| 'Major Exam';
 
@@ -41,7 +42,8 @@ function InputDialog({
     meGradeWeights,
     loadId,
     studentScores,
-    transmutedGrade
+    transmutedGrade,
+    isSubmitted
 }: InputDialogProps ) {
     const [scoresInput, setScoresInput] = useState<{ [key: number]: number }>({});
     const [maxInputs, setMaxInputs] = useState<number>(0);
@@ -185,8 +187,9 @@ function InputDialog({
           studentScores.exam.length >= 1
         );
       };
-      
-
+    
+     
+      console.log(isSubmitted)
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen} >
         <DialogContent className=''>
@@ -203,7 +206,7 @@ function InputDialog({
                         className={cn(
                             !transmutedGrade ? "hidden" : "flex",
                         )}
-                        disabled={!isReadyToSubmit() || isSaving }
+                        disabled={isSubmitted || !isReadyToSubmit() || isSaving}
                         >
                         <Lock className="mr-2 h-4 w-4" />
                         Submit Grades

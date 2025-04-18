@@ -26,6 +26,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
     loadId: teachingLoad._id,
   });
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+  const [isSubmitted, setIsSubmitted] = useState<boolean>();
   const [type, setType] = useState<DialogType | undefined>();
   const [selectedTransmutedGrade, setSelectedTransmutedGrade] = useState<number | undefined>(60);
   const [studentScores, setStudentScores] = useState<StudentScoresType | undefined>();
@@ -122,7 +123,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
     .filter((student) => student.sex.toLowerCase() === "female")
     .sort((a, b) => a.lastName.localeCompare(b.lastName));
 
-  const handleDialogOpen = (type: DialogType, student?: StudentScoresType, transmutedGrade?:number) => {
+  const handleDialogOpen = (type: DialogType, student?: StudentScoresType, transmutedGrade?:number, isSubmitted?: boolean | undefined) => {
     if(type === 'highest scores') {
       setType(type);
       setDialogOpen(true);
@@ -133,6 +134,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
       setType(type);
       setStudentScores(student);
       setSelectedTransmutedGrade(transmutedGrade)
+      setIsSubmitted(isSubmitted)
     }
   };
 
@@ -439,7 +441,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
         return (
           <div 
             key={student._id}
-            onClick={()=> {handleDialogOpen(fullName, student, transmutedGrade)}} 
+            onClick={()=> {handleDialogOpen(fullName, student, transmutedGrade, student.isSubmitted)}} 
             className="flex max-w-full hover:bg-gray-200 "
           >
           <h1 className="w-[3%] uppercase border-x-black border-x border-b-black border-b text-sm font-semibold text-center">
@@ -583,7 +585,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
         return (
           <div 
             key={student._id}
-            onClick={()=> {handleDialogOpen(fullName, student, transmutedGrade)}} 
+            onClick={()=> {handleDialogOpen(fullName, student, transmutedGrade, student.isSubmitted)}} 
             className="flex max-w-full hover:bg-gray-200 "
           >
           <h1 className="w-[3%] uppercase border-x-black border-x border-b-black border-b text-sm font-semibold text-center">
@@ -669,6 +671,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
         loadId={teachingLoad._id}
         studentScores={studentScores}
         transmutedGrade={selectedTransmutedGrade}
+        isSubmitted={isSubmitted}
       />
     </div>
   );
