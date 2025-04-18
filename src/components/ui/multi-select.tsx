@@ -1,5 +1,5 @@
 // src/components/multi-select.tsx
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import {
@@ -19,16 +19,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {   
+import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator, 
-} from "./command";
-
+  CommandSeparator,
+} from "@/components/ui/command";
 
 /**
  * Variants for the multi-select component to handle different styles.
@@ -40,7 +39,7 @@ const multiSelectVariants = cva(
     variants: {
       variant: {
         default:
-          "border-foreground/10 text-primary bg-card hover:bg-card/80",
+          "border-foreground/10 text-foreground bg-card hover:bg-card/80",
         secondary:
           "border-foreground/10 bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive:
@@ -197,8 +196,9 @@ export const MultiSelect = React.forwardRef<
         onOpenChange={setIsPopoverOpen}
         modal={modalPopover}
       >
-        <PopoverTrigger asChild>
+        <PopoverTrigger>
           <Button
+            type="button"
             ref={ref}
             {...props}
             onClick={handleTogglePopover}
@@ -239,7 +239,7 @@ export const MultiSelect = React.forwardRef<
                   {selectedValues.length > maxCount && (
                     <Badge
                       className={cn(
-                        "bg-transparent text-primary border-foreground/1 hover:bg-transparent",
+                        "bg-transparent text-foreground border-foreground/1 hover:bg-transparent",
                         isAnimating ? "animate-bounce" : "",
                         multiSelectVariants({ variant })
                       )}
@@ -368,7 +368,7 @@ export const MultiSelect = React.forwardRef<
         {animation > 0 && selectedValues.length > 0 && (
           <WandSparkles
             className={cn(
-              "cursor-pointer my-2 text-primary bg-background w-3 h-3",
+              "cursor-pointer my-2 text-foreground bg-background w-3 h-3",
               isAnimating ? "" : "text-muted-foreground"
             )}
             onClick={() => setIsAnimating(!isAnimating)}

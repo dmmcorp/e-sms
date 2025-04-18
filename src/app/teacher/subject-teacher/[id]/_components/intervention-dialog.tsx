@@ -37,9 +37,8 @@ function InterventionDialog({
     usedIntervention,
     classRecord
 }: InterventionDialogProp) {
-    const interventions = useQuery(api.interventions.get)
     const saveInterventionStats = useMutation(api.classRecords.saveInterventionGrade)
-
+    const interventions = useQuery(api.interventions.get)
     const interventionNames = interventions ? interventions.map(i => {
         return{
           label: i.name, 
@@ -64,12 +63,13 @@ function InterventionDialog({
 
       function onSubmit(data: z.infer<typeof InterventionFormSchema>) {
         setIsLoading(true);
+        console.log(data)
         toast.promise(
           saveInterventionStats({
-          id: classRecord?._id,
-          remarks: data.remarks,
-          interventionUsed: data.interventionUsed,
-          interventionGrade: data.interventionGrade
+            id: classRecord?._id,
+            remarks: data.remarks,
+            interventionUsed: data.interventionUsed,
+            interventionGrade: data.interventionGrade
           }),{
             loading: "Saving Interventions details",
             success: "Interventions details save successfully. :)",

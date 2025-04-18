@@ -131,6 +131,18 @@ export const saveInterventionGrade = mutation({
     },
     handler: async(ctx, args) =>{
         if(!args.id) return 
+
+        const classRecord = await ctx.db.get(args.id);
+
+        if(classRecord){
+            await ctx.db.patch(classRecord._id,{
+                interventionGrade: args.interventionGrade,
+                interventionUsed: args.interventionUsed,
+                interventionRemarks: args.remarks
+            })
+        }
+
+
         
     }
 })

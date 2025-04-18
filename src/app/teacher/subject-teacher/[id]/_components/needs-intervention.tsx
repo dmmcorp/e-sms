@@ -96,7 +96,7 @@ const forImprovementsColumns: ColumnDef<StudentNeedsIntervention>[] = [
             <h1 className="font-semibold">Modified Grade : <span className="font-normal">{modGrade} {modifiedGrade ? modifiedGrade <= 74 ? (<span className="text-red-500 ml-2">Failed</span>) : ( <span className="ml-2 text-green-500">Passed</span>) : ""}</span> </h1>
             <div className="">
             <p className="">
-              <span className="font-semibold">{interventionUsed ? interventionUsed.length > 1 ? "General Remarks -" : interventionUsed && interventionUsed.length === 1 && `${interventionUsed[0]} - ` : ""}</span>
+              <span className="font-semibold">{interventionUsed ? interventionUsed.length > 1 ? "Remarks -" : interventionUsed && interventionUsed.length === 1 && `${interventionUsed[0]} - ` : ""}</span>
               <span className="">{remarksValue} </span>
             </p>
   
