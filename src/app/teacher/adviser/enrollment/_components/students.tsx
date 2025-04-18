@@ -12,6 +12,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 
 import ActionCeil from './action-ceil'
 import { Id } from '../../../../../../convex/_generated/dataModel'
+import Loading from '@/app/teacher/loading'
 
 export default function Students() {
     const router = useRouter();
@@ -20,7 +21,7 @@ export default function Students() {
     const students = useQuery(api.students.getStudents, {
         sectionId: sectionId ?? undefined,
     });
-    if(!students) return <div className="">Loading...</div>
+    if(!students) return <Loading/>
   return (
     <div className='pt-5'>
 

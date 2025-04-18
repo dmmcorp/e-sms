@@ -659,6 +659,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
           </div>
           </div>
       )})}
+      
       <InputDialog
         dialogOpen={dialogOpen}
         setDialogOpen={setDialogOpen}

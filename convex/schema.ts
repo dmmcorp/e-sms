@@ -223,7 +223,11 @@ const schema = defineSchema({
       searchField: "firstName",
       filterFields: ["isArchived"]
     }),
-
+    
+  interventions: defineTable({
+    name: v.string(),
+    description: v.optional(v.string())
+  }),
   enrollment: defineTable({
     studentId: v.id('students'),
     schoolYear: v.string(),
@@ -250,7 +254,9 @@ const schema = defineSchema({
     schoolImage: v.optional(v.string()),
     schoolName: v.optional(v.string()),
     primaryColor: v.optional(v.string()),
-  })
+  }),
+
+  
 });
 
 export default schema;

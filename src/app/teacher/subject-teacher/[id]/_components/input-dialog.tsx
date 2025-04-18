@@ -187,38 +187,41 @@ function InputDialog({
           studentScores.exam.length >= 1
         );
       };
-    
-     
-      console.log(isSubmitted)
+
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen} >
         <DialogContent className=''>
-          
             <div className="flex items-center justify-between w-full ">
-
                 <DialogTitle className='capitalize '>
                     {title}
                 </DialogTitle>
-                <div className="">
-                    <Button 
-                        variant="default" 
-                        onClick={() => {setOpen(true)}}
-                        className={cn(
-                            !transmutedGrade ? "hidden" : "flex",
-                        )}
-                        disabled={isSubmitted || !isReadyToSubmit() || isSaving}
-                        >
-                        <Lock className="mr-2 h-4 w-4" />
-                        Submit Grades
-                    </Button>
-                    <SubmitDialog 
-                        transmutedGrade={transmutedGrade}
-                        onOpenDialog={open}
-                        setOpenDialog={setOpen}
-                        isSaving={isSaving}
-                        handleSumbit={handleSubmitGrades}
-                    />
-                </div>
+                {isSubmitted ? (
+                    <div className="">
+                      
+                    </div>
+                ):(
+                    <div className="">
+                        <Button 
+                            variant="default" 
+                            onClick={() => {setOpen(true)}}
+                            className={cn(
+                                !transmutedGrade ? "hidden" : "flex",
+                            )}
+                            disabled={isSubmitted || !isReadyToSubmit() || isSaving}
+                            >
+                            <Lock className="mr-2 h-4 w-4" />
+                            Submit Grades
+                        </Button>
+                        <SubmitDialog 
+                            transmutedGrade={transmutedGrade}
+                            onOpenDialog={open}
+                            setOpenDialog={setOpen}
+                            isSaving={isSaving}
+                            handleSumbit={handleSubmitGrades}
+                        />
+                    </div>
+                )}
+              
             </div>
             <Tabs defaultValue='Written Works' onValueChange={(value) => setSelectedContent(value as GradeComponentsType)}>
                 <TabsList className='bg-muted p-1 grid grid-cols-3'>

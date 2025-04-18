@@ -36,16 +36,25 @@ export const getTeachingLoad = query({
         // Collect the filtered teachingLoad data
         const query = await teachingLoad.collect();
 
+        const enrollments = await ctx.db.query('enrollment').collect()
+       
         // Process each teaching load entry
         return await asyncMap(query, async (load) => {
             // Fetch initial class records associated with the teaching load
             const initClassRecords = await ctx.db.query('classRecords').filter(q => q.eq(q.field('teachingLoadId'), load._id)).collect();
+
+            const filteredEnrollments = enrollments.filter(e => e.sectionId === load.sectionId)
+              
 
             // Process each class record to calculate averages and prepare chart data
             const classRecords = await asyncMap(initClassRecords, async (classRecord) => {
                 const ww = await ctx.db.query('writtenWorks').filter(q => q.eq(q.field('classRecordId'), classRecord._id)).collect();
                 const pt = await ctx.db.query('performanceTasks').filter(q => q.eq(q.field('classRecordId'), classRecord._id)).collect();
                 const me = await ctx.db.query('majorExams').filter(q => q.eq(q.field('classRecordId'), classRecord._id)).collect();
+                
+                const enrollment = filteredEnrollments.find(e => e.studentId === classRecord.studentId);
+                const isDropped = enrollment?.status === 'dropped'
+                const isReturning = enrollment?.isReturning ? enrollment.isReturning : false
 
                 // Calculate the number of entries for each type
                 const wwLength = ww.length;
@@ -76,33 +85,35 @@ export const getTeachingLoad = query({
                 // Return the class record with chart data
                 return {
                     ...classRecord,
-                    chartData: chartData
+                    chartData: chartData,
+                    isReturning: isReturning,
+                    isDropped: isDropped
                 };
             });
 
             // Fetch dropped students and include their details
-            // const droppedStudents = await asyncMap(
-            //     classRecords.filter(record => record.isDropped),
-            //     async (record) => {
-            //         const student = await ctx.db.get(record.studentId);
-            //         return {
-            //             ...record,
-            //             student: student
-            //         };
-            //     }
-            // );
+            const droppedStudents = await asyncMap(
+                classRecords.filter(record => record.isDropped),
+                async (record) => {
+                    const student = await ctx.db.get(record.studentId);
+                    return {
+                        ...record,
+                        student: student
+                    };
+                }
+            );
 
             // Fetch returning students and include their details
-            // const returningStudents = await asyncMap(
-            //     classRecords.filter(record => record.isReturning),
-            //     async (record) => {
-            //         const student = await ctx.db.get(record.studentId);
-            //         return {
-            //             ...record,
-            //             student: student
-            //         };
-            //     }
-            // );
+            const returningStudents = await asyncMap(
+                classRecords.filter(record => record.isReturning),
+                async (record) => {
+                    const student = await ctx.db.get(record.studentId);
+                    return {
+                        ...record,
+                        student: student
+                    };
+                }
+            );
 
             // Fetch students needing interventions and include their details
             const needsInterventions = await asyncMap(
@@ -126,13 +137,14 @@ export const getTeachingLoad = query({
                 section: section,
                 subject: subject,
                 classRecords: classRecords,
-                // droppedStud: droppedStudents,
-                // returningStud: returningStudents,
+                droppedStud: droppedStudents,
+                returningStud: returningStudents,
                 needsInterventions: needsInterventions
             };
         });
     }
 });
+
 export const getById = query({
     args:{ 
        id: v.optional(v.id('teachingLoad'))

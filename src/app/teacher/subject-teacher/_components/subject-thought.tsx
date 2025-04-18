@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import Loading from '../../loading'
 
 function SubjectThought() {
   // Fetch the list of subjects using the `useQuery` hook
@@ -17,7 +18,7 @@ function SubjectThought() {
   const [selectedSubject, setSelectedSubject] = useState<SubjectTypes | undefined>()
 
   // Show a loading state while the subjects are being fetched
-  if (!subjects) return <div className="flex-">Fetching subjects...</div>
+  if (!subjects) return <Loading/>
 
   // Show a message if no subjects are found
   if (subjects.length === 0) {

@@ -61,6 +61,7 @@ export type SectionType = Doc<'sections'>;
 export type TeacherTypes = Doc<'users'>;
 export type SubjectTypes = Doc<'subjectTaught'>;
 export type StudentTypes = Doc<'students'>;
+export type ClassRecordTypes = Doc<'classRecords'>;
 
 interface ClassRecordWithStudentInfo extends Doc<'classRecords'> {
   student: Doc<'students'>
@@ -115,4 +116,8 @@ export interface StudentScoresType extends Doc<'students'>{
   exam: Doc<'majorExams'>[];
   classRecord: Doc<'classRecords'>;
   isSubmitted: boolean | undefined
+}
+
+export interface StudentNeedsIntervention extends Doc<'students'>{
+  classRecord: Doc<'classRecords'> | null
 }

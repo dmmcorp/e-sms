@@ -229,3 +229,33 @@ export const sectionStudents = query({
 
     }
 });
+
+export const needsIntervention = query({
+    args:{
+        sectionId: v.optional(v.id('sections')),
+        teachingLoadId: v.id('teachingLoad')
+    },
+    handler: async(ctx, args) => {
+        if(!args.sectionId) return undefined;
+        const initStudents = await ctx.db.query('sectionStudents').filter((q) => q.eq(q.field('sectionId'), args.sectionId)).collect();
+        const students = await asyncMap(initStudents, async(data)=>{
+            const student = await ctx.db.get(data.studentId)
+            if(student === null) return null;
+           
+            const classRecord = await ctx.db.query('classRecords')
+            .withIndex('by_teachingLoadId', q => q.eq('teachingLoadId', args.teachingLoadId))
+            .filter(q => q.eq(q.field('studentId'), student._id))
+            .filter(q => q.eq(q.field('needsIntervention'), true))
+            .first()
+
+            return {
+                ...student,
+                classRecord: classRecord,
+            }
+        })
+
+        const filteredStudents = students.filter(s => s?.classRecord !== null).filter(s => s?.classRecord?.needsIntervention === true)
+
+        return filteredStudents
+    }
+})

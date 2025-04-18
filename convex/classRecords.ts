@@ -121,3 +121,16 @@ export const saveQuarterlyGrades = mutation({
 
     }   
 })
+
+export const saveInterventionGrade = mutation({
+    args:{
+        id: v.optional(v.id('classRecords')),
+        remarks: v.string(),
+        interventionUsed: v.array(v.string()),
+        interventionGrade: v.number()
+    },
+    handler: async(ctx, args) =>{
+        if(!args.id) return 
+        
+    }
+})
