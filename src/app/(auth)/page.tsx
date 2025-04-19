@@ -1,7 +1,7 @@
 import { AuthScreenRegister } from "@/features/auth/components/auth-screen";
 
 const AuthPage = () => {
-    return <AuthScreenRegister />
-}
+  return <AuthScreenRegister />;
+};
 
 export default AuthPage;

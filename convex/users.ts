@@ -1,4 +1,4 @@
-import { createAccount, getAuthUserId } from "@convex-dev/auth/server";
+import { createAccount, getAuthUserId, modifyAccountCredentials } from "@convex-dev/auth/server";
 import { mutation, query } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
 import { UserForm } from "../src/lib/zod"
@@ -97,6 +97,13 @@ export const createUser = mutation({
                     percentage: v.number(),
                 }))),
             }),
+
+            // FOR SHS
+            category: v.optional(v.union(
+                v.literal('core'),
+                v.literal('specialized'),
+                v.literal('applied'),
+            )),
         }))),
 
         // FOR ADVISER
@@ -147,7 +154,7 @@ export const createUser = mutation({
         const { email, password, subjectsTaught, sections, ...userData } = args;
 
         // Create the user account in auth system
-        // @ts-expect-error - type error in convex auth
+        // @ts-expect-error - type error in convex
         const accountResponse = await createAccount(ctx, {
             provider: "password",
             account: {
@@ -166,84 +173,121 @@ export const createUser = mutation({
             throw new ConvexError("Failed to create account");
         }
 
+        const newUserId = accountResponse.user?._id;
+
         // Array to store created section IDs
-        const createdSections = [];
+        const createdSectionsMap = new Map<number, Id<"sections">>();
 
         // Handle adviser sections first
         if ((args.role === "adviser" || args.role === "adviser/subject-teacher") && sections && sections.length > 0) {
-            for (const section of sections) {
-                const sectionId = await ctx.db.insert("sections", {
-                    adviserId: accountResponse.user._id,
+            for (const [index, section] of sections.entries()) {
+                const newSectionId = await ctx.db.insert("sections", {
+                    adviserId: newUserId,
                     name: section.name,
                     gradeLevel: section.gradeLevel,
                     schoolYear: section.schoolYear,
+                    subjects: []
                 });
-
-                createdSections.push({
-                    id: sectionId,
-                    name: section.name,
-                    gradeLevel: section.gradeLevel,
-                    index: createdSections.length,
-                });
+                createdSectionsMap.set(index, newSectionId);
             }
         }
 
-        // Handle subject teacher subjects (for both subject-teacher and adviser/subject-teacher roles)
+        // Map to store existing/newly created subjectTaught IDs (subjectName_gradeLevel -> ID)
+        const subjectTaughtMap = new Map<string, Id<"subjectTaught">>();
+
+        // Handle subject teacher subjects
         if ((args.role === "subject-teacher" || args.role === "adviser/subject-teacher") && subjectsTaught) {
             for (const subject of subjectsTaught) {
-                // Check if this is a reference to a pending section
-                let sectionId = subject.sectionId;
+                let subjectTaughtId: Id<"subjectTaught">;
+                let resolvedSectionId: Id<"sections">;
 
-                // If it's a pending section reference (pending-section-X)
-                if (sectionId.startsWith('pending-section-')) {
-                    const pendingIndex = parseInt(sectionId.replace('pending-section-', ''));
+                // Resolve section ID (handle pending sections)
+                if (subject.sectionId.startsWith('pending-section-')) {
+                    const pendingIndex = parseInt(subject.sectionId.replace('pending-section-', ''));
+                    const actualId = createdSectionsMap.get(pendingIndex);
+                    if (!actualId) throw new ConvexError(`Could not resolve pending section: ${subject.sectionId}`);
+                    resolvedSectionId = actualId;
+                } else {
+                    resolvedSectionId = subject.sectionId as Id<"sections">;
 
-                    // Find the corresponding created section by index AND matching grade level
-                    const createdSection = createdSections.find(
-                        s => s.index === pendingIndex &&
-                            s.gradeLevel === subject.gradeLevel
-                    );
-
-                    if (!createdSection) {
-                        throw new ConvexError(`Invalid pending section reference: ${sectionId}`);
-                    }
-
-                    // Use the actual created section ID instead
-                    sectionId = createdSection.id;
+                    // const sectionDoc = await ctx.db.get(resolvedSectionId);
+                    // if (!sectionDoc) throw new ConvexError(`Section not found: ${resolvedSectionId}`);
                 }
 
-                // First create the subject thought
-                const subjectTaughtId = await ctx.db.insert("subjectTaught", {
-                    teacherId: accountResponse.user._id,
-                    gradeLevel: subject.gradeLevel,
-                    subjectName: subject.subjectName,
-                    quarter: subject.quarter,
-                    semester: subject.semester || [],
-                    gradeWeights: subject.gradeWeights,
-                });
-                await ctx.runMutation(internal.sections.addSubjectTaught, {
-                    sectionId: sectionId as Id<'sections'>,
-                    id: subjectTaughtId
-                })
-                // Then create teaching load entries based on quarters/semesters
-                if (subject.quarter && subject.quarter.length > 0) {
-                    for (const quarter of subject.quarter) {
-                        await ctx.db.insert("teachingLoad", {
-                            subjectTaughtId: subjectTaughtId,
-                            quarter: quarter,
-                            semester: undefined,
-                            sectionId: sectionId as Id<"sections">, // Use resolved sectionId
+                // Check if subjectTaught already exists or was just created in this mutation
+                const subjectKey = `${subject.subjectName}_${subject.gradeLevel}`;
+                const existingSubjectTaughtId = subjectTaughtMap.get(subjectKey);
+
+                if (existingSubjectTaughtId) {
+                    subjectTaughtId = existingSubjectTaughtId;
+                } else {
+                    // Check database for existing subjectTaught for this teacher
+                    const dbSubject = await ctx.db.query("subjectTaught")
+                        .withIndex("teacherId", q => q.eq("teacherId", newUserId))
+                        .filter(q => q.eq(q.field("subjectName"), subject.subjectName))
+                        .filter(q => q.eq(q.field("gradeLevel"), subject.gradeLevel))
+                        .first();
+
+                    if (dbSubject) {
+                        subjectTaughtId = dbSubject._id;
+
+                        // await ctx.db.patch(dbSubject._id, { gradeWeights: subject.gradeWeights, category: subject.category });
+                    } else {
+                        // Insert new subjectTaught if not found
+                        subjectTaughtId = await ctx.db.insert("subjectTaught", {
+                            teacherId: newUserId,
+                            subjectName: subject.subjectName,
+                            gradeLevel: subject.gradeLevel,
+                            category: subject.category,
+                            gradeWeights: subject.gradeWeights,
+                            // Store ALL quarters/semesters defined for this subjectTaught,
+                            // not just the ones for this specific teaching load entry
+                            quarter: subject.quarter,
+                            semester: subject.semester || [],
                         });
                     }
+                    // Store the ID (whether found or newly created) in the map for reuse within this mutation
+                    subjectTaughtMap.set(subjectKey, subjectTaughtId);
                 }
 
-                if (subject.semester && subject.semester.length > 0) {
-                    for (const semester of subject.semester) {
+                // Add subjectTaughtId to the section's subjects array (if not already present)
+                try {
+                    await ctx.runMutation(internal.sections.addSubjectTaught, {
+                        sectionId: resolvedSectionId,
+                        id: subjectTaughtId
+                    });
+                } catch (error) {
+                    console.error(`Failed to add subject ${subjectTaughtId} to section ${resolvedSectionId}:`, error);
+                }
+
+                // Create TeachingLoad entries for each specified quarter/semester
+                if (subject.quarter && subject.quarter.length > 0) {
+                    for (const q of subject.quarter) {
+                        // Check if this specific load already exists
+                        // const existingLoad = await ctx.db.query("teachingLoad")
+                        //     .withIndex("subjectTaughtId", q => q.eq("subjectTaughtId", subjectTaughtId))
+                        //     .filter(q => q.eq(q.field("sectionId"), resolvedSectionId))
+                        //     .filter(q => q.eq(q.field("quarter"), q))
+                        //     .first();
+                        // if (!existingLoad) { ... }
+
                         await ctx.db.insert("teachingLoad", {
                             subjectTaughtId: subjectTaughtId,
-                            semester: semester,
+                            sectionId: resolvedSectionId,
+                            quarter: q,
+                            semester: undefined,
+                            // subComponent: subject.subComponent
+                        });
+                    }
+                } else if (subject.semester && subject.semester.length > 0) {
+                    for (const s of subject.semester) {
+                        // Check if this specific load already exists (optional)
+                        await ctx.db.insert("teachingLoad", {
+                            subjectTaughtId: subjectTaughtId,
+                            sectionId: resolvedSectionId,
+                            semester: s,
                             quarter: undefined,
-                            sectionId: sectionId as Id<"sections">, // Use resolved sectionId
+                            // subComponent: subject.subComponent
                         });
                     }
                 }
@@ -452,6 +496,23 @@ export const updateUser = mutation({
 
             if (userWithSameEmail && userWithSameEmail._id !== args.userId) {
                 throw new ConvexError("A user with this email already exists");
+            }
+        }
+
+        // Handle Password Update
+        if (args.password && args.password.trim() !== "") {
+            try {
+                // @ts-expect-error - type error in convex
+                await modifyAccountCredentials(ctx, {
+                    provider: "password",
+                    account: {
+                        id: existingUser.email,
+                        secret: args.password,
+                    },
+                })
+            } catch (error) {
+                console.error("Failed to update password in auth", error)
+                throw new ConvexError("Failed to update password")
             }
         }
 
