@@ -96,10 +96,15 @@ export const juniorHighGrades = ["Grade 7", "Grade 8", "Grade 9", "Grade 10"];
 
 export const seniorHighGrades = ["Grade 11", "Grade 12"];
 
+export const subjectCategories = [
+    'core',
+    'specialized',
+    'applied',
+] as const;
 
 
-  //transmulation table for 3 components (WW, PT, QE) 
-  export const transmutationTable3 = [
+//transmulation table for 3 components (WW, PT, QE) 
+export const transmutationTable3 = [
     { "min": 100.00, "max": 100.00, "transmutedGrade": 100 },
     { "min": 98.40, "max": 99.99, "transmutedGrade": 99 },
     { "min": 96.80, "max": 98.39, "transmutedGrade": 98 },
@@ -138,13 +143,13 @@ export const seniorHighGrades = ["Grade 11", "Grade 12"];
     { "min": 20.00, "max": 23.99, "transmutedGrade": 65 },
     { "min": 16.00, "max": 19.99, "transmutedGrade": 64 },
     { "min": 12.00, "max": 15.99, "transmutedGrade": 63 },
-    { "min": 8.00,  "max": 11.99, "transmutedGrade": 62 },
-    { "min": 4.00,  "max": 7.99,  "transmutedGrade": 61 },
-    { "min": 0.00,  "max": 3.99,  "transmutedGrade": 60 }
-  ]
+    { "min": 8.00, "max": 11.99, "transmutedGrade": 62 },
+    { "min": 4.00, "max": 7.99, "transmutedGrade": 61 },
+    { "min": 0.00, "max": 3.99, "transmutedGrade": 60 }
+]
 
-  //transmulation table for 2 components (WW, and PT) Transmutation Table for Grades 1–10 and Non-Core Subjects of TVL, Sports, and Arts & Design
-  export const transmutationTableJRHigh2 = [
+//transmulation table for 2 components (WW, and PT) Transmutation Table for Grades 1–10 and Non-Core Subjects of TVL, Sports, and Arts & Design
+export const transmutationTableJRHigh2 = [
     { "min": 80.00, "max": 80.00, "transmutedGrade": 100 },
     { "min": 78.70, "max": 79.99, "transmutedGrade": 99 },
     { "min": 77.40, "max": 78.69, "transmutedGrade": 98 },
@@ -187,51 +192,51 @@ export const seniorHighGrades = ["Grade 11", "Grade 12"];
     { "min": 3.12, "max": 6.28, "transmutedGrade": 61 },
     { "min": 0.00, "max": 3.11, "transmutedGrade": 60 }
 ]
-      
+
 
 //transmutation table for 2 components (WW, and PT) for core subjects Work Immersion/Research/Business Enterprise/Simulation/Exhibit/Performance in the Academic Track
 export const transmutationTableSHSCore2 = [
-        { "min": 75.00, "max": 75.00, "transmutedGrade": 100 },
-        { "min": 73.80, "max": 74.99, "transmutedGrade": 99 },
-        { "min": 72.60, "max": 73.79, "transmutedGrade": 98 },
-        { "min": 71.40, "max": 72.59, "transmutedGrade": 97 },
-        { "min": 70.20, "max": 71.39, "transmutedGrade": 96 },
-        { "min": 69.00, "max": 70.19, "transmutedGrade": 95 },
-        { "min": 67.80, "max": 68.99, "transmutedGrade": 94 },
-        { "min": 66.60, "max": 67.79, "transmutedGrade": 93 },
-        { "min": 65.40, "max": 66.59, "transmutedGrade": 92 },
-        { "min": 64.20, "max": 65.39, "transmutedGrade": 91 },
-        { "min": 63.00, "max": 64.19, "transmutedGrade": 90 },
-        { "min": 61.80, "max": 62.99, "transmutedGrade": 89 },
-        { "min": 60.60, "max": 61.79, "transmutedGrade": 88 },
-        { "min": 59.40, "max": 60.59, "transmutedGrade": 87 },
-        { "min": 58.20, "max": 59.39, "transmutedGrade": 86 },
-        { "min": 57.00, "max": 58.19, "transmutedGrade": 85 },
-        { "min": 55.80, "max": 56.99, "transmutedGrade": 84 },
-        { "min": 54.60, "max": 55.79, "transmutedGrade": 83 },
-        { "min": 53.40, "max": 54.59, "transmutedGrade": 82 },
-        { "min": 52.20, "max": 53.39, "transmutedGrade": 81 },
-        { "min": 51.00, "max": 52.19, "transmutedGrade": 80 },
-        { "min": 49.80, "max": 50.99, "transmutedGrade": 79 },
-        { "min": 48.60, "max": 49.79, "transmutedGrade": 78 },
-        { "min": 47.40, "max": 48.59, "transmutedGrade": 77 },
-        { "min": 46.20, "max": 47.39, "transmutedGrade": 76 },
-        { "min": 45.00, "max": 46.19, "transmutedGrade": 75 },
-        { "min": 42.00, "max": 44.99, "transmutedGrade": 74 },
-        { "min": 39.02, "max": 42.00, "transmutedGrade": 73 },
-        { "min": 36.03, "max": 39.00, "transmutedGrade": 72 },
-        { "min": 33.04, "max": 36.02, "transmutedGrade": 71 },
-        { "min": 30.05, "max": 33.03, "transmutedGrade": 70 },
-        { "min": 27.06, "max": 30.04, "transmutedGrade": 69 },
-        { "min": 24.07, "max": 27.05, "transmutedGrade": 68 },
-        { "min": 21.08, "max": 24.06, "transmutedGrade": 67 },
-        { "min": 18.09, "max": 21.07, "transmutedGrade": 66 },
-        { "min": 15.10, "max": 18.08, "transmutedGrade": 65 },
-        { "min": 12.11, "max": 15.09, "transmutedGrade": 64 },
-        { "min": 9.12, "max": 12.10, "transmutedGrade": 63 },
-        { "min": 6.13, "max": 9.11, "transmutedGrade": 62 },
-        { "min": 3.14, "max": 6.12, "transmutedGrade": 61 },
-        { "min": 0.00, "max": 3.13, "transmutedGrade": 60 }
+    { "min": 75.00, "max": 75.00, "transmutedGrade": 100 },
+    { "min": 73.80, "max": 74.99, "transmutedGrade": 99 },
+    { "min": 72.60, "max": 73.79, "transmutedGrade": 98 },
+    { "min": 71.40, "max": 72.59, "transmutedGrade": 97 },
+    { "min": 70.20, "max": 71.39, "transmutedGrade": 96 },
+    { "min": 69.00, "max": 70.19, "transmutedGrade": 95 },
+    { "min": 67.80, "max": 68.99, "transmutedGrade": 94 },
+    { "min": 66.60, "max": 67.79, "transmutedGrade": 93 },
+    { "min": 65.40, "max": 66.59, "transmutedGrade": 92 },
+    { "min": 64.20, "max": 65.39, "transmutedGrade": 91 },
+    { "min": 63.00, "max": 64.19, "transmutedGrade": 90 },
+    { "min": 61.80, "max": 62.99, "transmutedGrade": 89 },
+    { "min": 60.60, "max": 61.79, "transmutedGrade": 88 },
+    { "min": 59.40, "max": 60.59, "transmutedGrade": 87 },
+    { "min": 58.20, "max": 59.39, "transmutedGrade": 86 },
+    { "min": 57.00, "max": 58.19, "transmutedGrade": 85 },
+    { "min": 55.80, "max": 56.99, "transmutedGrade": 84 },
+    { "min": 54.60, "max": 55.79, "transmutedGrade": 83 },
+    { "min": 53.40, "max": 54.59, "transmutedGrade": 82 },
+    { "min": 52.20, "max": 53.39, "transmutedGrade": 81 },
+    { "min": 51.00, "max": 52.19, "transmutedGrade": 80 },
+    { "min": 49.80, "max": 50.99, "transmutedGrade": 79 },
+    { "min": 48.60, "max": 49.79, "transmutedGrade": 78 },
+    { "min": 47.40, "max": 48.59, "transmutedGrade": 77 },
+    { "min": 46.20, "max": 47.39, "transmutedGrade": 76 },
+    { "min": 45.00, "max": 46.19, "transmutedGrade": 75 },
+    { "min": 42.00, "max": 44.99, "transmutedGrade": 74 },
+    { "min": 39.02, "max": 42.00, "transmutedGrade": 73 },
+    { "min": 36.03, "max": 39.00, "transmutedGrade": 72 },
+    { "min": 33.04, "max": 36.02, "transmutedGrade": 71 },
+    { "min": 30.05, "max": 33.03, "transmutedGrade": 70 },
+    { "min": 27.06, "max": 30.04, "transmutedGrade": 69 },
+    { "min": 24.07, "max": 27.05, "transmutedGrade": 68 },
+    { "min": 21.08, "max": 24.06, "transmutedGrade": 67 },
+    { "min": 18.09, "max": 21.07, "transmutedGrade": 66 },
+    { "min": 15.10, "max": 18.08, "transmutedGrade": 65 },
+    { "min": 12.11, "max": 15.09, "transmutedGrade": 64 },
+    { "min": 9.12, "max": 12.10, "transmutedGrade": 63 },
+    { "min": 6.13, "max": 9.11, "transmutedGrade": 62 },
+    { "min": 3.14, "max": 6.12, "transmutedGrade": 61 },
+    { "min": 0.00, "max": 3.13, "transmutedGrade": 60 }
 ]
 
 //2 components (WW, and PT). Transmutation Table for all other SHS Subjects in the Academic Track
@@ -277,5 +282,4 @@ export const transmutationTableSHS2 = [
     { "min": 5.71, "max": 8.53, "transmutedGrade": 62 },
     { "min": 2.88, "max": 5.70, "transmutedGrade": 61 },
     { "min": 0.00, "max": 2.87, "transmutedGrade": 60 }
-  ]
-  
+]
