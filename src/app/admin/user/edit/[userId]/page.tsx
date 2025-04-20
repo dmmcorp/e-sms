@@ -432,6 +432,7 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
                         id="email"
                         name="email"
                         type="email"
+                        placeholder="Last Name, First Name, Middle Name"
                         value={formData.email}
                         onChange={handleChange}
                         className="w-full"

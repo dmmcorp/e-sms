@@ -19,11 +19,12 @@ import {
   gradeLevels,
   quarters,
   semesters,
+  seniorHighGrades,
 } from "@/lib/constants";
-import { GradeWeights } from "@/lib/types";
+import { GradeWeights, QuarterType, SemesterType } from "@/lib/types";
 import { UserFormData } from "@/lib/zod";
 import { Plus, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { Doc } from "../../../../../convex/_generated/dataModel";
 
 interface SubjectTaughtFormProps {
@@ -71,10 +72,14 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
 
   const handleAddWeightClick = () => {
     handleOGCButton(index, localNewComponentType, localNewComponentPercentage);
-
     setLocalNewComponentType(gradeComponentTypes[0]);
     setLocalNewComponentPercentage("");
   };
+
+  const isSeniorHigh = useMemo(
+    () => seniorHighGrades.includes(subject.gradeLevel),
+    [subject.gradeLevel]
+  );
 
   const existingSectionNames = new Set(
     sections
@@ -110,14 +115,59 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
           .filter(Boolean) // Remove nulls if findIndex fails
       : [];
 
-  console.log(`--- SubjectCardContent Render (Index: ${index}) ---`);
-  console.log(`Value passed to Select:`, subject.sectionId);
-  console.log(`Available DB Sections (Options):`, availableDbSections);
-  console.log(
-    `Available Pending Sections (Options):`,
-    availablePendingSections
-  );
-  console.log(`-------------------------------------------------`);
+  const handleSemesterChange = (selectedSemesters: SemesterType[]) => {
+    // Determine which quarters are *potentially* allowed by the new semester selection
+    const newlyAllowedQuartersSet = new Set<QuarterType>();
+    if (selectedSemesters.includes("1st semester")) {
+      newlyAllowedQuartersSet.add("1st quarter");
+      newlyAllowedQuartersSet.add("2nd quarter");
+    }
+    if (selectedSemesters.includes("2nd semester")) {
+      newlyAllowedQuartersSet.add("3rd quarter");
+      newlyAllowedQuartersSet.add("4th quarter");
+    }
+
+    // Filter the *currently selected* quarters to keep only those
+    // that belong to the newly selected semesters.
+    const updatedQuarters = (subject.quarter || []).filter((q) =>
+      newlyAllowedQuartersSet.has(q)
+    );
+
+    // Update both semester and the potentially filtered quarter fields in formData
+    updateSubject(index, "semester", selectedSemesters);
+    updateSubject(index, "quarter", updatedQuarters);
+  };
+
+  const handleQuarterChange = (selectedQuarters: QuarterType[]) => {
+    if (isSeniorHigh) {
+      // For SHS, only allow quarters that belong to an already selected semester
+      const allowedBasedOnSemesters = new Set(shsAllowedQuarters); // Use the memoized value
+      const validSelectedQuarters = selectedQuarters.filter((q) =>
+        allowedBasedOnSemesters.has(q)
+      );
+      updateSubject(index, "quarter", validSelectedQuarters);
+    } else {
+      // For JHS, allow any quarter selection
+      updateSubject(index, "quarter", selectedQuarters);
+      // Ensure semester is empty for JHS
+      if (subject.semester && subject.semester.length > 0) {
+        updateSubject(index, "semester", []);
+      }
+    }
+  };
+
+  // Determine which quarters are selectable/checked based on selected semesters for SHS
+  const shsAllowedQuarters = useMemo(() => {
+    if (!isSeniorHigh) return quarters; // All allowed for JHS
+    const allowed: QuarterType[] = [];
+    if (subject.semester?.includes("1st semester")) {
+      allowed.push("1st quarter", "2nd quarter");
+    }
+    if (subject.semester?.includes("2nd semester")) {
+      allowed.push("3rd quarter", "4th quarter");
+    }
+    return allowed;
+  }, [isSeniorHigh, subject.semester]);
 
   return (
     <CardContent className="space-y-4">
@@ -209,122 +259,142 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
         </div>
       </div>
 
+      {/* --- Semester & Quarter Selection --- */}
       <h1 className="font-bold underline underline-offset-4 text-center mt-4">
-        Quarter & Semester
+        Semester & Quarter Assignment
       </h1>
-
       <div className="flex flex-col lg:flex-row gap-5 w-full">
+        {/* Quarter Selection Card */}
         <Card className="p-4 w-full">
           <div className="flex justify-between items-center mb-2">
             <Label className="font-semibold">Quarters</Label>
-            {errors.quarter && (
-              <p className="text-xs text-red-600">{errors.quarter}</p>
+            {errors[`subject${index}Quarter`] && (
+              <p className="text-xs text-red-600">
+                {errors[`subject${index}Quarter`]}
+              </p>
             )}
+            {/* Select All/Deselect All for Quarters */}
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => {
-                const allQuarters = [...quarters];
-                updateSubject(
-                  index,
-                  "quarter",
-                  subject.quarter?.length === quarters.length ? [] : allQuarters
-                );
+                const currentQuarters = subject.quarter || [];
+                let quartersToSelect: QuarterType[];
+                if (isSeniorHigh) {
+                  // Select only quarters allowed by current semesters (create mutable copy)
+                  quartersToSelect = [...shsAllowedQuarters];
+                } else {
+                  // Select all quarters for JHS (create mutable copy)
+                  quartersToSelect = [...quarters];
+                }
+                // Toggle between selecting allowed/all and deselecting all
+                const newQuarters =
+                  currentQuarters.length === quartersToSelect.length
+                    ? []
+                    : [...quartersToSelect];
+                handleQuarterChange(newQuarters); // Use updated handler
               }}
               className="col-span-2 sm:col-span-4 mb-1"
-              disabled={subject.semester && subject.semester.length > 0}
+              // Disable Select All if SHS and no semesters are selected
+              disabled={
+                (isSeniorHigh && shsAllowedQuarters.length === 0) || isPending
+              }
             >
-              {subject.quarter?.length === quarters.length
+              {/* Adjust button text based on context */}
+              {subject.quarter?.length ===
+                (isSeniorHigh ? shsAllowedQuarters.length : quarters.length) &&
+              (isSeniorHigh ? shsAllowedQuarters.length > 0 : true)
                 ? "Deselect All"
-                : "Select All"}
+                : "Select All" + (isSeniorHigh ? " (Allowed)" : "")}
             </Button>
           </div>
-          {/* <div className="grid grid-cols-2 sm:grid-cols-4 gap-2"> */}
-
           <div className="grid grid-cols-2 lg:grid-cols-1 w-full gap-2">
-            {quarters.map((q) => (
-              <label
-                key={`${q}-${index}`}
-                className={`flex items-center gap-2 ${
-                  subject.semester && subject.semester.length > 0
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-gray-50"
-                }`}
-              >
-                <Checkbox
-                  checked={subject.quarter?.includes(q) || false}
-                  onCheckedChange={(checked) => {
-                    if (subject.semester && subject.semester.length > 0) return;
+            {quarters.map((q) => {
+              // --- TOUCHED: Quarter disabling logic ---
+              // Disable quarters if SHS and their corresponding semester is NOT selected
+              const isQuarterDisabledForSHS =
+                isSeniorHigh && !shsAllowedQuarters.includes(q);
+              const isChecked = subject.quarter?.includes(q) || false;
 
-                    const currentQuarters = subject.quarter || [];
-                    const updatedQuarters = checked
-                      ? [...currentQuarters, q]
-                      : currentQuarters.filter((item) => item !== q);
-
-                    updateSubject(index, "quarter", updatedQuarters);
-                  }}
-                  disabled={subject.semester && subject.semester.length > 0}
-                />
-                <span>{q}</span>
-              </label>
-            ))}
+              return (
+                <label
+                  key={`${q}-${index}`}
+                  // --- TOUCHED: ClassName logic simplified ---
+                  className={`flex items-center gap-2 ${isQuarterDisabledForSHS ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50"}`}
+                >
+                  <Checkbox
+                    checked={isChecked}
+                    // --- TOUCHED: onCheckedChange logic updated ---
+                    // Allow direct changes for both JHS and SHS (if not disabled)
+                    onCheckedChange={(checked) => {
+                      // No need for isSeniorHigh check here, handler does it
+                      const currentQuarters = subject.quarter || [];
+                      const updatedQuarters = checked
+                        ? [...currentQuarters, q]
+                        : currentQuarters.filter((item) => item !== q);
+                      handleQuarterChange(updatedQuarters); // Use updated handler
+                    }}
+                    // --- TOUCHED: disabled logic updated ---
+                    // Disable only if SHS quarter is not allowed OR form is pending
+                    disabled={isQuarterDisabledForSHS || isPending}
+                  />
+                  <span>{q}</span>
+                </label>
+              );
+            })}
           </div>
-          {/* </div> */}
         </Card>
 
-        <Card className="p-4 w-full">
+        {/* SEMESTERS */}
+        <Card
+          className={`p-4 w-full ${!isSeniorHigh ? "opacity-50 bg-gray-50" : ""}`}
+        >
           <div className="flex justify-between items-center mb-2">
-            <Label className="font-semibold">Semesters</Label>
-            {errors.semester && (
-              <p className="text-xs text-red-600">{errors.semester}</p>
+            <Label className="font-semibold">Semesters (SHS Only)</Label>
+            {errors[`subject${index}Semester`] && (
+              <p className="text-xs text-red-600">
+                {errors[`subject${index}Semester`]}
+              </p>
             )}
+            {/* Select All/Deselect All for Semesters */}
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => {
-                const allSemesters = [...semesters];
-                updateSubject(
-                  index,
-                  "semester",
-                  subject.semester?.length === semesters.length
+                const currentSemesters = subject.semester || [];
+                const newSemesters =
+                  currentSemesters.length === semesters.length
                     ? []
-                    : allSemesters
-                );
+                    : [...semesters];
+                handleSemesterChange(newSemesters); // Use updated handler
               }}
               className="col-span-2 mb-1"
-              disabled={subject.quarter && subject.quarter.length > 0}
+              disabled={!isSeniorHigh || isPending} // Disable if not SHS
             >
               {subject.semester?.length === semesters.length
                 ? "Deselect All"
                 : "Select All"}
             </Button>
           </div>
-
           <div className="flex flex-col gap-1">
             {semesters.map((s) => (
               <label
                 key={`${s}-${index}`}
-                className={`flex items-center gap-2 ${
-                  subject.quarter && subject.quarter.length > 0
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-gray-50"
-                }`}
+                className={`flex items-center gap-2 ${!isSeniorHigh ? "cursor-not-allowed" : "hover:bg-gray-50"}`}
               >
                 <Checkbox
                   checked={subject.semester?.includes(s) || false}
                   onCheckedChange={(checked) => {
-                    if (subject.quarter && subject.quarter.length > 0) return;
-
+                    if (!isSeniorHigh) return; // Ignore clicks if not SHS
                     const currentSemesters = subject.semester || [];
                     const updatedSemesters = checked
                       ? [...currentSemesters, s]
                       : currentSemesters.filter((item) => item !== s);
-
-                    updateSubject(index, "semester", updatedSemesters);
+                    handleSemesterChange(updatedSemesters); // Use updated handler
                   }}
-                  disabled={subject.quarter && subject.quarter.length > 0}
+                  disabled={!isSeniorHigh || isPending} // Disable if not SHS
                 />
                 <span>{s}</span>
               </label>
@@ -756,7 +826,7 @@ export const SubjectTaughtForm = ({
     }));
   };
 
-  // Remove a subject by ID
+  // Remove a subject by index
   const removeSubject = (index: number) => {
     setFormData((prev) => ({
       ...prev,
@@ -764,16 +834,30 @@ export const SubjectTaughtForm = ({
     }));
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateSubject = (
     index: number,
     field: keyof SubjectData,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     value: any
   ) => {
     setFormData((prev) => {
       const updatedSubjects = [...(prev.subjectsTaught || [])];
       if (updatedSubjects[index]) {
-        updatedSubjects[index] = { ...updatedSubjects[index], [field]: value };
+        // Special handling for gradeLevel change to reset dependent fields
+        if (field === "gradeLevel") {
+          updatedSubjects[index] = {
+            ...updatedSubjects[index],
+            [field]: value,
+            semester: [], // Reset semester
+            quarter: [], // Reset quarter
+            sectionId: "", // Reset section
+          };
+        } else {
+          updatedSubjects[index] = {
+            ...updatedSubjects[index],
+            [field]: value,
+          };
+        }
       }
       return { ...prev, subjectsTaught: updatedSubjects };
     });

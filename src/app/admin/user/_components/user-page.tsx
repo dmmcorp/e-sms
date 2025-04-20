@@ -385,7 +385,7 @@ function UserPage() {
                   <Input
                     id="fullName"
                     type="text"
-                    placeholder="Enter full name"
+                    placeholder="Last Name, First Name, Middle Name"
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleChange}
