@@ -70,7 +70,7 @@ export function StudentStatusdDialog({
                 </Badge>
               </div>
               <h4 className="font-medium text-sm text-muted-foreground pt-2 border-t">
-                Quarterly Status (Placeholder):
+                Quarterly Status
               </h4>
               <ul className="space-y-2">
                 {statusDetails.quarterlyStatus.map((qStatus) => (

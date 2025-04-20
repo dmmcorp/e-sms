@@ -282,7 +282,8 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
                   className="bg-blue-50"
                 >
                   {/* @ts-expect-error name might be null */}
-                  {formSection.name} (Pending) {/* Add (Pending) back */}
+                  {formSection.name}
+                  {/* (Pending) Add (Pending) back */}
                 </SelectItem>
               ))}
             </SelectContent>
