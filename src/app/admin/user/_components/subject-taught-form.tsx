@@ -20,8 +20,14 @@ import {
   quarters,
   semesters,
   seniorHighGrades,
+  subjectCategories,
 } from "@/lib/constants";
-import { GradeWeights, QuarterType, SemesterType } from "@/lib/types";
+import {
+  GradeLevelsTypes,
+  GradeWeights,
+  QuarterType,
+  SemesterType,
+} from "@/lib/types";
 import { UserFormData } from "@/lib/zod";
 import { Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -217,6 +223,36 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
           )}
         </div>
 
+        {/* NEW: Category select for senior high */}
+        <div className={`space-y-2 ${!isSeniorHigh ? "hidden" : ""}`}>
+          {" "}
+          {/* Hide if not SHS */}
+          <Label htmlFor={`category-${index}`}>Category (SHS)</Label>
+          <Select
+            value={subject.category || ""}
+            onValueChange={(value) => updateSubject(index, "category", value)}
+            disabled={!isSeniorHigh || isPending} // Disable if not SHS or pending
+          >
+            <SelectTrigger id={`category-${index}`} className="w-full">
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+              {subjectCategories.map((cat) => (
+                <SelectItem key={`${cat}-${index}`} value={cat}>
+                  {/* Capitalize first letter for display */}
+                  {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {/* Optional: Add error display if needed */}
+          {errors[`subject${index}Category`] && (
+            <p className="text-xs text-red-600">
+              {errors[`subject${index}Category`]}
+            </p>
+          )}
+        </div>
+
         {/* Section Select */}
         <div className="space-y-2">
           <Label htmlFor={`section-${index}`}>Section</Label>
@@ -246,7 +282,8 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
                   className="bg-blue-50"
                 >
                   {/* @ts-expect-error name might be null */}
-                  {formSection.name} (Pending) {/* Add (Pending) back */}
+                  {formSection.name}
+                  {/* (Pending) Add (Pending) back */}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -812,6 +849,7 @@ export const SubjectTaughtForm = ({
       gradeLevel: gradeLevels[0],
       quarter: [],
       semester: [],
+      category: undefined,
       gradeWeights: {
         type: "Face to face" as const,
         faceToFace: { ww: 0, pt: 0, majorExam: 0 },
@@ -845,12 +883,17 @@ export const SubjectTaughtForm = ({
       if (updatedSubjects[index]) {
         // Special handling for gradeLevel change to reset dependent fields
         if (field === "gradeLevel") {
+          const isNowSenior = seniorHighGrades.includes(
+            value as GradeLevelsTypes
+          );
+
           updatedSubjects[index] = {
             ...updatedSubjects[index],
             [field]: value,
             semester: [], // Reset semester
             quarter: [], // Reset quarter
             sectionId: "", // Reset section
+            category: isNowSenior ? updatedSubjects[index].category : undefined,
           };
         } else {
           updatedSubjects[index] = {

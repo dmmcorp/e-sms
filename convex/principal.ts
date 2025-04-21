@@ -2,6 +2,8 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { ConvexError, v } from "convex/values";
 import { Doc } from "./_generated/dataModel";
 import { query } from "./_generated/server";
+import { asyncMap } from "convex-helpers";
+import { QuarterType } from "../src/lib/types";
 
 export const getTeachers = query({
     args: {},
@@ -236,17 +238,88 @@ export const getStudentStatusDetails = query({
         }
 
         const enrollment = await ctx.db.get(args.enrollmentId);
+        if (!enrollment) {
+            return null;
+        }
+
+        // --- Fetch Relevant Teaching Loads ---
+        // Get all teaching loads for the subjects the student is enrolled in AND for their specific section
+        const relevantLoads = await asyncMap(enrollment.subjects, async (subjectId) => {
+            return ctx.db
+                .query("teachingLoad")
+                .withIndex("subjectTaughtId", q => q.eq("subjectTaughtId", subjectId))
+                .filter(q => q.eq(q.field("sectionId"), enrollment.sectionId))
+                .collect();
+        }).then(results => results.flat());
+
+        // if no loads were found, return a default status
+        if (relevantLoads.length === 0) {
+            return {
+                studentId: args.studentId,
+                overallStatus: enrollment.status ?? "Unknown",
+                quarterlyStatus: [
+                    { quarter: "1st quarter" as QuarterType, status: "N/A" },
+                    { quarter: "2nd quarter" as QuarterType, status: "N/A" },
+                    { quarter: "3rd quarter" as QuarterType, status: "N/A" },
+                    { quarter: "4th quarter" as QuarterType, status: "N/A" },
+                ],
+            }
+        }
+
+        const relevantLoadIds = relevantLoads.map(load => load._id)
+
+        // --- Fetch Class Records for the Student and Loads ---
+        const studentClassRecords = await asyncMap(relevantLoadIds, async (loadId) => {
+            return ctx.db
+                .query("classRecords")
+                .withIndex("by_teachingLoadId", q => q.eq("teachingLoadId", loadId))
+                .filter(q => q.eq(q.field("studentId"), args.studentId))
+                .first();
+        }).then(results => results.filter((cr): cr is Doc<"classRecords"> => cr !== null));
+
+        // --- Map Class Records back to Quarters ---
+        const gradesByQuarter: Partial<Record<QuarterType, number[]>> = {};
+        for (const cr of studentClassRecords) {
+            const correspondingLoad = relevantLoads.find(load => load._id === cr.teachingLoadId);
+            if (correspondingLoad?.quarter && cr.quarterlyGrade !== undefined && cr.quarterlyGrade !== null) {
+                if (!gradesByQuarter[correspondingLoad.quarter]) {
+                    gradesByQuarter[correspondingLoad.quarter] = [];
+                }
+                // Use intervention grade if available and higher, otherwise use quarterly grade
+                const finalGrade = (cr.interventionGrade !== null && cr.interventionGrade !== undefined && cr.interventionGrade > cr.quarterlyGrade)
+                    ? cr.interventionGrade
+                    : cr.quarterlyGrade;
+
+                gradesByQuarter[correspondingLoad.quarter]!.push(finalGrade);
+            }
+        }
+
+        const allQuarters: QuarterType[] = ["1st quarter", "2nd quarter", "3rd quarter", "4th quarter"];
+
+        const quarterlyStatus = allQuarters.map(quarter => {
+            const grades = gradesByQuarter[quarter];
+            let status: "Passed" | "Failed" | "N/A" = "N/A"; // Default to N/A
+
+            if (grades && grades.length > 0) {
+                // Check if *any* grade for this quarter is failing (< 75)
+                const hasFailingGrade = grades.some(grade => grade < 75);
+                if (hasFailingGrade) {
+                    status = "Failed";
+                } else {
+                    // If no failing grades and grades exist, status is Passed
+                    status = "Passed";
+                }
+                // Note: This assumes all subjects for the quarter *must* have a grade to be "Passed".
+                // If a subject is missing a grade, it stays "N/A" unless another subject fails.
+            }
+
+            return { quarter, status };
+        });
 
         return {
             studentId: args.studentId,
-            overallStatus: enrollment?.status ?? "Unknown",
-            // Placeholder for quarterly status
-            quarterlyStatus: [
-                { quarter: "1st quarter", status: "N/A" },
-                { quarter: "2nd quarter", status: "N/A" },
-                { quarter: "3rd quarter", status: "N/A" },
-                { quarter: "4th quarter", status: "N/A" },
-            ],
+            overallStatus: enrollment.status ?? "Unknown",
+            quarterlyStatus: quarterlyStatus,
         };
     }
 })
