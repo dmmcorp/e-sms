@@ -21,7 +21,7 @@ function SectionList({
     // Determine if the selected subject is for Senior High School (SHS)
     const isShs = selectedSubject.gradeLevel === "Grade 11" || selectedSubject.gradeLevel === "Grade 12"
 
-console.log(selectedSem)
+console.log(selectedQtr)
     return (
         <div className='space-y-10'>
             {/* UI for Senior High School (SHS) */}

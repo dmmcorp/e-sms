@@ -29,6 +29,11 @@ function SeniorHigh({
    
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10">
+      {loads?.length === 0 && (
+        <div className="col-span-1 md:col-span-2 lg:col-span-2 text-center py-10 text-gray-500">
+          <p>No subjects found for the selected quarter.</p>
+        </div>
+      )}
       {loads?.map((load) => (
         <CustomTooltip
           trigger={

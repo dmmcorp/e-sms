@@ -15,17 +15,18 @@ import { Separator } from '@/components/ui/separator'
 import SchoolForm from './school-form'
 
 function HandledSection() {
-  const [selectedSY, setSelectedSY] = useState<SchoolYearTypes>("2024-2025");
+  const [selectedSY, setSelectedSY] = useState<SchoolYearTypes>("2025-2026");
   const [selectedSem, setSelectedSem] = useState<SemesterType>("1st semester")
   const [selectedQtr, setSelectedQtr] = useState<QuarterType>("1st quarter")
 
   const sections = useQuery(api.sections.handledSection, {schoolYear: selectedSY});
 
 
+console.log(selectedQtr)
   return (
     <div className='mt-5 md:pt-10 p-5'>
       {/* Selection of section school year */}
-        <div className="w-full hidden justify-end">
+        <div className="w-full justify-end">
           <Select defaultValue='2024-2025' onValueChange={(value)=> setSelectedSY(value as SchoolYearTypes)}> 
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="School year" />
@@ -41,6 +42,11 @@ function HandledSection() {
           </Select>
         </div>
         <div className="space-y-10">
+        {sections?.length === 0 && (
+          <div className="text-center py-10 text-gray-500">
+            <p>No sections found for the selected school year.</p>
+          </div>
+        )}
         {sections?.map((section)=> (
           <Card key={section._id} className=" pt-0">
             <CardHeader className='pt-5 '>
