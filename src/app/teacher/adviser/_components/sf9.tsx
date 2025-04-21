@@ -13,6 +13,8 @@ import { api } from "../../../../../convex/_generated/api"
 import Loading from "../../loading"
 import SF9FrontTemplate from "./sf9-front-template"
 import JrGradesTemplate from "./jhs-grade-template"
+import Values from "./values"
+import SrGradesTemplate from "./shs-grade-template"
 interface SF9Props {
     sectionStudentId: Id<'sectionStudents'>
 }
@@ -54,9 +56,36 @@ export default function SF9({
             </TabsContent>
 
         <TabsContent value="back" className="mt-0">
-          <Card className="border-2 p-6">
-            <JrGradesTemplate student={student}/>
+        {isSHS ? (
+          <Card className="border-2 p-6 grid grid-cols-2">
+            <div>
+              <div className="mb-3">
+                <h1 className='text-center text-xs'>REPORT ON LEARNING PROGRESS AND ACHIEVEMENT</h1>
+                <SrGradesTemplate student={student} sem='1st semester' sf9={true}/>
+              </div>
+              <div className="">
+                
+                <SrGradesTemplate student={student} sem='2nd semester' sf9={true}/>
+              </div>
+            </div>
+            <Values 
+                studentId={student._id}
+                sectionStudentId={sectionStudentId}
+                sf9
+                isSHS={isSHS}
+            />
           </Card>
+          ): (
+          <Card className="border-2 p-6 grid grid-cols-2">
+            <JrGradesTemplate student={student}/>
+            <Values 
+                studentId={student._id}
+                sectionStudentId={sectionStudentId}
+                sf9
+                isSHS={isSHS}
+            />
+          </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>

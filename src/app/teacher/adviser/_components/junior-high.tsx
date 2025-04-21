@@ -1,15 +1,12 @@
 "use client";
 import { useQuery } from "convex/react";
-import React, { useState } from "react";
+import React from "react";
 import { api } from "../../../../../convex/_generated/api";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import { QuarterType } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import Chart from "./chart";
 import CustomTooltip from "@/components/custom-tooltip";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import SchoolForm from "./school-form";
 
 interface JuniorHighProps {
   sectionId: Id<"sections">;

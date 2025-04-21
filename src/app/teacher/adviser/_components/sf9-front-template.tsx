@@ -8,6 +8,7 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { StudentWithSectionStudent } from '@/lib/types'
 import Attendance from './attendance'
+import DivisionOfTanjay from '@/../public/DOT.png'
 
 interface SF9FrontTemplateProps{
     student: StudentWithSectionStudent
@@ -108,7 +109,7 @@ function SF9FrontTemplate({student}: SF9FrontTemplateProps) {
         <div className="font-serif">
             <div className="grid grid-cols-12 py-10">
                 <div className="flex justify-end items-start col-span-2">
-                    <Image src={systemSettings?.schoolImage || ""} alt='Division of Tanjay City' width={100} height={100} className='size-20 object-contain'/>
+                    <Image src={DivisionOfTanjay || ""} alt='Division of Tanjay City' width={100} height={100} className='size-20 object-contain'/>
                 </div>
                 {isSHS ? (
                     <div className="col-span-8 text-center flex flex-col items-center text-xs ">

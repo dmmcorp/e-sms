@@ -231,6 +231,7 @@ function InputDialog({
                             name={component + ("1")}
                             placeholder={`Enter exam score`}
                             value={scoresInput["1"] ?? ''}
+                            max={highestScores.find(hs => hs.componentType === component)?.scores.find(s => s.assessmentNo === 1)?.score ?? Infinity}
                             onChange={(e) => {
                                 const rawValue = parseFloat(e.target.value);
                                 const highestScoreObj = highestScores.find(hs => hs.componentType === component);
@@ -258,9 +259,11 @@ function InputDialog({
                         {
                             calculatePercentageScore(
                             totalScore,
-                            highestScores.find(s => s.componentType === component)?.scores
-                                .reduce((acc, score) => acc + score.score, 0) || 1 // prevent divide by 0
-                            )
+                            title === "highest scores" 
+                                ? totalScore 
+                                : highestScores.find(s => s.componentType === component)?.scores
+                                    .reduce((acc, score) => acc + score.score, 0) || 1 // prevent divide by 0
+                            ).toFixed(1)
                         }
                         </span>
                     </h3>
@@ -271,11 +274,13 @@ function InputDialog({
                             calculateWeightedScore(
                             calculatePercentageScore(
                                 totalScore,
-                                highestScores.find(s => s.componentType === component)?.scores
-                                .reduce((acc, score) => acc + score.score, 0) || 1
+                                title === "highest scores" 
+                                    ? totalScore 
+                                    : highestScores.find(s => s.componentType === component)?.scores
+                                        .reduce((acc, score) => acc + score.score, 0) || 1
                             ),
                             gradeWeight ?? 0
-                            )
+                            ).toFixed(1)
                         }
                         </span>
                     </h3>
@@ -293,6 +298,7 @@ function InputDialog({
                             name={component + (index + 1)}
                             placeholder={`Score`}
                             type="number"
+                            max={title === "highest scores" ? 100 : highestScores.find(s => s.componentType === component)?.scores[index]?.score ?? 100}
                             value={scoresInput[index + 1] ?? ''}
                             onChange={(e) => handleOnChange(e,index)}
                         />
@@ -310,10 +316,12 @@ function InputDialog({
                         <span className='text-xl font-bold'>
                         {
                             calculatePercentageScore(
-                            totalScore,
-                            highestScores.find(s => s.componentType === component)?.scores
-                                .reduce((acc, score) => acc + score.score, 0) || 1 // prevent divide by 0
-                            )
+                                totalScore,
+                                title === "highest scores" 
+                                    ? totalScore 
+                                    : highestScores.find(s => s.componentType === component)?.scores
+                                        .reduce((acc, score) => acc + score.score, 0) || 1
+                            ).toFixed(1)
                         }
                         </span>
                     </h3>
@@ -324,11 +332,13 @@ function InputDialog({
                             calculateWeightedScore(
                             calculatePercentageScore(
                                 totalScore,
-                                highestScores.find(s => s.componentType === component)?.scores
-                                .reduce((acc, score) => acc + score.score, 0) || 1
+                                title === "highest scores" 
+                                    ? totalScore 
+                                    : highestScores.find(s => s.componentType === component)?.scores
+                                        .reduce((acc, score) => acc + score.score, 0) || 1
                             ),
                             gradeWeight ?? 0
-                            )
+                            ).toFixed(1)
                         }
                         </span>
                     </h3>

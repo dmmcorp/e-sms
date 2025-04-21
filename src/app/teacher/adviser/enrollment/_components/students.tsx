@@ -19,7 +19,7 @@ export default function Students() {
     const searchParams = useSearchParams();
     const sectionId = searchParams.get('id') as Id<'sections'> | null;
     const students = useQuery(api.students.getStudents, {
-        sectionId: sectionId ?? undefined,
+        sectionId: sectionId === null ? undefined : sectionId ?? undefined,
     });
     if(!students) return <Loading/>
   return (

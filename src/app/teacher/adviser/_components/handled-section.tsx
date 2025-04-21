@@ -76,6 +76,7 @@ function HandledSection() {
                 )}
            
             </CardContent>
+            <Separator/>
             <SchoolForm 
                 sectionId={section._id}
               />

@@ -513,7 +513,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
             )}
           >
             <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "": initialGrade.toFixed(1)}</h1>
-            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{transmutedGrade === 60 ? "": transmutedGrade.toFixed(0)}</h1>
+            <h1 className={cn(transmutedGrade <= 74 && "text-red-500","h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{transmutedGrade === 60 ? "": transmutedGrade.toFixed(0)}</h1>
           </div>
           </div>
       )})}
@@ -659,7 +659,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
             )}
           >
             <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "": initialGrade.toFixed(1)}</h1>
-            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{transmutedGrade === 60 ? "": transmutedGrade.toFixed(0)}</h1>
+            <h1 className={cn(transmutedGrade <= 74 && "text-red-500","h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{transmutedGrade === 60 ? "": transmutedGrade.toFixed(0)}</h1>
           </div>
           </div>
       )})}

@@ -26,7 +26,6 @@ function JrGradesTemplate({student,sf9}:JrGradesTemplateProps) {
         studentId: student._id
     })
 
-    console.log(subjects)
    
     function getRemedialGrade(remedialGrade: Doc<'finalGrades'>, subjectName: string): number | null {
         const subject = remedialGrade?.subjects.find((s) => s.subjectName.toLowerCase() === subjectName.toLowerCase());
@@ -40,6 +39,31 @@ function JrGradesTemplate({student,sf9}:JrGradesTemplateProps) {
       const sum = validGrades.reduce((acc, grade) => acc + grade, 0);
       return sum / validGrades.length;
   }
+
+function calculateGeneralAverage(): number | null {
+    if (!subjects || subjects.length === 0) return null;
+
+    let total = 0;
+    let count = 0;
+
+    subjects.forEach(subject => {
+        // for each quarter, pick the intervention grade if it exists, otherwise the regular grade
+        const modifiedGrades = {
+            "1st": subject?.interventions?.["1st"]?.grade ?? subject?.grades["1st"],
+            "2nd": subject?.interventions?.["2nd"]?.grade ?? subject?.grades["2nd"],
+            "3rd": subject?.interventions?.["3rd"]?.grade ?? subject?.grades["3rd"],
+            "4th": subject?.interventions?.["4th"]?.grade ?? subject?.grades["4th"],
+        } as const;
+
+        const subjectAvg = calculateQuarterlyAverage(modifiedGrades);
+        if (subjectAvg !== null) {
+            total += subjectAvg;
+            count += 1;
+        }
+    });
+
+    return count > 0 ? total / count : null;
+}
 
   function getPassFailStatus(quarterlyAverage: number | null): string {
       if (quarterlyAverage === null) return "";
@@ -69,28 +93,41 @@ function JrGradesTemplate({student,sf9}:JrGradesTemplateProps) {
                 <div className='col-span-4 h-full flex items-center justify-center border-x border-x-black border-b-black border-b border-t-black border-t'>{subject?.subjectName}</div>
                 
                 {["1st", "2nd", "3rd", "4th"].map((quarter) => {
-                    const interventionGrade = subject?.interventionGrade
-                    const grade = subject?.grades[quarter as keyof typeof subject.grades];
+                    const intervention = subject?.interventions?.[quarter as keyof typeof subject.interventions];
+                    const grade = subject?.grades?.[quarter as keyof typeof subject.grades];
                     return (
-                        <div key={quarter} className={cn( 'col-span-1  border-b border-black border-r h-full')}>
-
-                            {interventionGrade ? (
+                        <div key={quarter} className={cn('col-span-1 border-b border-black border-r h-full flex justify-center items-center')}>
+                            {intervention ? (
                                 <CustomTooltip
-                                    trigger={<span>{grade}</span>}
-                                    interventionRemarks={subject.interventionRemarks || ""}
-                                    interventionUsed={subject.interventionUsed || []}
+                                    trigger={<span>{intervention.grade}</span>}
+                                    interventionRemarks={intervention.remarks || ""}
+                                    interventionUsed={intervention.used || []}
+                                    initialGrade={ grade?.toString() ?? " "}
                                 />
-                            ): grade ?? " "}
+                            ) : grade ?? " "}
                         </div>
                     );
                 })}
-              
                 <div className={cn( sf9 ? 'text-sm p-1' : 'p-2', 'h-full col-span-2 border-b border-black border-r ')}>
-                    {subject?.grades ? calculateQuarterlyAverage(subject.grades) : null}
+                    {subject?.grades
+                      ? calculateQuarterlyAverage({
+                          "1st": subject.interventions?.["1st"]?.grade ?? subject.grades["1st"],
+                          "2nd": subject.interventions?.["2nd"]?.grade ?? subject.grades["2nd"],
+                          "3rd": subject.interventions?.["3rd"]?.grade ?? subject.grades["3rd"],
+                          "4th": subject.interventions?.["4th"]?.grade ?? subject.grades["4th"],
+                        })
+                      : null}
                 </div>
                 <div className={cn( sf9 ? 'text-sm p-1' : 'p-2', 'col-span-2 border-b border-black border-r h-full')}>{getPassFailStatus(calculateQuarterlyAverage(subject?.grades))}</div>
            </div>
         ))}
+         <div className="grid grid-cols-12 w-full  items-center text-center border-b border-b-black border-x border-x-black font-medium text-sm">
+           
+           <div className={cn(sf9 ? "text-sm p-1": "text-lg" ,'col-span-8  border-r border-r-black  font-semibold tracking-widest font-serif ')}>General Average</div>
+           
+           <div className={cn(sf9 ? "text-sm p-1" : "text-lg" ,'col-span-2 h-full  border-r-black border-r font-semibold ')}>{calculateGeneralAverage()}</div>
+           
+       </div> 
 
         {sf9 && (
             <div className="mt-5">

@@ -33,9 +33,10 @@ function getFullName(student: StudentTypes) {
 }
   return (
     <div>
-        <div className="mt-4">
-        <Button onClick={() => setSelectedButton('sf9')} className={`mr-2 ${selectedButton === 'sf9' ? 'bg-blue-500' : 'bg-gray-300'}`}>SF9</Button>
-        <Button onClick={() => setSelectedButton('sf10')} className={`${selectedButton === 'sf10' ? 'bg-blue-500' : 'bg-gray-300'}`}>SF10</Button>
+      <h1 className='text-center font-semibold'>Generate School Forms</h1>
+        <div className="mt-4 w-full flex items-center justify-center gap-x-10">
+        <Button size={'lg'} onClick={() => setSelectedButton('sf9')} className={`mr-2 ${selectedButton === 'sf9' ? 'bg-blue-500' : 'bg-gray-300'}`}>School Form 9</Button>
+        <Button size={'lg'} onClick={() => setSelectedButton('sf10')} className={`${selectedButton === 'sf10' ? 'bg-blue-500' : 'bg-gray-300'}`}>School Form 10</Button>
       </div>
       
 
@@ -43,31 +44,33 @@ function getFullName(student: StudentTypes) {
 
       <div className="mt-4">
         {selectedButton === 'sf9' ? (
-          <div>
-            <Select onValueChange={(value) => setSelectedStudent(value)}>
-                <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select a student" />
-                </SelectTrigger>
-                <SelectContent className='max-h-64'>
-                    <SelectGroup>
-                    <SelectLabel>Students</SelectLabel>
-                    {students?.map((student) => (
-                        <SelectItem key={student._id} value={student.sectionStudentId}>
-                        {getFullName(student)}
-                        </SelectItem>
-                    ))}
-                    </SelectGroup>
-                </SelectContent>
-            </Select>
-            {selectedStudent && (
-
-                <div className="">
-                <SF9 sectionStudentId={selectedStudent as Id<'sectionStudents'>}/>
+          <div className=''>
+            <div className="flex w-full justify-center">
+              <Select onValueChange={(value) => setSelectedStudent(value)}>
+                  <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select a student" />
+                  </SelectTrigger>
+                  <SelectContent className='max-h-64'>
+                      <SelectGroup>
+                      <SelectLabel>Students</SelectLabel>
+                      {students?.map((student) => (
+                          <SelectItem key={student._id} value={student.sectionStudentId}>
+                          {getFullName(student)}
+                          </SelectItem>
+                      ))}
+                      </SelectGroup>
+                  </SelectContent>
+              </Select>
             </div>
+            {selectedStudent && (
+              <div className="">
+                <SF9 sectionStudentId={selectedStudent as Id<'sectionStudents'>}/>
+              </div>
             )}
         </div>
         ) : selectedButton === 'sf10' ?(
           <div>
+            <div className="flex w-full justify-center">
             <Select onValueChange={(value) => setSelectedStudent(value)}>
                 <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Select a student" />
@@ -83,6 +86,7 @@ function getFullName(student: StudentTypes) {
                     </SelectGroup>
                 </SelectContent>
             </Select>
+            </div>
           </div>
         ) : (
             <div>

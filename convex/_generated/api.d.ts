@@ -32,6 +32,7 @@ import type * as subjectThought from "../subjectThought.js";
 import type * as systemSettings from "../systemSettings.js";
 import type * as teachingLoad from "../teachingLoad.js";
 import type * as users from "../users.js";
+import type * as values from "../values.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -61,6 +62,7 @@ declare const fullApi: ApiFromModules<{
   systemSettings: typeof systemSettings;
   teachingLoad: typeof teachingLoad;
   users: typeof users;
+  values: typeof values;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

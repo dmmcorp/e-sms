@@ -388,13 +388,37 @@ export const getSubjects = query({
 
             // Define the type for grades
             type QuarterGrades = {
-                "1st": number | undefined; // or whatever type you expect
+                "1st": number | undefined;
                 "2nd": number | undefined;
                 "3rd": number | undefined;
                 "4th": number | undefined;
             };
 
-            // Initialize the grades object with the defined type
+            // Define the type for interventions
+            type QuarterInterventions = {
+                "1st": {
+                    grade: number | undefined;
+                    used: string[] | undefined;
+                    remarks: string | undefined;
+                };
+                "2nd": {
+                    grade: number | undefined;
+                    used: string[] | undefined;
+                    remarks: string | undefined;
+                };
+                "3rd": {
+                    grade: number | undefined;
+                    used: string[] | undefined;
+                    remarks: string | undefined;
+                };
+                "4th": {
+                    grade: number | undefined;
+                    used: string[] | undefined;
+                    remarks: string | undefined;
+                };
+            };
+
+            // Initialize the grades object
             const grades: QuarterGrades = {
                 "1st": undefined,
                 "2nd": undefined,
@@ -402,20 +426,27 @@ export const getSubjects = query({
                 "4th": undefined,
             };
 
-            let interventionGrade: number | undefined = undefined;
-            let interventionUsed: string[] | undefined = undefined;
-            let interventionRemarks: string | undefined = undefined;
+            // Initialize the interventions object
+            const interventions: QuarterInterventions = {
+                "1st": { grade: undefined, used: undefined, remarks: undefined },
+                "2nd": { grade: undefined, used: undefined, remarks: undefined },
+                "3rd": { grade: undefined, used: undefined, remarks: undefined },
+                "4th": { grade: undefined, used: undefined, remarks: undefined }
+            };
 
             for (const record of filteredCR) {
                 if (record.teachingLoad.subjectTaughtId === subjectId) {
                     const quarter = record.teachingLoad.quarter?.replace(' quarter', '') as keyof QuarterGrades;
                     if (quarter && quarter in grades) {
                         grades[quarter] = record.quarterlyGrade;
-                    }
-                    if (record.needsIntervention) {
-                        interventionGrade = record.interventionGrade;
-                        interventionUsed = record.interventionUsed;
-                        interventionRemarks = record.interventionRemarks;
+                        
+                        if (record.needsIntervention) {
+                            interventions[quarter] = {
+                                grade: record.interventionGrade,
+                                used: record.interventionUsed,
+                                remarks: record.interventionRemarks
+                            };
+                        }
                     }
                 }
             }
@@ -423,9 +454,7 @@ export const getSubjects = query({
             return {
                 ...subject,
                 grades: grades,
-                interventionGrade: interventionGrade,
-                interventionUsed: interventionUsed,
-                interventionRemarks: interventionRemarks,
+                interventions: interventions
             }
         })
 
