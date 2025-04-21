@@ -19,14 +19,20 @@ interface ValuesProps {
     sectionStudentId: Id<'sectionStudents'>
     sf9?: boolean,
     isSHS?: boolean | string
+    edit?: boolean;
+    setValuesDialog: (value: boolean) => void
 }
 function Values({
     sf9,
     studentId,
     sectionStudentId,
-    isSHS
+    isSHS,
+    edit,
+    setValuesDialog
 }: ValuesProps) {
-    const [isEditing, setIsEditing] = useState(false);
+    const [isEditing, setIsEditing] = useState<boolean>(edit ?? false);
+  
+
     const value = useQuery(api.values.get, {studentId: studentId, sectionStudentId: sectionStudentId})
     const addValues = useMutation(api.values.add)
 
@@ -102,6 +108,7 @@ function Values({
             error: "Saving Values marking failed :("
         })
         setIsEditing(!isEditing);
+        setValuesDialog(false)
     }
 
   return (
@@ -179,7 +186,7 @@ function Values({
                                                 field.onChange(value);
                                             }}
                                             value={field.value} >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -203,7 +210,7 @@ function Values({
                                                 field.onChange(value);
                                             }}
                                             value={field.value} >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -227,7 +234,7 @@ function Values({
                                                 field.onChange(value);
                                             }}
                                             value={field.value} >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -251,7 +258,7 @@ function Values({
                                                 field.onChange(value);
                                             }}
                                             value={field.value} >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -288,7 +295,7 @@ function Values({
                                                 field.onChange(value);
                                             }}
                                             value={field.value} >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -312,7 +319,7 @@ function Values({
                                                 field.onChange(value);
                                             }}
                                             value={field.value} >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -336,7 +343,7 @@ function Values({
                                                 field.onChange(value);
                                             }}
                                             value={field.value} >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -360,7 +367,7 @@ function Values({
                                                 field.onChange(value);
                                             }}
                                             value={field.value} >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -406,7 +413,7 @@ function Values({
                                                 field.onChange(value);
                                             }}
                                             value={field.value} >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -430,7 +437,7 @@ function Values({
                                                 field.onChange(value);
                                             }}
                                             value={field.value} >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -454,7 +461,7 @@ function Values({
                                                 field.onChange(value);
                                             }}
                                             value={field.value} >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -478,7 +485,7 @@ function Values({
                                                 field.onChange(value);
                                             }}
                                             value={field.value} >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -513,7 +520,7 @@ function Values({
                                             field.onChange(value);
                                         }}
                                         value={field.value} >
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-full">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -537,7 +544,7 @@ function Values({
                                             field.onChange(value);
                                         }}
                                         value={field.value} >
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-full">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -561,7 +568,7 @@ function Values({
                                             field.onChange(value);
                                         }}
                                         value={field.value} >
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-full">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -585,7 +592,7 @@ function Values({
                                             field.onChange(value);
                                         }}
                                         value={field.value} >
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-full">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -631,7 +638,7 @@ function Values({
                                             field.onChange(value);
                                         }}
                                         value={field.value} >
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-full">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -655,7 +662,7 @@ function Values({
                                             field.onChange(value);
                                         }}
                                         value={field.value} >
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-full">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -679,7 +686,7 @@ function Values({
                                             field.onChange(value);
                                         }}
                                         value={field.value} >
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-full">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -703,7 +710,7 @@ function Values({
                                             field.onChange(value);
                                         }}
                                         value={field.value} >
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-full">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -750,7 +757,7 @@ function Values({
                                                 field.onChange(value);
                                             }}
                                             value={field.value} >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -774,7 +781,7 @@ function Values({
                                                 field.onChange(value);
                                             }}
                                             value={field.value} >
-                                            <SelectTrigger>
+                                            <SelectTrigger className='w-full'>
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -798,7 +805,7 @@ function Values({
                                                 field.onChange(value);
                                             }}
                                             value={field.value} >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -822,7 +829,7 @@ function Values({
                                                 field.onChange(value);
                                             }}
                                             value={field.value} >
-                                            <SelectTrigger>
+                                            <SelectTrigger className='w-full'>
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -857,7 +864,7 @@ function Values({
                                             field.onChange(value);
                                         }}
                                         value={field.value} >
-                                        <SelectTrigger>
+                                        <SelectTrigger className='w-full'>
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -881,7 +888,7 @@ function Values({
                                             field.onChange(value);
                                         }}
                                         value={field.value} >
-                                        <SelectTrigger>
+                                        <SelectTrigger className='w-full'>
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -905,7 +912,7 @@ function Values({
                                             field.onChange(value);
                                         }}
                                         value={field.value} >
-                                        <SelectTrigger>
+                                        <SelectTrigger className='w-full'>
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -929,7 +936,7 @@ function Values({
                                             field.onChange(value);
                                         }}
                                         value={field.value} >
-                                        <SelectTrigger>
+                                        <SelectTrigger className='w-full'>
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -993,7 +1000,7 @@ function Values({
         </div>
         )}
       
-        {sf9 && isSHS && (
+        {sf9 && isSHS && !isEditing &&  (
         <div className=" mt-5">
            
             <div className="grid grid-cols-3 font-semibold text-center text-xs">
@@ -1030,6 +1037,8 @@ function Values({
         )}
     </form>
     </Form>
+
+   
     </div>
   )
 }

@@ -15,6 +15,7 @@ import SF9FrontTemplate from "./sf9-front-template"
 import JrGradesTemplate from "./jhs-grade-template"
 import Values from "./values"
 import SrGradesTemplate from "./shs-grade-template"
+import InputValues from "./input-values"
 interface SF9Props {
     sectionStudentId: Id<'sectionStudents'>
 }
@@ -23,6 +24,7 @@ export default function SF9({
     sectionStudentId,
 }: SF9Props) {
     const [activeTab, setActiveTab] = useState("front")
+    const [valuesDialog, setValuesDialog] = useState<boolean>(false);
     const student = useQuery(api.students.getStudentSection, {sectionStudentId: sectionStudentId})
     const componentRef = useRef(null);
 
@@ -68,21 +70,43 @@ export default function SF9({
                 <SrGradesTemplate student={student} sem='2nd semester' sf9={true}/>
               </div>
             </div>
-            <Values 
+            <div onClick={()=>setValuesDialog(true)} className="">
+              <Values 
                 studentId={student._id}
                 sectionStudentId={sectionStudentId}
                 sf9
                 isSHS={isSHS}
+                setValuesDialog={setValuesDialog}
+              />
+            </div>
+             <InputValues
+              studentId={student._id}
+              sectionStudentId={sectionStudentId}
+              sf9
+              isSHS={isSHS}
+              valuesDialog={valuesDialog}
+              setValuesDialog={setValuesDialog}
             />
           </Card>
           ): (
           <Card className="border-2 p-6 grid grid-cols-2">
             <JrGradesTemplate student={student}/>
-            <Values 
+            <div onClick={()=>setValuesDialog(true)} className="">
+              <Values 
                 studentId={student._id}
                 sectionStudentId={sectionStudentId}
                 sf9
                 isSHS={isSHS}
+                setValuesDialog={setValuesDialog}
+              />
+            </div>
+             <InputValues
+              studentId={student._id}
+              sectionStudentId={sectionStudentId}
+              sf9
+              isSHS={isSHS}
+              valuesDialog={valuesDialog}
+              setValuesDialog={setValuesDialog}
             />
           </Card>
           )}

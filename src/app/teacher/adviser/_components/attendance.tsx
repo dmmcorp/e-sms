@@ -15,15 +15,16 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { AttendanceFormschema } from '@/lib/validation/validation-form';
 import { StudentWithSectionStudent } from '@/lib/types';
+import InputAttendance from './input-attendance';
 
 interface AttendanceProps{
     student: StudentWithSectionStudent,
-  
     attendance: Doc<'attendance'>,
+    edit?: boolean
 }
 
-function Attendance({student, attendance}: AttendanceProps) {
-    const [isEditing, setIsEditing] = useState(false);
+function Attendance({student, attendance, edit}: AttendanceProps) {
+    const [isEditing, setIsEditing] = useState(edit ?? false);
   
     const addAttendance = useMutation(api.attendance.add)
 
@@ -216,7 +217,7 @@ function Attendance({student, attendance}: AttendanceProps) {
                 </div>
                 <div className="grid grid-cols-12">
                     <div className="col-span-3 border-y-black border-y text-center text-sm p-1  font-semibold border-x-black border-x">
-                        <div className="">No. of School days</div>
+                        <div className="text-[0.5rem]">No. of School days</div>
                     </div>
                     { isEditing ? (
                         <div className="border-y-black border-y col-span-7 grid grid-cols-12">
@@ -242,19 +243,19 @@ function Attendance({student, attendance}: AttendanceProps) {
                     ): (
                         <div className="border-y-black border-y col-span-7 grid grid-cols-12">
                              {months.map((month) => (
-                                <div key={month + "totalSchooldays"} className="h-full border-r-black border-r text-center font-semibold p-1">{attendance?.[month].totalSchooldays}</div>
+                                <div key={month + "totalSchooldays"} className="h-full border-r-black border-r text-center font-semibold p-1 text-xs">{attendance?.[month].totalSchooldays}</div>
                              ))}
                         </div>
                     )}
                     
-                    <div className="col-span-2 border-y-black border-y text-center p-1 font-semibold border-r-black border-r">
+                    <div className="col-span-2 border-y-black border-y text-center p-1 font-semibold border-r-black border-r text-xs">
                         <div>{totalSchooldays}</div>
                     </div>
                     
                 </div>
                 <div className="grid grid-cols-12">
                     <div className="col-span-3 border-y-black border-y text-center text-sm p-1  font-semibold border-x-black border-x">
-                        <div className="">No. of days Present</div>
+                        <div className="text-[0.5rem]">No. of days Present</div>
                     </div>
                     { isEditing ? (
                         <div className="border-y-black border-y col-span-7 grid grid-cols-12">
@@ -278,20 +279,20 @@ function Attendance({student, attendance}: AttendanceProps) {
                             ))}
                         </div>
                     ): (
-                        <div className="border-y-black border-y col-span-7 grid grid-cols-12">
+                        <div className="border-y-black border-y col-span-7 grid grid-cols-12 text-xs">
                              {months.map((month) => (
                                 <div key={month + "daysPresent"} className="h-full border-r-black border-r text-center font-semibold p-1">{attendance?.[month].daysPresent}</div>
                              ))}
                         </div>
                     )}
-                    <div className="col-span-2 border-y-black border-y text-center p-1 font-semibold border-r-black border-r">
+                    <div className="col-span-2 border-y-black border-y text-center p-1 font-semibold border-r-black border-r text-xs">
                         <div>{daysPresent}</div>
                     </div>
                
                 </div>
                 <div className="grid grid-cols-12">
                     <div className="col-span-3 border-y-black border-y text-center text-sm p-1  font-semibold border-x-black border-x">
-                        <div className="">No. of days Absent</div>
+                        <div className="text-[0.5rem]">No. of days Absent</div>
                     </div>
                     { isEditing ? (
                         <div className="border-y-black border-y col-span-7 grid grid-cols-12">
@@ -315,13 +316,13 @@ function Attendance({student, attendance}: AttendanceProps) {
                             ))}
                         </div>
                     ): (
-                        <div className="border-y-black border-y col-span-7 grid grid-cols-12">
+                        <div className="border-y-black border-y col-span-7 grid grid-cols-12 text-xs">
                              {months.map((month) => (
-                                <div key={month + "daysAbsent"} className="h-full border-r-black border-r text-center font-semibold p-1">{attendance?.[month].daysAbsent}</div>
+                                <div key={month + "daysAbsent"} className="h-full border-r-black border-r text-center font-semibold p-1 text-xs">{attendance?.[month].daysAbsent}</div>
                              ))}
                         </div>
                     )}
-                    <div className="col-span-2 border-y-black border-y text-center p-1 font-semibold border-r-black border-r">
+                    <div className="col-span-2 border-y-black border-y text-center p-1 font-semibold border-r-black border-r text-xs">
                         <div>{daysAbsent}</div>
                     </div>
                     
@@ -329,6 +330,8 @@ function Attendance({student, attendance}: AttendanceProps) {
             </div>
     </form>
     </Form>
+
+   
     </div>
   )
 }

@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils'
 import { StudentWithSectionStudent } from '@/lib/types'
 import Attendance from './attendance'
 import DivisionOfTanjay from '@/../public/DOT.png'
+import InputAttendance from './input-attendance'
+import { Button } from '@/components/ui/button'
 
 interface SF9FrontTemplateProps{
     student: StudentWithSectionStudent
@@ -16,7 +18,7 @@ interface SF9FrontTemplateProps{
 }
 function SF9FrontTemplate({student}: SF9FrontTemplateProps) {
     const systemSettings = useQuery(api.systemSettings.get)
-  
+    const [attendanceDialog, setAttendanceDialog] = useState<boolean>(false)
     const attendance = useQuery(api.attendance.get, {
         studentId: student?._id,
         sectionStudentId: student?.sectionStudentId
@@ -52,9 +54,16 @@ function SF9FrontTemplate({student}: SF9FrontTemplateProps) {
   return (
     <div className='grid grid-cols-2 gap-x-10 p-10  text-black  w-full border-2 rounded-2xl'>
         <div className={cn(isSHS ? "py-10" : "py-0")}>
-            
-            <Attendance attendance={attendance as Doc<'attendance'>}  student={student}/>
+            <div onClick={()=> setAttendanceDialog(true)} className='hover:cursor-pointer'>
 
+                <Attendance attendance={attendance as Doc<'attendance'>}  student={student}/>
+            </div>
+            <InputAttendance 
+                attendance={attendance as Doc<'attendance'>}  
+                student={student}
+                attendanceDialog={attendanceDialog}
+                setAttendanceDialog={setAttendanceDialog}
+            />
             <div className="my-5 space-y-2">
                 <h1 className='uppercase font-semibold font-serif tracking-wide text-center'>Parent / Guardian Signature</h1>
                 <div className="grid grid-cols-3 gap-x-3 px-10 items-baseline">
@@ -140,7 +149,7 @@ function SF9FrontTemplate({student}: SF9FrontTemplateProps) {
                
                 <div className={cn(isSHS ?"pl-0" :"pl-20" ,"col-span-12 text-xs")}>
                     <h1 className='text-center font-semibold text-sm font-serif my-5'>LEARNER&apos;S PROGRESS REPORT CARD</h1>
-                    <div className="grid grid-cols-12 gap-x-2 items-baseline gap-y-2 font-semibold">
+                    <div className="grid grid-cols-12 gap-x-2 items-baseline gap-y-6 font-semibold">
                         <h1 className='col-span-12 flex gap-x-2 '>Name:  <span className='font-normal text-center border-b-black border-b flex-1 px-2 inline-block capitalize'>{student.firstName} {student.middleName} {student.lastName}</span></h1>
                         {!isSHS && (
                             <h1 className='col-span-12 flex gap-x-2 '>Learner&apos;s Reference Number:  <span className='font-normal text-center border-b-black border-b flex-1 px-2 inline-block capitalize'>{student.lrn}</span></h1>
