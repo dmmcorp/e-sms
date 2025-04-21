@@ -250,3 +250,44 @@ export const getStudentStatusDetails = query({
         };
     }
 })
+
+
+export const getGradeLevelPrincipal = query({
+    args: {
+        type:  v.union(
+            v.literal("senior-high"),
+            v.literal("junior-high"),
+          )
+    },
+    handler: async (ctx, args) => {
+        const principals = await ctx.db.query('users')
+            .filter(q => q.eq(q.field('isActive'), true))
+            .filter(q => q.eq(q.field('role'), "principal"))
+            .collect()
+        
+        const isEntireSchool = principals.find(principal => principal.principalType === "entire-school")
+
+        if(isEntireSchool) {
+            return isEntireSchool
+        }
+        if(args.type === "senior-high") {
+            const principal = await ctx.db.query('users')
+            .filter(q => q.eq(q.field('isActive'), true))
+            .filter(q => q.eq(q.field('role'), "principal"))
+            .filter(q => q.eq(q.field('principalType'), 'senior-department'))
+            .first()
+            return principal
+        }
+        if(args.type === "junior-high") {
+            const principal = await ctx.db.query('users')
+            .filter(q => q.eq(q.field('isActive'), true))
+            .filter(q => q.eq(q.field('role'), "principal"))
+            .filter(q => q.eq(q.field('principalType'), 'junior-department'))
+            .first()
+            return principal
+        }
+
+     
+      
+    }
+})

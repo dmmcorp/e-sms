@@ -144,3 +144,29 @@ export function formatRole(role: string): string {
       return role; // Return the original role if no match is found
   }
 }
+
+export const getAverageForShs = (num1: number | string, num2: number | string): number | string => {
+  if (typeof num1 === "string" || typeof num2 === "string") {
+    return ""; // Return an empty string if either input is a string
+  }
+  return Math.round((num1 + num2) / 2);
+}
+export const getAverageForJrh = (
+  num1: number | string | undefined, 
+  num2: number | string | undefined, 
+  num3: number | string | undefined, 
+  num4: number | string | undefined
+): number | string => {
+  if (typeof num1 === "string" || typeof num2 === "string" || typeof num3 === "string" || typeof num4 === "string") {
+    return ""; // Return an empty string if either input is a string
+  }
+  if (typeof num1 === "undefined" || typeof num2 === "undefined" || typeof num3 === "undefined" || typeof num4 === "undefined") {
+    return ""; // Return an empty string if either input is a string
+  }
+  return Math.round((num1 + num2 + num3 + num4) / 4);
+};
+
+export const remarks = (average: number | string) =>{
+  return typeof average === "string" ? "" : average <= 74 ? "Failed" : "Passed"
+}
+

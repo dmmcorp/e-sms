@@ -21,11 +21,7 @@ function SectionList({
     // Determine if the selected subject is for Senior High School (SHS)
     const isShs = selectedSubject.gradeLevel === "Grade 11" || selectedSubject.gradeLevel === "Grade 12"
 
-    // Automatically set the semester to "1st semester" for SHS
-    if(isShs){
-        setSelectedSem("1st semester")
-    }
-
+console.log(selectedSem)
     return (
         <div className='space-y-10'>
             {/* UI for Senior High School (SHS) */}
@@ -71,6 +67,11 @@ function SectionList({
                                         ? qtr === "1st quarter" || qtr === "2nd quarter" 
                                         : selectedSem === "2nd semester" ? qtr === "3rd quarter" || qtr === "4th quarter" : true
                                 )
+                                .sort((a, b) => {
+                                    // Sort quarters in ascending order (1st to 4th)
+                                    const order = { "1st quarter": 1, "2nd quarter": 2, "3rd quarter": 3, "4th quarter": 4 };
+                                    return order[a as keyof typeof order] - order[b as keyof typeof order];
+                                })
                                 .map((sem) => (
                                     <div key={sem} className="flex items-center space-x-2">
                                         <RadioGroupItem value={sem} id={sem} />
@@ -98,7 +99,11 @@ function SectionList({
                                 selectedSem === "1st semester" 
                                     ? qtr === "1st quarter" || qtr === "2nd quarter" 
                                     : selectedSem === "2nd semester" ? qtr === "3rd quarter" || qtr === "4th quarter" : true
-                            )
+                            ) .sort((a, b) => {
+                                // Sort quarters in ascending order (1st to 4th)
+                                const order = { "1st quarter": 1, "2nd quarter": 2, "3rd quarter": 3, "4th quarter": 4 };
+                                return order[a as keyof typeof order] - order[b as keyof typeof order];
+                            })
                             .map((sem) => (
                                 <div key={sem} className="flex items-center space-x-2">
                                     <RadioGroupItem value={sem} id={sem} />

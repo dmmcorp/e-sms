@@ -59,6 +59,9 @@ export const addToSection = mutation({
         })
         const filteredLoads = loads.filter(l => l !== null)
 
+        console.log("subjects:", args.subjects)
+        console.log("loads:", filteredLoads)
+
         await asyncMap(filteredLoads, async(load)=>{
             await ctx.runMutation(internal.classRecords.createClassRecords, {
                 teachingLoadId: load._id
@@ -67,5 +70,20 @@ export const addToSection = mutation({
     }
 })
 
-//get the subjects of students
-//let the teacher choose a subjects to assign to the student
+export const editSubjects = mutation({
+    args:{
+        enrollmentId: v.optional(v.id('enrollment')),
+        subjects: v.array(v.id('subjectTaught'))
+    },
+    handler: async(ctx,args) =>{
+        if(!args.enrollmentId) return
+        const enrollment = await ctx.db.get(args.enrollmentId);
+        if(enrollment === null) return
+        if(enrollment.status !== 'enrolled'){
+            throw new ConvexError('Student not enrolled.')
+        }
+        await ctx.db.patch(args.enrollmentId, {
+            subjects: args.subjects
+        })
+    }
+})

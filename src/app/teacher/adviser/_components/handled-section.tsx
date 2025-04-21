@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
+import SchoolForm from './school-form'
 
 function HandledSection() {
   const [selectedSY, setSelectedSY] = useState<SchoolYearTypes>("2024-2025");
@@ -73,9 +74,14 @@ function HandledSection() {
                   selectedQtr={selectedQtr}
                 />
                 )}
+           
             </CardContent>
+            <SchoolForm 
+                sectionId={section._id}
+              />
           </Card>
         ))}
+            
         </div>
     </div>
   )

@@ -62,6 +62,7 @@ export type TeacherTypes = Doc<'users'>;
 export type SubjectTypes = Doc<'subjectTaught'>;
 export type StudentTypes = Doc<'students'>;
 export type ClassRecordTypes = Doc<'classRecords'>;
+export type SubjectTaughtTypes = Doc<'subjectTaught'>;
 
 interface ClassRecordWithStudentInfo extends Doc<'classRecords'> {
   student: Doc<'students'>
@@ -70,14 +71,35 @@ interface subjectThoughtWithTeacherInfo extends Doc<'subjectTaught'> {
   teacher: Doc<'users'> | null
 }
 
-interface EnrollmentWithSection extends Doc<'enrollment'> {
-  section: Doc<'sections'> | null
+interface SubjectWithDetailsTypes  {
+  subject: Doc<'subjectTaught'> | null;
+
+}
+
+export interface EnrollmentWithSection extends Doc<'enrollment'> {
+  section: Doc<'sections'> | null;
+  subjectsWithDetails: SubjectWithDetailsTypes[];
+  sectionSubjects: SubjectWithDetailsTypes[];
 }
 
 export interface StudentWithEnrollment extends Doc<'students'> {
   enrollment: EnrollmentWithSection[],
   currentSection: EnrollmentWithSection | undefined
 }
+
+export interface ClassRecordsWithTeachingLoad extends Doc<'classRecords'>{
+  teachingLoad: Doc<'teachingLoad'> | null
+}
+export interface StudentWithGrades extends Doc<'students'> {
+  grades: ClassRecordsWithTeachingLoad[]
+}
+export interface StudentWithSectionStudent extends Doc<'students'> {
+  sectionStudentId: Id<'sectionStudents'>
+  sectionDoc: Doc<'sections'>
+  adviser: Doc<'users'>
+  classRecords: Doc<'classRecords'>[]
+}
+
 
 export interface TeachingLoadType extends Doc<'teachingLoad'> {
   section: Doc<'sections'>

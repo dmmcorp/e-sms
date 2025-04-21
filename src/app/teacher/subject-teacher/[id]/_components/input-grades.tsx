@@ -16,7 +16,7 @@ import { api } from "../../../../../../convex/_generated/api";
 import { Id } from "../../../../../../convex/_generated/dataModel";
 
 export type DialogType = "highest scores" | string;
-
+export type Component = "Written Works" | "Performance Tasks" | "Major Exam"
 interface ClassRecordTemplateProps {
   teachingLoad: TeachingLoadType;
 }
@@ -30,6 +30,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
   const [type, setType] = useState<DialogType | undefined>();
   const [selectedTransmutedGrade, setSelectedTransmutedGrade] = useState<number | undefined>(60);
   const [studentScores, setStudentScores] = useState<StudentScoresType | undefined>();
+  const [component, setComponent] = useState<Component | undefined>();
 
   const section = teachingLoad.section;
   const subjectThought = teachingLoad.subjectTaught;
@@ -123,18 +124,20 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
     .filter((student) => student.sex.toLowerCase() === "female")
     .sort((a, b) => a.lastName.localeCompare(b.lastName));
 
-  const handleDialogOpen = (type: DialogType, student?: StudentScoresType, transmutedGrade?:number, isSubmitted?: boolean | undefined) => {
+  const handleDialogOpen = (component: Component, type: DialogType, student?: StudentScoresType, transmutedGrade?:number, isSubmitted?: boolean | undefined, ) => {
     if(type === 'highest scores') {
       setType(type);
       setDialogOpen(true);
       setStudentScores(undefined);
       setSelectedTransmutedGrade(undefined)
+      setComponent(component)
     } else {
       setDialogOpen(true);
       setType(type);
       setStudentScores(student);
       setSelectedTransmutedGrade(transmutedGrade)
       setIsSubmitted(isSubmitted)
+      setComponent(component)
     }
   };
 
@@ -265,13 +268,13 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
       </div>
       <div
         className="flex max-w-full hover:bg-gray-200 "
-        onClick={() => handleDialogOpen("highest scores")}
+       
       >
         <h1 className="w-[3%] uppercase border-x border-x-black border-b-black border-b text-sm font-semibold text-center"></h1>
         <h1 className="w-[22%] uppercase  border-b-black border-b  text-[0.6rem] flex justify-end items-center font-semibold text-right">
           Highest possible score
         </h1>
-        <div className="w-[27%] uppercase border border-x-0 border-black  text-sm flex justify-center items-center font-semibold text-center">
+        <div  onClick={() => handleDialogOpen("Written Works", "highest scores")} className="w-[27%] uppercase border border-x-0 border-black  text-sm flex justify-center items-center font-semibold text-center">
           {Array.from({ length: 10 }).map((_, index) => (
             <h1
               key={index}
@@ -299,7 +302,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
             )}
           </h1>
         </div>
-        <div className="w-[28%] hover:bg-gray-200  uppercase border border-black border-x-0  text-sm flex justify-center items-center font-semibold text-center">
+        <div  onClick={() => handleDialogOpen("Performance Tasks", "highest scores")} className="w-[28%] hover:bg-gray-200  uppercase border border-black border-x-0  text-sm flex justify-center items-center font-semibold text-center">
           {Array.from({ length: 10 }).map((_, index) => (
             <h1
               key={index}
@@ -329,7 +332,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
           </h1>
         </div>
         {learningMode?.toLowerCase() === "face to face" && (
-          <div className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
+          <div onClick={() => handleDialogOpen("Major Exam", "highest scores")} className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
             <h1 className="h-full uppercase border  border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">
               {mehighestScores
                 ? mehighestScores.find((me) => me.assessmentNo === 1)?.score ===
@@ -441,18 +444,17 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
         return (
           <div 
             key={student._id}
-            onClick={()=> {handleDialogOpen(fullName, student, transmutedGrade, student.isSubmitted)}} 
             className="flex max-w-full hover:bg-gray-200 "
           >
-          <h1 className="w-[3%] uppercase border-x-black border-x border-b-black border-b text-sm font-semibold text-center">
-            {index + 1}
-          </h1>
-          <h1 className="w-[22%] px-1 uppercase  border-b-black border-b text-xs flex justify-start items-center font-semibold text-left">
-            {student.lastName}, {student.firstName} {student.middleName?.charAt(0) ?? ""}
-          </h1>
+            <h1 className="w-[3%] uppercase border-x-black border-x border-b-black border-b text-sm font-semibold text-center">
+              {index + 1}
+            </h1>
+            <h1 className="w-[22%] px-1 uppercase  border-b-black border-b text-xs flex justify-start items-center font-semibold text-left">
+              {student.lastName}, {student.firstName} {student.middleName?.charAt(0) ?? ""}
+            </h1>
 
           {/* Written works scores  */}
-          <div className="w-[27%] uppercase border-b-black border-b  border-l-black text-sm flex justify-center items-center font-semibold text-center">
+          <div onClick={()=> {handleDialogOpen("Written Works" ,fullName, student, transmutedGrade, student.isSubmitted)}}  className="w-[27%] uppercase border-b-black border-b  border-l-black text-sm flex justify-center items-center font-semibold text-center">
             {Array.from({ length: 10 }).map((_, wwindex) => (
               <h1
                 key={"ww-m" + wwindex}
@@ -472,7 +474,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
               {wwWeightedScore === 0 ? "" :wwWeightedScore.toFixed(1)}
             </h1>
           </div>
-          <div className="w-[28%] uppercase border-b-black border-b text-sm flex justify-center items-center font-semibold text-center">
+          <div onClick={()=> {handleDialogOpen("Performance Tasks" ,fullName, student, transmutedGrade, student.isSubmitted)}} className="w-[28%] uppercase border-b-black border-b text-sm flex justify-center items-center font-semibold text-center">
             {Array.from({ length: 10 }).map((_, ptindex) => (
               <h1
                 key={"pt-m" + ptindex}
@@ -492,7 +494,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
             </h1>
           </div>
           {learningMode?.toLowerCase() === "face to face" && (
-          <div className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
+          <div onClick={()=> {handleDialogOpen("Major Exam" ,fullName, student, transmutedGrade, student.isSubmitted)}} className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
             <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
             {meTotalScore === 0 ? "": meTotalScore}
             </h1>
@@ -510,8 +512,8 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
               " uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-2 justify-center items-center font-semibold text-center"
             )}
           >
-            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "": initialGrade}</h1>
-            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{transmutedGrade === 60 ? "": transmutedGrade}</h1>
+            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "": initialGrade.toFixed(1)}</h1>
+            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{transmutedGrade === 60 ? "": transmutedGrade.toFixed(0)}</h1>
           </div>
           </div>
       )})}
@@ -585,18 +587,20 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
         return (
           <div 
             key={student._id}
-            onClick={()=> {handleDialogOpen(fullName, student, transmutedGrade, student.isSubmitted)}} 
+           
             className="flex max-w-full hover:bg-gray-200 "
           >
-          <h1 className="w-[3%] uppercase border-x-black border-x border-b-black border-b text-sm font-semibold text-center">
-            {index + 1}
-          </h1>
-          <h1 className="w-[22%] px-1 uppercase  border-b-black border-b text-xs flex justify-start items-center font-semibold text-left">
-            {student.lastName}, {student.firstName} {student.middleName?.charAt(0) ?? ""}
-          </h1>
+            <h1 className="w-[3%] uppercase border-x-black border-x border-b-black border-b text-sm font-semibold text-center">
+              {index + 1}
+            </h1>
+            <h1 className="w-[22%] px-1 uppercase  border-b-black border-b text-xs flex justify-start items-center font-semibold text-left">
+              {student.lastName}, {student.firstName} {student.middleName?.charAt(0) ?? ""}
+            </h1>
 
           {/* Written works scores  */}
-          <div className="w-[27%] uppercase border-b-black border-b  border-l-black text-sm flex justify-center items-center font-semibold text-center">
+          <div 
+            onClick={()=> {handleDialogOpen("Written Works" ,fullName, student, transmutedGrade, student.isSubmitted)}}
+            className="w-[27%] uppercase border-b-black border-b  border-l-black text-sm flex justify-center items-center font-semibold text-center">
             {Array.from({ length: 10 }).map((_, index) => (
               <h1
                 key={"ww-f" + index}
@@ -616,7 +620,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
               {wwWeightedScore === 0 ? "" :wwWeightedScore.toFixed(1)}
             </h1>
           </div>
-          <div className="w-[28%] uppercase border-b-black border-b text-sm flex justify-center items-center font-semibold text-center">
+          <div onClick={()=> {handleDialogOpen("Performance Tasks" ,fullName, student, transmutedGrade, student.isSubmitted)}} className="w-[28%] uppercase border-b-black border-b text-sm flex justify-center items-center font-semibold text-center">
             {Array.from({ length: 10 }).map((_, aindex) => (
               <h1
                 key={"pt-f" + aindex}
@@ -636,7 +640,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
             </h1>
           </div>
           {learningMode?.toLowerCase() === "face to face" && (
-          <div className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
+          <div  onClick={()=> {handleDialogOpen("Major Exam" ,fullName, student, transmutedGrade, student.isSubmitted)}} className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
             <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
               {meTotalScore === 0 ? "": meTotalScore}
             </h1>
@@ -654,8 +658,8 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
               " uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-2 justify-center items-center font-semibold text-center"
             )}
           >
-            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "": initialGrade}</h1>
-            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{transmutedGrade === 60 ? "": transmutedGrade}</h1>
+            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "": initialGrade.toFixed(1)}</h1>
+            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{transmutedGrade === 60 ? "": transmutedGrade.toFixed(0)}</h1>
           </div>
           </div>
       )})}
@@ -673,6 +677,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
         studentScores={studentScores}
         transmutedGrade={selectedTransmutedGrade}
         isSubmitted={isSubmitted}
+        component={component ?? "Written Works"}
       />
     </div>
   );

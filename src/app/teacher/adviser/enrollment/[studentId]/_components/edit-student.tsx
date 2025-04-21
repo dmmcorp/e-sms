@@ -61,7 +61,6 @@ function EditStudent({
     function onSubmit(values: z.infer<typeof enrollmentSchema>) {
         // Do something with the form values.
         // ✅ This will be type-safe and validated.
-        console.log(values)
         setIsSubmitting(true)
         toast.promise(updateStudent({
             studentId: student?._id,

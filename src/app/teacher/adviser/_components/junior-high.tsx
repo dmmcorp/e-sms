@@ -1,18 +1,25 @@
 "use client";
 import { useQuery } from "convex/react";
-import React from "react";
+import React, { useState } from "react";
 import { api } from "../../../../../convex/_generated/api";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import { QuarterType } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import Chart from "./chart";
 import CustomTooltip from "@/components/custom-tooltip";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import SchoolForm from "./school-form";
 
 interface JuniorHighProps {
   sectionId: Id<"sections">;
   selectedQtr: QuarterType;
 }
+
+
+
 function JuniorHigh({ sectionId, selectedQtr }: JuniorHighProps) {
+  
   const loads = useQuery(api.teachingLoad.getLoadUsingSectionId, {
     sectionId: sectionId,
     quarter: selectedQtr,

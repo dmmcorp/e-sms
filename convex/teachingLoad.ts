@@ -28,6 +28,7 @@ export const getTeachingLoad = query({
             .filter(q => q.eq(q.field('subjectTaughtId'), args.subjectTaughtId))
             .filter(q => q.eq(q.field('quarter'), args.quarter));
 
+
         // If semester is provided, filter teachingLoad by semester
         if (args.semester) {
             teachingLoad = teachingLoad.filter(q => q.eq(q.field('semester'), args.semester));
@@ -35,14 +36,14 @@ export const getTeachingLoad = query({
 
         // Collect the filtered teachingLoad data
         const query = await teachingLoad.collect();
-
         const enrollments = await ctx.db.query('enrollment').collect()
        
         // Process each teaching load entry
         return await asyncMap(query, async (load) => {
             // Fetch initial class records associated with the teaching load
+          
             const initClassRecords = await ctx.db.query('classRecords').filter(q => q.eq(q.field('teachingLoadId'), load._id)).collect();
-
+            console.log(initClassRecords)
             const filteredEnrollments = enrollments.filter(e => e.sectionId === load.sectionId)
               
 

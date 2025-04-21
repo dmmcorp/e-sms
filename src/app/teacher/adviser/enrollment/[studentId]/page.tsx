@@ -11,12 +11,14 @@ import { Id } from '../../../../../../convex/_generated/dataModel'
 import { Badge } from '@/components/ui/badge'
 import { cn, formatDate } from '@/lib/utils'
 import EditStudent from './_components/edit-student'
+import SubjectDialog from './_components/subject-dialog'
 
 function Page() {
     const router = useRouter();
     const {studentId} = useParams();
     const student = useQuery(api.students.getStudentById, {studentId: studentId as Id<'students'>});
     const [editDialog, setEditDialog] = useState<boolean>(false);
+    const [subjectDialog, setSubjectDialog] = useState<boolean>(false);
     const fullName = `${student?.firstName} ${student?.middleName ?? ""} ${student?.lastName}`;
     
   return (
@@ -121,23 +123,50 @@ function Page() {
 
           <Separator />
 
+         
         </CardContent>
         
       </Card>
 
       <div className="space-y-6">
         <Card>
-          <CardHeader>
-            <CardTitle>Section Assignment</CardTitle>
+          <CardHeader  className='w-full flex justify-between items-start '>
+            <div className="">
+
+            <CardTitle>
+              <h1>Section Assignment</h1>
+             
+            </CardTitle>
             <CardDescription>Current class placement</CardDescription>
+            </div>
+            <Button variant="outline" size={'icon'} onClick={() => setSubjectDialog(true)}>
+                <Pencil className="h-4 w-4" />  
+            </Button>  
+            
           </CardHeader>
           <CardContent>
             {student?.currentSection ? (
               <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-muted-foreground" />
-                  <span className="font-medium">{student.currentSection.section?.name}</span>
+                <div className="grid grid-cols-2 items-start gap-2">
+                  <div className="">
+                    <p className="text-sm text-muted-foreground">Section Name</p>
+                    <div className="flex items-center gap-2">
+
+                      <Users className="h-5 w-5 text-muted-foreground" />
+                      <span className="font-medium">{student.currentSection.section?.name}</span>
+                    </div>
+                  </div>
+                  <div className="">
+                    <p className="text-sm text-muted-foreground">Subjects</p>
+                    <div className="space-y-1 space-x-2">
+                      {student?.enrollment.find(e => e.status === 'enrolled')?.subjectsWithDetails.map(s => (
+                      <Badge key={s.subject?.subjectName} className="font-medium">{s.subject?.subjectName}</Badge>
+                      )) || <p className="font-medium">No subjects assigned</p>}
+                    </div>
+                  </div>
                 </div>
+              
+
                 <p className="text-sm text-muted-foreground">
                   Assigned on {formatDate(student.currentSection.section?._creationTime)  || "Unknown date"}
                 </p>
@@ -196,6 +225,13 @@ function Page() {
         setEditDialog={setEditDialog}
     />
     )}
+
+    <SubjectDialog 
+        open={subjectDialog}
+        onOpenChange={setSubjectDialog}
+        currentSection={student?.currentSection}
+        enrollmentId={student?.enrollment.find(e => e.status === 'enrolled')?._id}
+    />
   </div>
   )
 }

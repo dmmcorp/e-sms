@@ -13,12 +13,14 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as attendance from "../attendance.js";
 import type * as auth from "../auth.js";
 import type * as backup from "../backup.js";
 import type * as classRecords from "../classRecords.js";
 import type * as dashboard from "../dashboard.js";
 import type * as enrollment from "../enrollment.js";
 import type * as files from "../files.js";
+import type * as finalGrades from "../finalGrades.js";
 import type * as highestScores from "../highestScores.js";
 import type * as http from "../http.js";
 import type * as interventions from "../interventions.js";
@@ -40,12 +42,14 @@ import type * as users from "../users.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  attendance: typeof attendance;
   auth: typeof auth;
   backup: typeof backup;
   classRecords: typeof classRecords;
   dashboard: typeof dashboard;
   enrollment: typeof enrollment;
   files: typeof files;
+  finalGrades: typeof finalGrades;
   highestScores: typeof highestScores;
   http: typeof http;
   interventions: typeof interventions;
