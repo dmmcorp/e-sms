@@ -7,21 +7,25 @@ import SectionSummary from './section-summary';
 
 interface SectionListProps {
     selectedSubject: SubjectTypes | undefined;
+    setSelectedSem : (value: SemesterType) => void;
+    setSelectedQtr: (value: QuarterType) => void;  
+    selectedQtr: QuarterType;
+    selectedSem: SemesterType | undefined;
 }
 
 function SectionList({
-    selectedSubject
+    selectedSubject,
+    setSelectedSem,
+    setSelectedQtr,
+    selectedQtr,
+    selectedSem
 }: SectionListProps) {
-    const [selectedSem, setSelectedSem] = useState<SemesterType | undefined>()
-    const [selectedQtr, setSelectedQtr] = useState<QuarterType>("1st quarter")
-
     // If no subject is selected, display a message
     if(!selectedSubject) return <h1>Select a subject to see more</h1>
 
     // Determine if the selected subject is for Senior High School (SHS)
     const isShs = selectedSubject.gradeLevel === "Grade 11" || selectedSubject.gradeLevel === "Grade 12"
 
-console.log(selectedQtr)
     return (
         <div className='space-y-10'>
             {/* UI for Senior High School (SHS) */}

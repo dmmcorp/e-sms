@@ -43,7 +43,7 @@ export const getTeachingLoad = query({
             // Fetch initial class records associated with the teaching load
           
             const initClassRecords = await ctx.db.query('classRecords').filter(q => q.eq(q.field('teachingLoadId'), load._id)).collect();
-            console.log(initClassRecords)
+         
             const filteredEnrollments = enrollments.filter(e => e.sectionId === load.sectionId)
               
 

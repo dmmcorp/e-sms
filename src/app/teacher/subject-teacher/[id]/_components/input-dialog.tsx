@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { StudentScoresType } from '@/lib/types';
 import SubmitDialog from './submit-dialog';
 
+// Define the props interface for the InputDialog component
 interface InputDialogProps {
     dialogOpen: boolean;
     setDialogOpen: (value: boolean) => void;
@@ -44,16 +45,23 @@ function InputDialog({
     isSubmitted,
     component,
 }: InputDialogProps ) {
+    // State to manage the input scores for each assessment
     const [scoresInput, setScoresInput] = useState<{ [key: number]: number }>({});
+    // State to manage the maximum number of inputs allowed
     const [maxInputs, setMaxInputs] = useState<number>(0);
-    const [isSaving, setIsSaving] = useState<boolean>(false)
+    // State to track if the save operation is in progress
+    const [isSaving, setIsSaving] = useState<boolean>(false);
+    // State to manage the open/close state of the submit dialog
     const [open, setOpen] = useState<boolean>(false);
+    // Calculate the total score from the input scores
     const totalScore = Object.values(scoresInput).reduce((acc, curr) => acc + curr, 0);
     
+    // Convex mutations for saving data
     const saveHighestScores = useMutation(api.teachingLoad.saveHighestScores);
     const createComponentScore = useMutation(api.classRecords.createComponentScore);
     const saveQuarterlyGrades = useMutation(api.classRecords.saveQuarterlyGrades);
 
+    // Determine the grade weight based on the component type
     let gradeWeight;
     switch (component) {
         case "Written Works":
@@ -70,6 +78,7 @@ function InputDialog({
             break;
     };
 
+    // Effect to initialize scores and max inputs when the dialog opens
     useEffect(() => {
         if (!dialogOpen) return;
     
@@ -77,7 +86,7 @@ function InputDialog({
         let currentScores;
     
         if (title === 'highest scores') {
-            // Highest scores: fixed limits
+            // For highest scores, set fixed limits based on the component type
             if (component === 'Written Works' || component === 'Performance Tasks') {
                 setMaxInputs(10);
             } else if (component === 'Major Exam') {
@@ -86,7 +95,7 @@ function InputDialog({
     
             currentScores = highestScores.find(s => s.componentType === component)?.scores || [];
         } else {
-            // Student scores: limit to number of items in highest scores
+            // For student scores, limit inputs to the number of items in highest scores
             const highest = highestScores.find(s => s.componentType === component);
             setMaxInputs(highest?.scores.length || 0);
     
@@ -101,6 +110,7 @@ function InputDialog({
             }
         }
     
+        // Format the current scores into the state
         if (currentScores) {
             currentScores.forEach(score => {
                 formattedScores[score.assessmentNo] = score.score;
@@ -110,71 +120,81 @@ function InputDialog({
     }, [dialogOpen, component, highestScores, studentScores, title]);
     
 
-    const handleSaveScore = () =>{
-        setIsSaving(true)
+    // Function to handle saving scores
+    const handleSaveScore = () => {
+        setIsSaving(true);
+        // Transform scores into the required format
         const transformedScores = Object.entries(scoresInput)
-            .filter(([_, score]) => !isNaN(score)) // filter out empty or invalid
+            .filter(([_, score]) => !isNaN(score)) // Filter out empty or invalid scores
             .map(([assessmentNo, score]) => ({
-            assessmentNo: parseInt(assessmentNo),
-            score: Number(score),
-        }));
-        if(title === 'highest scores') {
+                assessmentNo: parseInt(assessmentNo),
+                score: Number(score),
+            }));
+        if (title === 'highest scores') {
+            // Save highest scores
             toast.promise(saveHighestScores({
                 loadId: loadId,
                 componentType: component,
                 scores: transformedScores
-            }),{
+            }), {
                 loading: "Saving scores...",
                 success: "Scores saved successfully.",
                 error: "Unable to save the scores"
-            })
+            });
         } else {
+            // Save student scores
             toast.promise(createComponentScore({
                 classRecordId: studentScores?.classRecord._id,
                 componentType: component,
                 scores: transformedScores
-            }),{
+            }), {
                 loading: "Saving scores...",
                 success: "Scores saved successfully.",
                 error: "Unable to save the scores"
-            })
+            });
         }
-        setIsSaving(false)
-        setDialogOpen(false)
+        setIsSaving(false);
+        setDialogOpen(false);
     };
 
-    const handleOnChange = (e:React.ChangeEvent<HTMLInputElement> ,index: number) =>{
+    // Function to handle changes in input fields
+    const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
         const rawValue = parseFloat(e.target.value);
         const highestScoreObj = highestScores.find(hs => hs.componentType === component);
         const maxScore = highestScoreObj?.scores.find(s => s.assessmentNo === index + 1)?.score ?? Infinity;
 
         if (!isNaN(rawValue) && rawValue <= maxScore) {
+            // Update the score if it's valid
             setScoresInput(prev => ({
                 ...prev,
                 [index + 1]: rawValue
             }));
         } else if (rawValue > maxScore) {
+            // Show a warning if the score exceeds the maximum
             toast.warning(`Score cannot exceed the highest score (${maxScore})`);
         }
-    }
+    };
 
-    const handleSubmitGrades = () =>{
-        setIsSaving(true)
+    // Function to handle submitting grades
+    const handleSubmitGrades = () => {
+        setIsSaving(true);
 
+        // Submit the grades
         toast.promise(saveQuarterlyGrades({
             loadId: loadId,
             studentId: studentScores?._id,
             transmutedGrade: transmutedGrade,
-        }),{
+        }), {
             loading: "Submitting grades...",
-            success: "Submitted successfully/",
+            success: "Submitted successfully.",
             error: "Failed to submit grades.",
-        })
-        setOpen(false)
-        setDialogOpen(false)
-        setIsSaving(false)
-    }
+        });
+        setOpen(false);
+        setDialogOpen(false);
+        setIsSaving(false);
+    };
 
+    // Function to check if the grades are ready to be submitted
     const isReadyToSubmit = () => {
         if (!studentScores) return false;
       
@@ -183,18 +203,21 @@ function InputDialog({
           studentScores.performance.length >= 1 &&
           studentScores.exam.length >= 1
         );
-      };
+    };
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen} >
         <DialogContent className=''>
             <div className="flex items-center justify-between w-full ">
-                <DialogTitle className='capitalize '>
-                    {title}
+                <DialogTitle className='w-full capitalize flex items-center justify-between'>
+                    <div className="">
+                        {title}
+                    </div>
+                    <div className="">
+                        {component}
+                    </div>
                 </DialogTitle>
-                <div className="text-sm font-medium text-gray-500">
-                  {component}
-                </div>
+                
                 {isSubmitted ? (
                     <div className="">
                       
@@ -229,6 +252,7 @@ function InputDialog({
                         <Input
                             id={component + ("1")}
                             name={component + ("1")}
+                            disabled={isSubmitted}
                             placeholder={`Enter exam score`}
                             value={scoresInput["1"] ?? ''}
                             max={highestScores.find(hs => hs.componentType === component)?.scores.find(s => s.assessmentNo === 1)?.score ?? Infinity}
@@ -296,6 +320,7 @@ function InputDialog({
                         <Input
                             id={component + (index + 1)}
                             name={component + (index + 1)}
+                            disabled={isSubmitted}
                             placeholder={`Score`}
                             type="number"
                             max={title === "highest scores" ? 100 : highestScores.find(s => s.componentType === component)?.scores[index]?.score ?? 100}

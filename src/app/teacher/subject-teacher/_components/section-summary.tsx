@@ -33,9 +33,9 @@ function SectionSummary({
   // Display a loading message while the data is being fetched
   if (!loads) return <Loading/>;
 
-  // Display a message if there are no assigned sections
+  // Display a message if there is no assigned sections
   if (loads?.length === 0) {
-    return <div className="">There are no assigned section.</div>;
+    return <div className="">There is no assigned section.</div>;
   }
 
   return (

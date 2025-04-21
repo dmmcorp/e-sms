@@ -58,15 +58,15 @@ function Values({
             makaTao: {
               first: {
                 first: value?.makaTao.first.first,
-                second: value?.makaDyos.first.second,
-                third: value?.makaDyos.first.third,
-                fourth: value?.makaDyos.first.fourth,
+                second: value?.makaTao.first.second,
+                third: value?.makaTao.first.third,
+                fourth: value?.makaTao.first.fourth,
               },
               second: {
                 first: value?.makaTao.second.first,
-                second: value?.makaDyos.second.second,
-                third: value?.makaDyos.second.third,
-                fourth: value?.makaDyos.second.fourth,
+                second: value?.makaTao.second.second,
+                third: value?.makaTao.second.third,
+                fourth: value?.makaTao.second.fourth,
               }
             },
             makakalikasan: {

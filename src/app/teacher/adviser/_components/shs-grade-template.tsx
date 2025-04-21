@@ -16,29 +16,40 @@ function SrGradesTemplate({
     sem: SemesterType
     sf9?: boolean
 }) {
-    const remedialGrades = useQuery(api.finalGrades.remedialGrades,{
+    // Query to fetch remedial grades for the student in the current section
+    const remedialGrades = useQuery(api.finalGrades.remedialGrades, {
         studentId: student._id,
         sectionId: student.sectionDoc?._id
-    })
+    });
+
+    // Query to fetch subjects for the student in the current section
     const subjects = useQuery(api.students.getSubjects, {
         sectionSubjects: student.sectionDoc.subjects,
         studentId: student._id
-    })
+    });
+
+    // Function to get the remedial grade for a specific subject
     function getRemedialGrade(remedialGrade: Doc<'finalGrades'>, subjectName: string): number | null {
         const subject = remedialGrade?.subjects.find((s) => s.subjectName.toLowerCase() === subjectName.toLowerCase());
         return subject?.remedialGrade ?? null;
     }
 
+    // Filter core subjects based on category and semester
     const coreSubjects = subjects?.filter(s => s?.category === "core").filter(s => s?.semester?.includes(sem));
-    const appliedAndSpecialized = subjects?.filter(s => s?.category === "specialized").filter(s => s?.semester?.includes(sem));;
-    
+
+    // Filter applied and specialized subjects based on category and semester
+    const appliedAndSpecialized = subjects?.filter(s => s?.category === "specialized").filter(s => s?.semester?.includes(sem));
+
+    // Combine all subjects into a single array
     const allSubjects = [...(coreSubjects || []), ...(appliedAndSpecialized || [])];
+
+    // Function to calculate the average of quarterly grades
     function calculateQuarterlyAverage(grades: { "1st": number | undefined; "2nd": number | undefined; "3rd": number | undefined; "4th": number | undefined; } | undefined): number | null {
-        if (!grades) return null;
-        const validGrades = Object.values(grades).filter((grade): grade is number => grade !== undefined);
-        if (validGrades.length === 0) return null;
-        const sum = validGrades.reduce((acc, grade) => acc + grade, 0);
-        return sum / validGrades.length;
+        if (!grades) return null; // Return null if grades are undefined
+        const validGrades = Object.values(grades).filter((grade): grade is number => grade !== undefined); // Filter out undefined grades
+        if (validGrades.length === 0) return null; // Return null if no valid grades exist
+        const sum = validGrades.reduce((acc, grade) => acc + grade, 0); // Sum up all valid grades
+        return sum / validGrades.length; // Return the average
     }
 
   return (

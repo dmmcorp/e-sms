@@ -1,6 +1,6 @@
 'use client'
 import { useQuery } from 'convex/react'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { api } from '../../../../../convex/_generated/api'
 import { isSHS, schoolYears } from '@/lib/utils'
 import { QuarterType, SchoolYearTypes, SemesterType } from '@/lib/types'
@@ -13,23 +13,27 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
 import SchoolForm from './school-form'
+import { Label } from '@/components/ui/label'
 
 function HandledSection() {
-  const [selectedSY, setSelectedSY] = useState<SchoolYearTypes>("2025-2026");
+  const [selectedSY, setSelectedSY] = useState<SchoolYearTypes>("2024-2025");
   const [selectedSem, setSelectedSem] = useState<SemesterType>("1st semester")
   const [selectedQtr, setSelectedQtr] = useState<QuarterType>("1st quarter")
 
   const sections = useQuery(api.sections.handledSection, {schoolYear: selectedSY});
 
-
-console.log(selectedQtr)
+  useEffect(() => {
+    setSelectedSem("1st semester")
+    setSelectedQtr("1st quarter")
+  }, [selectedSY])
   return (
-    <div className='mt-5 md:pt-10 p-5'>
+    <div className='mt-5 md:pt-10 p-5 space-y-2'>
       {/* Selection of section school year */}
-        <div className="w-full justify-end">
-          <Select defaultValue='2024-2025' onValueChange={(value)=> setSelectedSY(value as SchoolYearTypes)}> 
+        <div className="w-full flex justify-end">
+          <Label htmlFor='school-year' className='font-semibold'>School year:</Label>
+          <Select defaultValue={selectedSY}  onValueChange={(value)=> setSelectedSY(value as SchoolYearTypes)}> 
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="School year" />
+              <SelectValue placeholder="School year" defaultValue={selectedSY} />
             </SelectTrigger>
             <SelectContent className='max-h-64'>
               <SelectGroup>

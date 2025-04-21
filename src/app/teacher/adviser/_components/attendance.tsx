@@ -34,7 +34,7 @@ function Attendance({student, attendance, edit}: AttendanceProps) {
                 studentId: student._id,
                 sectionStudentId: student.sectionStudentId,
                 june: {
-                    totalSchooldays: attendance?.july.totalSchooldays,
+                    totalSchooldays: attendance?.june.totalSchooldays,
                     daysAbsent:  attendance?.june.daysAbsent,
                     daysPresent: attendance?.june.daysPresent,
                 },
@@ -79,7 +79,7 @@ function Attendance({student, attendance, edit}: AttendanceProps) {
                   daysPresent: attendance?.february.daysPresent,
                 },
                 march: {
-                  totalSchooldays: attendance?.april.totalSchooldays,
+                  totalSchooldays: attendance?.march.totalSchooldays,
                   daysAbsent:  attendance?.march.daysAbsent,
                   daysPresent:  attendance?.march.daysPresent,
                 },

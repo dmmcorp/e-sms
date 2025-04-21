@@ -3,7 +3,7 @@ import { useQuery } from 'convex/react'
 import React, { useState } from 'react'
 import { api } from '../../../../../convex/_generated/api'
 import SectionList from './section-list'
-import { SubjectTypes } from '@/lib/types'
+import { QuarterType, SemesterType, SubjectTypes } from '@/lib/types'
 import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
@@ -13,7 +13,8 @@ import Loading from '../../loading'
 function SubjectThought() {
   // Fetch the list of subjects using the `useQuery` hook
   const subjects = useQuery(api.subjectThought.getSubjects)
-
+  const [selectedSem, setSelectedSem] = useState<SemesterType | undefined>()
+  const [selectedQtr, setSelectedQtr] = useState<QuarterType>("1st quarter")
   // State to track the currently selected subject
   const [selectedSubject, setSelectedSubject] = useState<SubjectTypes | undefined>()
 
@@ -29,6 +30,18 @@ function SubjectThought() {
     )
   }
 
+  const handleSelectSubject = (subject: SubjectTypes) => {
+    setSelectedSubject(subject) 
+
+    setSelectedQtr(subject.quarter?.[0])
+    if(subject.semester){
+      setSelectedSem(subject.semester?.[0])
+    }
+    else {
+      setSelectedSem(undefined)
+    }
+  }
+
   return (
     <div className='flex-1 flex flex-col lg:flex-row'>
       {/* Sidebar card to display the list of subjects */}
@@ -40,7 +53,7 @@ function SubjectThought() {
             {subjects.map((sub) => (
               <Button 
                 variant={'ghost'} 
-                onClick={() => setSelectedSubject(sub)} 
+                onClick={() => handleSelectSubject(sub)} 
                 key={sub._id} 
                 className={cn(
                   selectedSubject?._id === sub._id && "bg-primary text-white hover:bg-primary/80 hover:text-white",
@@ -56,7 +69,13 @@ function SubjectThought() {
       
       {/* Main content area to display the section list for the selected subject */}
       <div className="flex-1 p-5">
-        <SectionList selectedSubject={selectedSubject} />
+        <SectionList 
+          selectedSubject={selectedSubject} 
+          selectedSem={selectedSem} 
+          setSelectedSem={setSelectedSem} 
+          selectedQtr={selectedQtr} 
+          setSelectedQtr={setSelectedQtr} 
+        />
       </div>
     </div>
   )

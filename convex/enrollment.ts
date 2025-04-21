@@ -59,9 +59,6 @@ export const addToSection = mutation({
         })
         const filteredLoads = loads.filter(l => l !== null)
 
-        console.log("subjects:", args.subjects)
-        console.log("loads:", filteredLoads)
-
         await asyncMap(filteredLoads, async(load)=>{
             await ctx.runMutation(internal.classRecords.createClassRecords, {
                 teachingLoadId: load._id
