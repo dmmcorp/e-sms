@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Doc, Id } from "../../../../../convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
+import { gradeLevels } from "@/lib/constants";
 import {
   Select,
   SelectContent,
@@ -77,12 +78,12 @@ export function StudentsList() {
     setIsDialogOpen(true);
   };
 
-  const sortedGradeLevels = useMemo(() => {
-    if (!groupedSectionsData) return [];
-    return Object.keys(groupedSectionsData).sort(
-      (a, b) => gradeLevelOrder.indexOf(a) - gradeLevelOrder.indexOf(b)
-    );
-  }, [groupedSectionsData]);
+  // const sortedGradeLevels = useMemo(() => {
+  //   if (!groupedSectionsData) return [];
+  //   return Object.keys(groupedSectionsData).sort(
+  //     (a, b) => gradeLevelOrder.indexOf(a) - gradeLevelOrder.indexOf(b)
+  //   );
+  // }, [groupedSectionsData]);
 
   return (
     <div className="space-y-6">
@@ -96,12 +97,7 @@ export function StudentsList() {
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>Grade Level</SelectLabel>
-                {groupedSectionsData === undefined && (
-                  <SelectItem value="loading" disabled>
-                    Loading grades...
-                  </SelectItem>
-                )}
-                {sortedGradeLevels.map((grade) => (
+                {gradeLevels.map((grade) => (
                   <SelectItem key={grade} value={grade}>
                     {grade}
                   </SelectItem>
@@ -129,7 +125,7 @@ export function StudentsList() {
                 )}
                 {selectedGrade && sectionsForSelectedGrade.length === 0 && (
                   <SelectItem value="no-sections" disabled>
-                    No sections found
+                    No sections available for {selectedGrade} yet
                   </SelectItem>
                 )}
                 {sectionsForSelectedGrade.map((section) => (
