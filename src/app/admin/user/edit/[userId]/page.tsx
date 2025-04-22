@@ -319,6 +319,11 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
         >
           <Card className="lg:w-1/2">
             <CardContent>
+              <div className="bg-blue-50 p-3 rounded border border-blue-200 text-sm mb-4">
+                <p className="text-blue-700">
+                  Note: If you are creating a MAPEH subject, please name it exactly as "MAPEH" (case insensitive).
+                </p>
+              </div>
               {!user ? (
                 <div className="flex items-center justify-center p-8">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
