@@ -9,42 +9,48 @@ interface ChartProps {
     classRecords: {
         chartData: {
             type: string; // Type of score (e.g., Written, Performance, Major Exam)
-            aveScores: number; 
+            aveScores: number;
         }[];
-        _id: Id<"classRecords">; 
-        _creationTime: number; 
-        teachingLoadId: Id<"teachingLoad">; 
-        studentId: Id<"students">; 
+        _id: Id<"classRecords">;
+        _creationTime: number;
+        teachingLoadId: Id<"teachingLoad">;
+        studentId: Id<"students">;
     }[];
-    label:string
+    label: string;
+    subComponent?: string;
 }
 
 // Chart component to display a bar chart of average scores
 function Chart({
     classRecords,
-    label
+    label,
+    subComponent
 }: ChartProps) {
+    // Format the label based on whether it's MAPEH
+    const formattedLabel = label.toLowerCase() === 'mapeh' && subComponent
+        ? `MAPEH - ${subComponent}`
+        : label;
 
     // Prepare the chart data by calculating the average scores for each type
     const chartData = [
-        { 
-            type: "written", 
+        {
+            type: "written",
             average: classRecords.reduce((sum, record) => {
                 const writtenScore = record.chartData.find(data => data.type === "Written")?.aveScores || 0;
                 return sum + writtenScore;
             }, 0) / classRecords.length, // Calculate average for Written Works
             fill: "#FF6384" // Fill color for Written Works
         },
-        { 
-            type: "performance", 
+        {
+            type: "performance",
             average: classRecords.reduce((sum, record) => {
                 const performanceScore = record.chartData.find(data => data.type === "Performance")?.aveScores || 0;
                 return sum + performanceScore;
             }, 0) / classRecords.length, // Calculate average for Performance Tasks
             fill: "#36A2EB" // Fill color for Performance Tasks
         },
-        { 
-            type: "exam", 
+        {
+            type: "exam",
             average: classRecords.reduce((sum, record) => {
                 const majorExamScore = record.chartData.find(data => data.type === "Major Exam")?.aveScores || 0;
                 return sum + majorExamScore;
@@ -75,8 +81,8 @@ function Chart({
     return (
         <div>
             {/* Title of the chart */}
-            <h1 className='text-center text-xs md:text-sm uppercase font-bold tracking-widest'>{label}</h1>
-            
+            <h1 className='text-center text-xs md:text-sm uppercase font-bold tracking-widest'>{formattedLabel}</h1>
+
             {/* Chart container with configuration */}
             <ChartContainer config={chartConfig} >
                 <BarChart accessibilityLayer data={chartData} className='bg-gray-50 p-0'>
@@ -96,18 +102,18 @@ function Chart({
                             return value;
                         }}
                     />
-                  
+
                     {/* Tooltip for the chart */}
                     <ChartTooltip
                         cursor={false}
-                        content={<ChartTooltipContent/>}
+                        content={<ChartTooltipContent />}
                     />
-                    
+
                     {/* Bar configuration */}
                     <Bar
-                        dataKey="average" 
+                        dataKey="average"
                         fill="var(--color-score)"
-                        radius={[4, 4, 0, 0]} 
+                        radius={[4, 4, 0, 0]}
                     />
                 </BarChart>
             </ChartContainer>
