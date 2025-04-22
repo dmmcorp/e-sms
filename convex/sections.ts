@@ -27,38 +27,40 @@ export const get = query({
 })
 
 export const addSubjectTaught = internalMutation({
-    args:{
+    args: {
         sectionId: v.id('sections'),
         id: v.id('subjectTaught')
     },
-    handler: async(ctx, args) =>{
-   
+    handler: async (ctx, args) => {
+
         const section = await ctx.db.get(args.sectionId)
-        if(section === null) return
-        const a = section.subjects ? [...section.subjects, args.id] : [args.id];
-        await ctx.db.patch(section._id, {
-            subjects: a
-        })
-      
-        
+        if (section === null) return
+
+        // Check if subject already exists in the array
+        const existingSubjects = section.subjects || [];
+        if (!existingSubjects.includes(args.id)) {
+            await ctx.db.patch(section._id, {
+                subjects: [...existingSubjects, args.id]
+            });
+        }
     }
 });
 
 export const getSection = query({
-    args:{
+    args: {
         sectionId: v.optional(v.id('sections'))
     },
-    handler: async(ctx, args) =>{
-        if(!args.sectionId) return undefined
+    handler: async (ctx, args) => {
+        if (!args.sectionId) return undefined
         return await ctx.db.get(args.sectionId)
     }
 })
 
 export const handledSection = query({
-    args:{
+    args: {
         schoolYear: v.string()
     },
-    handler: async(ctx, args) =>{
+    handler: async (ctx, args) => {
         const adviserId = await getAuthUserId(ctx)
 
         const sections = await ctx.db.query('sections')
@@ -71,24 +73,24 @@ export const handledSection = query({
 });
 
 export const getSectionSubject = query({
-    args:{
+    args: {
         sectionId: v.optional(v.id('sections'))
     },
-    handler: async(ctx,args)=>{
-        if(!args.sectionId) return undefined
+    handler: async (ctx, args) => {
+        if (!args.sectionId) return undefined
 
         const section = await ctx.db.get(args.sectionId)
-        if(section === null ) throw new ConvexError('Section not found.')
+        if (section === null) throw new ConvexError('Section not found.')
 
         let subjects: Doc<'subjectTaught'>[] | null
-        if(section.subjects) {
+        if (section.subjects) {
 
-          const s = await asyncMap(section.subjects, async(id)=>{
-            const subjectThought = await ctx.db.get(id)
-                if(subjectThought === null) return null
+            const s = await asyncMap(section.subjects, async (id) => {
+                const subjectThought = await ctx.db.get(id)
+                if (subjectThought === null) return null
                 return subjectThought
             });
-            subjects = s.filter(sub=>  sub !== null)
+            subjects = s.filter(sub => sub !== null)
         } else {
             subjects = []
         }

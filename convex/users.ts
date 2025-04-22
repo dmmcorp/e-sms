@@ -576,9 +576,15 @@ export const updateUser = mutation({
                     existingDbSectionIds.delete(matchingDbSection._id);
                     createdSectionsMap.set(i, matchingDbSection._id); // Map index to existing ID
 
-                    // Optional: Patch section if details like semester changed
-                    if (matchingDbSection.semester !== submittedSection.semester) {
-                        await ctx.db.patch(matchingDbSection._id, { semester: submittedSection.semester });
+                    // Patch section if details like semester or schoolYear changed
+                    if (matchingDbSection.semester !== submittedSection.semester ||
+                        matchingDbSection.schoolYear !== submittedSection.schoolYear) {
+                        await ctx.db.patch(matchingDbSection._id, {
+                            semester: submittedSection.semester,
+                            schoolYear: submittedSection.schoolYear,
+                            // Keep existing subjects array
+                            subjects: matchingDbSection.subjects
+                        });
                     }
                 } else {
                     // Section is new, insert it
