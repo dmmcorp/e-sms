@@ -14,12 +14,21 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
-import { Doc } from "../../../../convex/_generated/dataModel";
+import { useEffect, useRef, useState } from "react";
+import { Doc, Id } from "../../../../convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import SF9 from "@/app/teacher/adviser/_components/sf9";
+import { useReactToPrint } from 'react-to-print';
+import { PrinterIcon } from "lucide-react";
 
 const formSchema = z
   .object({
@@ -37,6 +46,27 @@ export function RegistrarSearch() {
   );
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Doc<"students"> | null>(null);
+  const [showSF9, setShowSF9] = useState(false);
+  const [activeTab, setActiveTab] = useState("front");
+  const componentRef = useRef(null);
+
+  // Get section student ID for the selected student
+  const sectionStudentId = useQuery(api.students.getStudentSectionId,
+    selectedStudent ? { studentId: selectedStudent._id } : "skip"
+  );
+
+  // Print handler
+  const handlePrint = useReactToPrint({
+    contentRef: componentRef,
+    documentTitle: `Form 137 - ${selectedStudent?.lastName}, ${selectedStudent?.firstName} - ${activeTab === 'front' ? 'Front' : 'Back'}`,
+    // onAfterPrint: () => {
+    //   toast.success(`Form 137 ${activeTab === 'front' ? 'Front' : 'Back'} printed successfully`);
+    // },
+    // onPrintError: () => {
+    //   toast.error(`Failed to print Form 137 ${activeTab === 'front' ? 'Front' : 'Back'}`);
+    // }
+  });
 
   // 1. Define form.
   const form = useForm<z.infer<typeof formSchema>>({
@@ -78,10 +108,9 @@ export function RegistrarSearch() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [results]);
 
-  const handleViewForm137 = (studentId: string) => {
-    // TODO: Implement navigation or modal display for Form 137. A simple dialog/modal would do.
-    console.log("View Form 137 for student:", studentId);
-    toast.success("Form 137 Here");
+  const handleViewForm137 = (student: Doc<"students">) => {
+    setSelectedStudent(student);
+    setShowSF9(true);
   };
 
   return (
@@ -183,7 +212,7 @@ export function RegistrarSearch() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleViewForm137(student._id)}
+                    onClick={() => handleViewForm137(student)}
                   >
                     View Form 137
                   </Button>
@@ -193,6 +222,33 @@ export function RegistrarSearch() {
           </CardContent>
         </Card>
       )}
+
+      {/* SF9 Dialog */}
+      <Dialog open={showSF9} onOpenChange={setShowSF9}>
+        <DialogContent className="max-w-[98vw] w-[1400px] max-h-[98vh] overflow-y-auto p-0">
+          <DialogHeader className="p-6 pb-0 flex flex-row items-center justify-between">
+            <DialogTitle>Form 137 (SF9)</DialogTitle>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => handlePrint()}
+            >
+              <PrinterIcon className="h-4 w-4" />
+            </Button>
+          </DialogHeader>
+          {selectedStudent && sectionStudentId && (
+            <div className="p-6 w-full flex justify-center">
+              <div className="w-[1300px]">
+                <SF9
+                  sectionStudentId={sectionStudentId}
+                  componentRef={componentRef}
+                  onTabChange={setActiveTab}
+                />
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
