@@ -58,7 +58,7 @@ function SectionSummary({
                   {load.subject?.subjectName.toLowerCase() === 'mapeh' && load.subComponent && (
                     <div className="flex items-center justify-end gap-2 mt-1">
                       <div className="h-2 w-2 rounded-full bg-primary"></div>
-                      <span className="text-sm text-muted-foreground">{load.subComponent} Component</span>
+                      <span className="text-sm text-muted-foreground">{load.subComponent}</span>
                     </div>
                   )}
                 </div>

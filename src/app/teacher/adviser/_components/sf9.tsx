@@ -17,34 +17,34 @@ import Values from "./values"
 import SrGradesTemplate from "./shs-grade-template"
 import InputValues from "./input-values"
 interface SF9Props {
-    sectionStudentId: Id<'sectionStudents'>
+  sectionStudentId: Id<'sectionStudents'>
 }
 
 export default function SF9({
-    sectionStudentId,
+  sectionStudentId,
 }: SF9Props) {
-    const [activeTab, setActiveTab] = useState("front")
-    const [valuesDialog, setValuesDialog] = useState<boolean>(false);
-    const student = useQuery(api.students.getStudentSection, {sectionStudentId: sectionStudentId})
-    const componentRef = useRef(null);
+  const [activeTab, setActiveTab] = useState("front")
+  const [valuesDialog, setValuesDialog] = useState<boolean>(false);
+  const student = useQuery(api.students.getStudentSection, { sectionStudentId: sectionStudentId })
+  const componentRef = useRef(null);
 
-    const gradeLevel = student?.sectionDoc?.gradeLevel
-    const isSHS = gradeLevel === "Grade 11" || gradeLevel === "Grade 12" 
+  const gradeLevel = student?.sectionDoc?.gradeLevel
+  const isSHS = gradeLevel === "Grade 11" || gradeLevel === "Grade 12"
 
-    const reactToPrintContent = () => {
+  const reactToPrintContent = () => {
     return componentRef.current;
-    };
+  };
 
-   const handlePrint = useReactToPrint({
-      documentTitle: `School form 9`,
-  
-    });
+  const handlePrint = useReactToPrint({
+    documentTitle: `School form 9`,
+
+  });
 
 
-    if(!student) return <Loading/>
+  if (!student) return <Loading />
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-4 bg-white">
+    <div className="w-full max-w-[1100px] mx-auto p-4 bg-white">
       <Tabs defaultValue="front" className="w-full" onValueChange={setActiveTab}>
         <TabsList className="grid w-[200px] grid-cols-2 mb-6">
           <TabsTrigger value="front">Front</TabsTrigger>
@@ -52,63 +52,62 @@ export default function SF9({
         </TabsList>
 
         <TabsContent value='front'>
-              <div ref={componentRef} className=''>
-                  <SF9FrontTemplate student={student}  />
-              </div>
-            </TabsContent>
+          <div ref={componentRef}>
+            <SF9FrontTemplate student={student} />
+          </div>
+        </TabsContent>
 
         <TabsContent value="back" className="mt-0">
-        {isSHS ? (
-          <Card className="border-2 p-6 grid grid-cols-2">
-            <div>
-              <div className="mb-3">
-                <h1 className='text-center text-xs'>REPORT ON LEARNING PROGRESS AND ACHIEVEMENT</h1>
-                <SrGradesTemplate student={student} sem='1st semester' sf9={true}/>
+          {isSHS ? (
+            <Card className="border-2 p-6 grid grid-cols-2 gap-4">
+              <div>
+                <div className="mb-3">
+                  <h1 className='text-center text-xs'>REPORT ON LEARNING PROGRESS AND ACHIEVEMENT</h1>
+                  <SrGradesTemplate student={student} sem='1st semester' sf9={true} />
+                </div>
+                <div className="">
+                  <SrGradesTemplate student={student} sem='2nd semester' sf9={true} />
+                </div>
               </div>
-              <div className="">
-                
-                <SrGradesTemplate student={student} sem='2nd semester' sf9={true}/>
+              <div onClick={() => setValuesDialog(true)} className="">
+                <Values
+                  studentId={student._id}
+                  sectionStudentId={sectionStudentId}
+                  sf9
+                  isSHS={isSHS}
+                  setValuesDialog={setValuesDialog}
+                />
               </div>
-            </div>
-            <div onClick={()=>setValuesDialog(true)} className="">
-              <Values 
+              <InputValues
                 studentId={student._id}
                 sectionStudentId={sectionStudentId}
                 sf9
                 isSHS={isSHS}
+                valuesDialog={valuesDialog}
                 setValuesDialog={setValuesDialog}
               />
-            </div>
-             <InputValues
-              studentId={student._id}
-              sectionStudentId={sectionStudentId}
-              sf9
-              isSHS={isSHS}
-              valuesDialog={valuesDialog}
-              setValuesDialog={setValuesDialog}
-            />
-          </Card>
-          ): (
-          <Card className="border-2 p-6 grid grid-cols-2">
-            <JrGradesTemplate student={student}/>
-            <div onClick={()=>setValuesDialog(true)} className="">
-              <Values 
+            </Card>
+          ) : (
+            <Card className="border-2 p-6 grid grid-cols-2 gap-6">
+              <JrGradesTemplate student={student} sf9 />
+              <div onClick={() => setValuesDialog(true)}>
+                <Values
+                  studentId={student._id}
+                  sectionStudentId={sectionStudentId}
+                  sf9
+                  isSHS={isSHS}
+                  setValuesDialog={setValuesDialog}
+                />
+              </div>
+              <InputValues
                 studentId={student._id}
                 sectionStudentId={sectionStudentId}
                 sf9
                 isSHS={isSHS}
+                valuesDialog={valuesDialog}
                 setValuesDialog={setValuesDialog}
               />
-            </div>
-             <InputValues
-              studentId={student._id}
-              sectionStudentId={sectionStudentId}
-              sf9
-              isSHS={isSHS}
-              valuesDialog={valuesDialog}
-              setValuesDialog={setValuesDialog}
-            />
-          </Card>
+            </Card>
           )}
         </TabsContent>
       </Tabs>
