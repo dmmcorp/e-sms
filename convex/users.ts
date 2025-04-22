@@ -283,37 +283,60 @@ export const createUser = mutation({
                 const isSenior = seniorHighGrades.includes(subject.gradeLevel as GradeLevelsTypes);
                 const quartersToLoad = subject.quarter || []; // Use quarters sent from frontend
 
-                for (const q of quartersToLoad) {
-                    let loadSemester: SemesterType | undefined = undefined;
-                    if (isSenior) {
-                        if (['1st quarter', '2nd quarter'].includes(q)) {
-                            loadSemester = '1st semester';
-                        } else if (['3rd quarter', '4th quarter'].includes(q)) {
-                            loadSemester = '2nd semester';
-                        }
-                        // Ensure the semester is actually selected in the input if SHS
-                        if (!subject.semester?.includes(loadSemester!)) {
-                            console.warn(`Quarter ${q} selected for SHS subject ${subject.subjectName} but semester ${loadSemester} was not.`);
-                            continue; // Skip creating load if semester doesn't match quarter
+                // Special handling for MAPEH subjects
+                if (subject.subjectName.toLowerCase() === 'mapeh') {
+                    const mapehComponents = ['Music', 'Arts', 'Physical Education', 'Health'] as const;
+
+                    // Create teaching loads for each MAPEH component and quarter
+                    for (const component of mapehComponents) {
+                        for (const q of quartersToLoad) {
+                            let loadSemester: SemesterType | undefined = undefined;
+                            if (isSenior) {
+                                if (['1st quarter', '2nd quarter'].includes(q)) {
+                                    loadSemester = '1st semester';
+                                } else if (['3rd quarter', '4th quarter'].includes(q)) {
+                                    loadSemester = '2nd semester';
+                                }
+                                // Ensure the semester is actually selected in the input if SHS
+                                if (!subject.semester?.includes(loadSemester!)) {
+                                    console.warn(`Quarter ${q} selected for SHS subject ${subject.subjectName} but semester ${loadSemester} was not.`);
+                                    continue; // Skip creating load if semester doesn't match quarter
+                                }
+                            }
+
+                            await ctx.db.insert("teachingLoad", {
+                                subjectTaughtId: subjectTaughtId,
+                                sectionId: resolvedSectionId,
+                                quarter: q,
+                                semester: loadSemester, // Set semester if SHS
+                                subComponent: component // Set the MAPEH component
+                            });
                         }
                     }
+                } else {
+                    // Regular subject handling (non-MAPEH)
+                    for (const q of quartersToLoad) {
+                        let loadSemester: SemesterType | undefined = undefined;
+                        if (isSenior) {
+                            if (['1st quarter', '2nd quarter'].includes(q)) {
+                                loadSemester = '1st semester';
+                            } else if (['3rd quarter', '4th quarter'].includes(q)) {
+                                loadSemester = '2nd semester';
+                            }
+                            // Ensure the semester is actually selected in the input if SHS
+                            if (!subject.semester?.includes(loadSemester!)) {
+                                console.warn(`Quarter ${q} selected for SHS subject ${subject.subjectName} but semester ${loadSemester} was not.`);
+                                continue; // Skip creating load if semester doesn't match quarter
+                            }
+                        }
 
-                    // Optional: Check if this specific load already exists before inserting
-                    // const existingLoad = await ctx.db.query("teachingLoad")
-                    //     .withIndex("subjectTaughtId", qIdx => qIdx.eq("subjectTaughtId", subjectTaughtId))
-                    //     .filter(qF => qF.eq(qF.field("sectionId"), resolvedSectionId))
-                    //     .filter(qF => qF.eq(qF.field("quarter"), q))
-                    //     .filter(qF => qF.eq(qF.field("semester"), loadSemester)) // Check semester too
-                    //     .first();
-                    // if (!existingLoad) { ... }
-
-                    await ctx.db.insert("teachingLoad", {
-                        subjectTaughtId: subjectTaughtId,
-                        sectionId: resolvedSectionId,
-                        quarter: q,
-                        semester: loadSemester, // Set semester if SHS
-                        // subComponent: subject.subComponent // Add if applicable
-                    });
+                        await ctx.db.insert("teachingLoad", {
+                            subjectTaughtId: subjectTaughtId,
+                            sectionId: resolvedSectionId,
+                            quarter: q,
+                            semester: loadSemester, // Set semester if SHS
+                        });
+                    }
                 }
             }
         }
@@ -751,25 +774,58 @@ export const updateUser = mutation({
                         }
                     }
 
-                    const existingLoadId = existingQuarterMap?.get(submittedQuarter);
+                    // Special handling for MAPEH subjects
+                    if (submittedSubject.subjectName.toLowerCase() === 'mapeh') {
+                        const mapehComponents = ['Music', 'Arts', 'Physical Education', 'Health'] as const;
 
-                    if (existingLoadId) {
-                        // Load exists, mark it as processed
-                        processedLoadIds.add(existingLoadId);
-                        // Optional: Check if semester needs updating on existing load (e.g., if subject changed grade level)
-                        const existingLoadDoc = existingLoadDocs.find(l => l._id === existingLoadId);
-                        if (existingLoadDoc && existingLoadDoc.semester !== loadSemester) {
-                            await ctx.db.patch(existingLoadId, { semester: loadSemester });
+                        // Create or update teaching loads for each MAPEH component
+                        for (const component of mapehComponents) {
+                            const existingLoadId = existingQuarterMap?.get(submittedQuarter);
+
+                            if (existingLoadId) {
+                                // Load exists, mark it as processed and update component if needed
+                                processedLoadIds.add(existingLoadId);
+                                const existingLoadDoc = existingLoadDocs.find(l => l._id === existingLoadId);
+                                if (existingLoadDoc && (existingLoadDoc.semester !== loadSemester || existingLoadDoc.subComponent !== component)) {
+                                    await ctx.db.patch(existingLoadId, {
+                                        semester: loadSemester,
+                                        subComponent: component
+                                    });
+                                }
+                            } else {
+                                // Load is new, insert it
+                                const newLoadId = await ctx.db.insert("teachingLoad", {
+                                    subjectTaughtId: subjectTaughtId,
+                                    sectionId: resolvedSectionId,
+                                    quarter: submittedQuarter,
+                                    semester: loadSemester,
+                                    subComponent: component
+                                });
+                                processedLoadIds.add(newLoadId);
+                            }
                         }
                     } else {
-                        // Load is new, insert it
-                        const newLoadId = await ctx.db.insert("teachingLoad", {
-                            subjectTaughtId: subjectTaughtId,
-                            sectionId: resolvedSectionId,
-                            quarter: submittedQuarter,
-                            semester: loadSemester, // Set semester if SHS
-                        });
-                        processedLoadIds.add(newLoadId);
+                        // Regular subject handling (non-MAPEH)
+                        const existingLoadId = existingQuarterMap?.get(submittedQuarter);
+
+                        if (existingLoadId) {
+                            // Load exists, mark it as processed
+                            processedLoadIds.add(existingLoadId);
+                            // Optional: Check if semester needs updating on existing load
+                            const existingLoadDoc = existingLoadDocs.find(l => l._id === existingLoadId);
+                            if (existingLoadDoc && existingLoadDoc.semester !== loadSemester) {
+                                await ctx.db.patch(existingLoadId, { semester: loadSemester });
+                            }
+                        } else {
+                            // Load is new, insert it
+                            const newLoadId = await ctx.db.insert("teachingLoad", {
+                                subjectTaughtId: subjectTaughtId,
+                                sectionId: resolvedSectionId,
+                                quarter: submittedQuarter,
+                                semester: loadSemester
+                            });
+                            processedLoadIds.add(newLoadId);
+                        }
                     }
                 }
                 // --- End Sync Teaching Loads ---

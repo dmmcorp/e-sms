@@ -43,6 +43,16 @@ interface SubjectTaughtFormProps {
 
 type SubjectData = NonNullable<UserFormData["subjectsTaught"]>[number];
 
+// Add MAPEH components constant
+const mapehComponents = [
+  'Music',
+  'Arts',
+  'Physical Education',
+  'Health',
+] as const;
+
+type MapehComponent = typeof mapehComponents[number];
+
 // == Internal Component for Subject Card ==
 interface SubjectCardContentProps {
   subject: SubjectData;
@@ -184,9 +194,10 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
           <Input
             id={`subjectName-${index}`}
             value={subject.subjectName}
-            onChange={(e) =>
-              updateSubject(index, "subjectName", e.target.value)
-            }
+            onChange={(e) => {
+              const value = e.target.value;
+              updateSubject(index, "subjectName", value);
+            }}
             placeholder="Enter subject name"
             disabled={isPending}
           />

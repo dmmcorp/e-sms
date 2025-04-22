@@ -146,6 +146,11 @@ function UserPage() {
             fieldErrors[`subject${index}Section`] = "Section is required";
           }
 
+          // MAPEH validation
+          if (subject.isMapeh && !subject.mapehComponent) {
+            fieldErrors[`subject${index}MapehComponent`] = "MAPEH component is required";
+          }
+
           if (
             (!subject.quarter || subject.quarter.length === 0) &&
             (!subject.semester || subject.semester.length === 0)
@@ -171,9 +176,9 @@ function UserPage() {
               total =
                 weights.other && weights.other.length > 0
                   ? weights.other.reduce(
-                      (sum, item) => sum + item.percentage,
-                      0
-                    )
+                    (sum, item) => sum + item.percentage,
+                    0
+                  )
                   : 0;
             }
 
@@ -250,12 +255,12 @@ function UserPage() {
           principalType: formData.principalType,
           subjectsTaught:
             formData.role === "subject-teacher" ||
-            formData.role === "adviser/subject-teacher"
+              formData.role === "adviser/subject-teacher"
               ? cleanedSubjects
               : undefined,
           sections:
             formData.role === "adviser" ||
-            formData.role === "adviser/subject-teacher"
+              formData.role === "adviser/subject-teacher"
               ? cleanedSections
               : undefined,
         },
@@ -442,30 +447,30 @@ function UserPage() {
 
               {(formData.role === "adviser" ||
                 formData.role === "adviser/subject-teacher") && (
-                <>
-                  <SectionForm
-                    formData={formData}
-                    setFormData={setFormData}
-                    errors={errors}
-                    handleChange={handleChange}
-                    isPending={isPending}
-                  />
-                  {formData.role === "adviser/subject-teacher" && (
-                    <Separator className="my-3" />
-                  )}
-                </>
-              )}
+                  <>
+                    <SectionForm
+                      formData={formData}
+                      setFormData={setFormData}
+                      errors={errors}
+                      handleChange={handleChange}
+                      isPending={isPending}
+                    />
+                    {formData.role === "adviser/subject-teacher" && (
+                      <Separator className="my-3" />
+                    )}
+                  </>
+                )}
 
               {(formData.role === "subject-teacher" ||
                 formData.role === "adviser/subject-teacher") && (
-                <SubjectTaughtForm
-                  errors={errors}
-                  formData={formData}
-                  isPending={isPending}
-                  setFormData={setFormData}
-                  sections={sections}
-                />
-              )}
+                  <SubjectTaughtForm
+                    errors={errors}
+                    formData={formData}
+                    isPending={isPending}
+                    setFormData={setFormData}
+                    sections={sections}
+                  />
+                )}
 
               <div className="flex justify-center mt-5">
                 <Button

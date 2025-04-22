@@ -227,7 +227,7 @@ const schema = defineSchema({
       searchField: "firstName",
       filterFields: ["isArchived"]
     }),
-    
+
   interventions: defineTable({
     name: v.string(),
     description: v.optional(v.string())
@@ -400,13 +400,13 @@ const schema = defineSchema({
     dateSubmitted: v.optional(v.string()),
     promotionType: v.optional(v.string())
   }),
-  
+
   promotion: defineTable({
     finalGradeId: v.id('finalGrades'),
     studentId: v.id('students'),
     type: v.string()
   }),
-  
+
 });
 
 
