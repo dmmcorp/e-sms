@@ -20,7 +20,7 @@ function HandledSection() {
   const [selectedSem, setSelectedSem] = useState<SemesterType>("1st semester")
   const [selectedQtr, setSelectedQtr] = useState<QuarterType>("1st quarter")
 
-  const sections = useQuery(api.sections.handledSection, { schoolYear: selectedSY });
+  const sections = useQuery(api.sections.handledSection, {schoolYear: selectedSY});
 
   useEffect(() => {
     setSelectedSem("1st semester")
@@ -29,40 +29,40 @@ function HandledSection() {
   return (
     <div className='mt-5 md:pt-10 p-5 space-y-2'>
       {/* Selection of section school year */}
-      <div className="w-full flex justify-end">
-        <Label htmlFor='school-year' className='font-semibold'>School year:</Label>
-        <Select defaultValue={selectedSY} onValueChange={(value) => setSelectedSY(value as SchoolYearTypes)}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="School year" defaultValue={selectedSY} />
-          </SelectTrigger>
-          <SelectContent className='max-h-64'>
-            <SelectGroup>
-              <SelectLabel>School Year</SelectLabel>
-              {schoolYears.map((sy) => (
-                <SelectItem key={sy} value={sy}>{sy}</SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-10">
+        <div className="w-full flex justify-end">
+          <Label htmlFor='school-year' className='font-semibold'>School year:</Label>
+          <Select defaultValue={selectedSY}  onValueChange={(value)=> setSelectedSY(value as SchoolYearTypes)}> 
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="School year" defaultValue={selectedSY} />
+            </SelectTrigger>
+            <SelectContent className='max-h-64'>
+              <SelectGroup>
+                <SelectLabel>School Year</SelectLabel>
+                {schoolYears.map((sy)=> (
+                  <SelectItem key={sy} value={sy}>{sy}</SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-10">
         {sections?.length === 0 && (
           <div className="text-center py-10 text-gray-500">
             <p>No sections found for the selected school year.</p>
           </div>
         )}
-        {sections?.map((section) => (
-          <Card key={section._id} className="pt-0">
+        {sections?.map((section)=> (
+          <Card key={section._id} className=" pt-0">
             <CardHeader className='pt-5 '>
-              <CardTitle className='flex items-center justify-between'>
-                <h1 className='text-xl font-medium'>Section: {section.name}</h1>
+              <CardTitle  className='flex items-center justify-between'>
+                <h1 className='text-xl font-medium'>Section: {section.name}</h1> 
                 <Link href={`/teacher/adviser/enrollment?id=${section._id}`} className="">
                   <Button variant={'default'} className=''>Enroll student</Button>
                 </Link>
               </CardTitle>
-
+              
             </CardHeader>
-            <Separator />
+            <Separator/>
             <CardContent>
               <SelectSemAndQtr
                 selectedSem={selectedSem}
@@ -79,21 +79,21 @@ function HandledSection() {
                   selectedSem={selectedSem}
                 />
               ) : (
-                <JuniorHigh
+                <JuniorHigh 
                   sectionId={section._id}
                   selectedQtr={selectedQtr}
                 />
-              )}
-
+                )}
+           
             </CardContent>
-            <Separator />
-            <SchoolForm
-              sectionId={section._id}
-            />
+            <Separator/>
+            <SchoolForm 
+                sectionId={section._id}
+              />
           </Card>
         ))}
-
-      </div>
+            
+        </div>
     </div>
   )
 }

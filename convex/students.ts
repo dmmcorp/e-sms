@@ -8,82 +8,85 @@ import { Doc, Id } from "./_generated/dataModel";
 import { GradeLevelsTypes, SemesterType } from "../src/lib/types";
 =======
 import { Doc } from "./_generated/dataModel";
+<<<<<<< HEAD
 import { Quarter, QuarterGrades } from "../src/lib/types";
 >>>>>>> a1196311701c40939925c80339b7b126cc7321ca
+=======
+>>>>>>> parent of e4d8544 (refactor: mapeh sf9)
 
 export const getStudents = query({
-    args: {
+    args:{
         sectionId: v.optional(v.id('sections'))
     },
     handler: async (ctx, args) => {
         const adviserId = await getAuthUserId(ctx);
-
+      
         let section: Doc<'sections'> | null = null;
-
+      
         if (!args.sectionId) {
-            const sections = await ctx.db
-                .query('sections')
-                .filter(q => q.eq(q.field('adviserId'), adviserId))
-                .order('desc')
-                .collect();
-            section = sections.sort((a, b) => b.schoolYear.localeCompare(a.schoolYear))[0];
-            if (!section) {
-                throw new Error("No section found for the current adviser.");
-            }
-        } else {
-            section = await ctx.db.get(args.sectionId);
-
-            if (!section) {
-                throw new Error("Section not found.");
-            }
-        }
-
-        const students = await ctx.db
-            .query('students')
-            .filter(q => q.eq(q.field('isArchived'), false))
-            .filter(q => q.eq(q.field('enrollingIn'), section.gradeLevel))
+          const sections = await ctx.db
+            .query('sections')
+            .filter(q => q.eq(q.field('adviserId'), adviserId))
             .order('desc')
             .collect();
-
+            section = sections.sort((a, b) => b.schoolYear.localeCompare(a.schoolYear))[0];
+          if (!section) {
+            throw new Error("No section found for the current adviser.");
+          }
+        } else {
+          section = await ctx.db.get(args.sectionId);
+      
+          if (!section) {
+            throw new Error("Section not found.");
+          }
+        }
+      
+        const students = await ctx.db
+          .query('students')
+          .filter(q => q.eq(q.field('isArchived'), false))
+          .filter(q => q.eq(q.field('enrollingIn'), section.gradeLevel))
+          .order('desc')
+          .collect();
+      
         return students;
-    }
+      }
 })
 export const getSectionStudents = query({
-    args: {
-        sectionId: v.id('sections')
-    },
-    handler: async (ctx, args) => {
-        const sectionStudents = await ctx.db
-            .query('sectionStudents')
-            .filter(q => q.eq(q.field('sectionId'), args.sectionId))
-            .collect();
+args: {
+    sectionId: v.id('sections')
+},
+handler: async (ctx, args) => {
+    const sectionStudents = await ctx.db
+        .query('sectionStudents')
+        .filter(q => q.eq(q.field('sectionId'), args.sectionId))
+        .collect();
 
-        const studentGrades = await Promise.all(
-            sectionStudents.map(async (sectionStudent) => {
-                const student = await ctx.db.get(sectionStudent.studentId);
-                if (!student) return null;
+    const studentGrades = await Promise.all(
+        sectionStudents.map(async (sectionStudent) => {
+            const student = await ctx.db.get(sectionStudent.studentId);
+            if (!student) return null;
+  
+            return {
+                ...student,
+                sectionStudentId: sectionStudent._id
+                // grades: gradesWithTeachingLoad
+            };
+        })
+    );
 
-                return {
-                    ...student,
-                    sectionStudentId: sectionStudent._id
-                    // grades: gradesWithTeachingLoad
-                };
-            })
-        );
+    const filteredStudents = studentGrades.filter(s => s!=null)
 
-        const filteredStudents = studentGrades.filter(s => s != null)
-
-        return filteredStudents;
-    }
+    return filteredStudents;
+}
 });
 
 <<<<<<< HEAD
 =======
 export const getStudentSection = query({
-    args: {
+    args:{
         sectionStudentId: v.id('sectionStudents')
     },
-    handler: async (ctx, args) => {
+    handler: async(ctx, args) =>{
         const sectionStudent = await ctx.db.get(args.sectionStudentId);
         if (!sectionStudent) return null;
         const student = await ctx.db.get(sectionStudent.studentId);
@@ -94,8 +97,8 @@ export const getStudentSection = query({
         if (!adviser) return null;
 
         const classRecords = await ctx.db.query("classRecords")
-            .filter(q => q.eq(q.field('studentId'), student._id))
-            .collect()
+        .filter(q => q.eq(q.field('studentId'), student._id))
+        .collect()
         return {
             ...student,
             sectionStudentId: sectionStudent._id,
@@ -108,11 +111,11 @@ export const getStudentSection = query({
 >>>>>>> a1196311701c40939925c80339b7b126cc7321ca
 
 export const getStudentGrades = query({
-    args: {
+    args:{
         studentId: v.id('students'),
-
+        
     },
-    handler: async (ctx, args) => {
+    handler: async(ctx, args) => {
         const grades = await ctx.db
             .query('classRecords')
             .filter(q => q.eq(q.field('studentId'), args.studentId))
@@ -133,7 +136,7 @@ export const getStudentGrades = query({
 })
 
 export const add = mutation({
-    args: {
+    args:{
         lastName: v.string(),
         firstName: v.string(),
         middleName: v.string(),
@@ -154,10 +157,10 @@ export const add = mutation({
         alsRating: v.optional(v.string()),
         enrollingIn: gradeLevel
     },
-    handler: async (ctx, args) => {
-        const isExistingStudent = await ctx.db.query('students').filter(q => q.eq(q.field('lrn'), args.lrn)).first()
+    handler: async(ctx, args) => {
+        const isExistingStudent = await ctx.db.query('students').filter(q=> q.eq(q.field('lrn'), args.lrn)).first()
 
-        if (isExistingStudent !== null) {
+        if(isExistingStudent !== null) {
             throw new ConvexError(`Student with the lrn:${isExistingStudent.lrn} is already exist.`)
         } else {
             await ctx.db.insert('students', {
@@ -166,12 +169,12 @@ export const add = mutation({
                 isArchived: false,
             })
         }
-
+       
     }
 })
 
 export const edit = mutation({
-    args: {
+    args:{
         studentId: v.optional(v.id('students')),
         lastName: v.string(),
         firstName: v.string(),
@@ -179,25 +182,25 @@ export const edit = mutation({
         sex: v.union(v.literal('male'), v.literal('female')),
         lrn: v.string(),
         dateOfBirth: v.string(),
-        elementary: v.object({
-            genAve: v.string(),
-            school: v.string(),
-            address: v.string(),
+        elementary:v.object({
+          genAve: v.string(),
+          school: v.string(),
+          address: v.string(),
         }),
-        juniorHigh: v.object({
-            genAve: v.string(),
-            school: v.string(),
-            address: v.string(),
+        juniorHigh:v.object({
+          genAve: v.string(),
+          school: v.string(),
+          address: v.string(),
         }),
         juniorHighDateOfAdmission: v.string(),
         alsRating: v.optional(v.string()),
         enrollingIn: gradeLevel
     },
-    handler: async (ctx, args) => {
-        if (!args.studentId) return undefined;
+    handler: async (ctx, args) =>{
+        if(!args.studentId) return undefined;
         const student = await ctx.db.get(args.studentId)
-
-        if (student === null) {
+      
+        if(student === null) {
             throw new ConvexError('No student data found.')
         }
         await ctx.db.patch(student._id, {
@@ -208,30 +211,30 @@ export const edit = mutation({
             lrn: args.lrn,
             dateOfBirth: args.dateOfBirth,
             elementary: {
-                genAve: args.elementary.genAve,
-                school: args.elementary.school,
-                address: args.elementary.address,
+              genAve: args.elementary.genAve,
+              school: args.elementary.school,
+              address: args.elementary.address,
             },
             juniorHigh: {
-                genAve: args.juniorHigh.genAve,
-                school: args.juniorHigh.school,
-                address: args.juniorHigh.address,
+              genAve: args.juniorHigh.genAve,
+              school: args.juniorHigh.school,
+              address: args.juniorHigh.address,
             },
             juniorHighDateOfAdmission: args.juniorHighDateOfAdmission,
             alsRating: args.alsRating,
             enrollingIn: args.enrollingIn
-        })
+        })    
     }
 })
 
 export const archivedStudent = mutation({
-    args: {
+    args:{
         studentId: v.id('students')
     },
-    handler: async (ctx, args) => {
+    handler: async(ctx, args) => {
         const student = await ctx.db.get(args.studentId)
 
-        if (student === null) return
+        if(student === null) return
 
         await ctx.db.patch(student._id, {
             isArchived: true
@@ -240,26 +243,26 @@ export const archivedStudent = mutation({
 })
 
 export const getStudentById = query({
-    args: {
+    args:{
         studentId: v.optional(v.id('students'))
     },
-    handler: async (ctx, args) => {
-        if (!args.studentId) return undefined
+    handler: async(ctx, args) =>{
+        if(!args.studentId) return undefined
         const student = await ctx.db.get(args.studentId)
-        if (student === null) return undefined
-        const enrollments = await ctx.db.query('enrollment').filter(q => q.eq(q.field('studentId'), args.studentId)).order('desc').collect()
-        const enrollmentWithSection = await asyncMap(enrollments, async (enrollment) => {
+        if(student === null) return undefined
+        const enrollments = await ctx.db.query('enrollment').filter(q=> q.eq(q.field('studentId'), args.studentId )).order('desc').collect()
+        const enrollmentWithSection = await asyncMap(enrollments, async(enrollment) =>{
             const section = await ctx.db.get(enrollment.sectionId)
-            if (section === null) return undefined
-            const selectedSubjects = await asyncMap(enrollment.subjects, async (id) => {
+            if(section === null) return undefined
+            const selectedSubjects = await asyncMap(enrollment.subjects, async(id) => {
                 const subjectTaught = await ctx.db.get(id)
                 return {
                     subject: subjectTaught,
                 }
             })
             const sectionSub = section.subjects ?? []
-
-            const sectionSubjects = await asyncMap(sectionSub, async (id) => {
+      
+            const sectionSubjects = await asyncMap(sectionSub, async(id) => {
                 const subjectTaught = await ctx.db.get(id)
                 return {
                     subject: subjectTaught,
@@ -273,7 +276,7 @@ export const getStudentById = query({
                 sectionSubjects: sectionSubjects,
             }
         })
-
+    
         const currentSection = enrollmentWithSection.filter(e => e !== undefined).find(e => e.status === "enrolled")
         return {
             ...student,
@@ -284,44 +287,45 @@ export const getStudentById = query({
 })
 
 export const sectionStudents = query({
-    args: {
+    args:{
         sectionId: v.optional(v.id('sections')),
         teachingLoadId: v.id('teachingLoad')
     },
-    handler: async (ctx, args) => {
-        if (!args.sectionId) return undefined;
+    handler: async(ctx, args)=>{
+        if(!args.sectionId) return undefined;
 
         const initStudents = await ctx.db.query('sectionStudents').filter((q) => q.eq(q.field('sectionId'), args.sectionId)).collect()
 
-        const students = await asyncMap(initStudents, async (data) => {
+        const students = await asyncMap(initStudents, async(data)=>{
 
             const student = await ctx.db.get(data.studentId)
-            if (student === null) return null;
-
+            if(student === null) return null;
+           
             const classRecord = await ctx.db.query('classRecords')
-                .withIndex('by_teachingLoadId', q => q.eq('teachingLoadId', args.teachingLoadId))
-                .filter(q => q.eq(q.field('studentId'), student._id))
-                .first()
+            .withIndex('by_teachingLoadId', q => q.eq('teachingLoadId', args.teachingLoadId))
+            .filter(q => q.eq(q.field('studentId'), student._id))
+            .first()
 
-            if (classRecord === null) return null;
+            if(classRecord === null) return null;
             // Fetching the assessment data for the student
-
+    
             const written = await ctx.db.query('writtenWorks')
                 .withIndex("by_classRecordId", q => q.eq("classRecordId", classRecord._id))
                 .collect();
-
+    
             const performance = await ctx.db.query('performanceTasks')
                 .withIndex("by_classRecordId", q => q.eq("classRecordId", classRecord._id))
                 .collect();
-
+    
             const exam = await ctx.db.query('majorExams')
                 .withIndex("by_classRecordId", q => q.eq("classRecordId", classRecord._id))
                 .collect();
 
-            const sortedWritten = written.sort((a, b) => a.assessmentNo - b.assessmentNo)
-            const sortedPerformance = performance.sort((a, b) => a.assessmentNo - b.assessmentNo)
-            const sortedExam = exam.sort((a, b) => a.assessmentNo - b.assessmentNo)
+            const sortedWritten = written.sort((a,b)=> a.assessmentNo - b.assessmentNo)
+            const sortedPerformance = performance.sort((a,b)=> a.assessmentNo - b.assessmentNo)
+            const sortedExam = exam.sort((a,b)=> a.assessmentNo - b.assessmentNo)
             const isSubmitted = classRecord.needsIntervention !== undefined && classRecord.needsIntervention !== null;
+<<<<<<< HEAD
 <<<<<<< HEAD
             
             const enrollment = await ctx.db.query('enrollment')
@@ -333,6 +337,9 @@ export const sectionStudents = query({
 =======
 
 >>>>>>> a1196311701c40939925c80339b7b126cc7321ca
+=======
+            
+>>>>>>> parent of e4d8544 (refactor: mapeh sf9)
             return {
                 ...student,
                 enrollment: enrollment,
@@ -352,22 +359,22 @@ export const sectionStudents = query({
 });
 
 export const needsIntervention = query({
-    args: {
+    args:{
         sectionId: v.optional(v.id('sections')),
         teachingLoadId: v.id('teachingLoad')
     },
-    handler: async (ctx, args) => {
-        if (!args.sectionId) return undefined;
+    handler: async(ctx, args) => {
+        if(!args.sectionId) return undefined;
         const initStudents = await ctx.db.query('sectionStudents').filter((q) => q.eq(q.field('sectionId'), args.sectionId)).collect();
-        const students = await asyncMap(initStudents, async (data) => {
+        const students = await asyncMap(initStudents, async(data)=>{
             const student = await ctx.db.get(data.studentId)
-            if (student === null) return null;
-
+            if(student === null) return null;
+           
             const classRecord = await ctx.db.query('classRecords')
-                .withIndex('by_teachingLoadId', q => q.eq('teachingLoadId', args.teachingLoadId))
-                .filter(q => q.eq(q.field('studentId'), student._id))
-                .filter(q => q.eq(q.field('needsIntervention'), true))
-                .first()
+            .withIndex('by_teachingLoadId', q => q.eq('teachingLoadId', args.teachingLoadId))
+            .filter(q => q.eq(q.field('studentId'), student._id))
+            .filter(q => q.eq(q.field('needsIntervention'), true))
+            .first()
 
             return {
                 ...student,
@@ -392,10 +399,11 @@ export const getStudentSection = query({
 })
 
 export const getSubjects = query({
-    args: {
+    args:{
         sectionSubjects: v.optional(v.array(v.id('subjectTaught'))),
         studentId: v.id('students')
     },
+<<<<<<< HEAD
 <<<<<<< HEAD
     handler: async(ctx, args) =>{
       const subjectsWithGrades = await getStudentSubjects(args.sectionSubjects, ctx, args.studentId);
@@ -494,32 +502,62 @@ const getStudentSubjects = async(
 =======
     handler: async (ctx, args) => {
         if (!args.sectionSubjects) return;
+=======
+    handler: async(ctx, args) =>{
+        if(!args.sectionSubjects) return
+        const classsRecords = await ctx.db.query('classRecords').withIndex('by_studentId').collect()
+>>>>>>> parent of e4d8544 (refactor: mapeh sf9)
 
-        // Get all class records for the student
-        const classRecords = await ctx.db.query('classRecords')
-            .withIndex('by_studentId')
-            .filter(q => q.eq(q.field('studentId'), args.studentId))
-            .collect();
-
-        // Get all teaching loads for these class records
-        const classRecordsWithTeachingLoad = await asyncMap(classRecords, async (record) => {
-            const load = await ctx.db.get(record.teachingLoadId);
-            if (!load) return null;
+        const ClassRecordsWithTeachingLoad = await asyncMap(classsRecords, async(record)=>{ 
+            const load = await ctx.db.get(record.teachingLoadId)
+            if(!load) return null
 
             return {
                 ...record,
                 teachingLoad: load
-            };
-        });
+            }
+        })
 
-        const filteredCR = classRecordsWithTeachingLoad.filter(r => r !== null);
+        const filteredCR = ClassRecordsWithTeachingLoad.filter(r => r !== null)
 
-        // Process each subject
-        const subjectWithGrades = await asyncMap(args.sectionSubjects, async (subjectId) => {
+        const subjectWithGrades = await asyncMap(args.sectionSubjects, async(subjectId)=>{
             const subject = await ctx.db.get(subjectId);
-            if (!subject) return null;
+          
+            if(!subject) return null
 
-            // Initialize grades object
+            // Define the type for grades
+            type QuarterGrades = {
+                "1st": number | undefined;
+                "2nd": number | undefined;
+                "3rd": number | undefined;
+                "4th": number | undefined;
+            };
+
+            // Define the type for interventions
+            type QuarterInterventions = {
+                "1st": {
+                    grade: number | undefined;
+                    used: string[] | undefined;
+                    remarks: string | undefined;
+                };
+                "2nd": {
+                    grade: number | undefined;
+                    used: string[] | undefined;
+                    remarks: string | undefined;
+                };
+                "3rd": {
+                    grade: number | undefined;
+                    used: string[] | undefined;
+                    remarks: string | undefined;
+                };
+                "4th": {
+                    grade: number | undefined;
+                    used: string[] | undefined;
+                    remarks: string | undefined;
+                };
+            };
+
+            // Initialize the grades object
             const grades: QuarterGrades = {
                 "1st": undefined,
                 "2nd": undefined,
@@ -527,6 +565,7 @@ const getStudentSubjects = async(
                 "4th": undefined,
             };
 
+<<<<<<< HEAD
             // Initialize interventions object
             const interventions: {
                 [key in Quarter]?: {
@@ -540,9 +579,18 @@ const getStudentSubjects = async(
                 "3rd": undefined,
                 "4th": undefined
 >>>>>>> a1196311701c40939925c80339b7b126cc7321ca
+=======
+            // Initialize the interventions object
+            const interventions: QuarterInterventions = {
+                "1st": { grade: undefined, used: undefined, remarks: undefined },
+                "2nd": { grade: undefined, used: undefined, remarks: undefined },
+                "3rd": { grade: undefined, used: undefined, remarks: undefined },
+                "4th": { grade: undefined, used: undefined, remarks: undefined }
+>>>>>>> parent of e4d8544 (refactor: mapeh sf9)
             };
         };
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         // Initialize the grades object
         const grades: QuarterGrades = {
@@ -643,17 +691,19 @@ const getStudentSubjects = async(
             }
 
             // For non-MAPEH subjects, process normally
+=======
+>>>>>>> parent of e4d8544 (refactor: mapeh sf9)
             for (const record of filteredCR) {
                 if (record.teachingLoad.subjectTaughtId === subjectId) {
-                    const quarter = record.teachingLoad.quarter?.replace(' quarter', '') as Quarter;
+                    const quarter = record.teachingLoad.quarter?.replace(' quarter', '') as keyof QuarterGrades;
                     if (quarter && quarter in grades) {
                         grades[quarter] = record.quarterlyGrade;
-
+                        
                         if (record.needsIntervention) {
                             interventions[quarter] = {
-                                grade: record.interventionGrade ?? 0,
-                                used: record.interventionUsed || [],
-                                remarks: record.interventionRemarks || ''
+                                grade: record.interventionGrade,
+                                used: record.interventionUsed,
+                                remarks: record.interventionRemarks
                             };
                         }
 >>>>>>> a1196311701c40939925c80339b7b126cc7321ca
@@ -835,13 +885,12 @@ export const getStudentSubjectsByEnrollment = query({
 });
 =======
                 ...subject,
-                grades,
-                interventions
-            };
-        });
+                grades: grades,
+                interventions: interventions
+            }
+        })
 
-        // Flatten the array since MAPEH subjects return an array of components
-        return subjectWithGrades.flat().filter(Boolean);
+        return subjectWithGrades;
     }
 })
 

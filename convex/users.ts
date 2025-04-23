@@ -688,17 +688,6 @@ export const updateUser = mutation({
 
         const keptSubjectTaughtIds = new Set<Id<"subjectTaught">>();
         const processedLoadIds = new Set<Id<"teachingLoad">>(); // Track loads to keep/add
-        const mapehComponentLoads = new Map<Id<"subjectTaught">, Set<Id<"teachingLoad">>>(); // Track MAPEH component loads
-
-        // First, identify and track existing MAPEH component loads
-        for (const load of existingLoadDocs) {
-            if (load.subComponent) {
-                if (!mapehComponentLoads.has(load.subjectTaughtId)) {
-                    mapehComponentLoads.set(load.subjectTaughtId, new Set());
-                }
-                mapehComponentLoads.get(load.subjectTaughtId)!.add(load._id);
-            }
-        }
 
         if ((args.role === "subject-teacher" || args.role === "adviser/subject-teacher") && submittedSubjectsInput) {
             for (const submittedSubject of submittedSubjectsInput) {
@@ -729,14 +718,6 @@ export const updateUser = mutation({
                 if (existingSubjectDoc) {
                     subjectTaughtId = existingSubjectDoc._id;
                     keptSubjectTaughtIds.add(subjectTaughtId);
-
-                    // If this is an existing MAPEH subject, preserve its component loads
-                    if (existingSubjectDoc.subjectName.toLowerCase() === 'mapeh' && mapehComponentLoads.has(subjectTaughtId)) {
-                        const componentLoads = mapehComponentLoads.get(subjectTaughtId)!;
-                        for (const loadId of componentLoads) {
-                            processedLoadIds.add(loadId);
-                        }
-                    }
 
                     // Patch if gradeWeights, category, or semester list changed
                     const needsPatch = JSON.stringify(existingSubjectDoc.gradeWeights) !== JSON.stringify(submittedSubject.gradeWeights) ||
@@ -800,18 +781,16 @@ export const updateUser = mutation({
                         // Create or update teaching loads for each MAPEH component
                         for (const component of mapehComponents) {
                             const existingLoadId = existingQuarterMap?.get(submittedQuarter);
-                            const existingComponentLoad = existingLoadDocs.find(l =>
-                                l.subjectTaughtId === subjectTaughtId &&
-                                l.sectionId === resolvedSectionId &&
-                                l.quarter === submittedQuarter &&
-                                l.subComponent === component
-                            );
 
-                            if (existingComponentLoad) {
-                                // Load exists, mark it as processed
-                                processedLoadIds.add(existingComponentLoad._id);
-                                if (existingComponentLoad.semester !== loadSemester) {
-                                    await ctx.db.patch(existingComponentLoad._id, { semester: loadSemester });
+                            if (existingLoadId) {
+                                // Load exists, mark it as processed and update component if needed
+                                processedLoadIds.add(existingLoadId);
+                                const existingLoadDoc = existingLoadDocs.find(l => l._id === existingLoadId);
+                                if (existingLoadDoc && (existingLoadDoc.semester !== loadSemester || existingLoadDoc.subComponent !== component)) {
+                                    await ctx.db.patch(existingLoadId, {
+                                        semester: loadSemester,
+                                        subComponent: component
+                                    });
                                 }
                             } else {
                                 // Load is new, insert it
@@ -855,18 +834,12 @@ export const updateUser = mutation({
 
         // --- Deletion Phase ---
 
-        // Only delete loads that weren't processed AND aren't MAPEH component loads
+        // Delete Teaching Loads that were not processed (i.e., not in the final submitted state)
         for (const load of existingLoadDocs) {
             if (!processedLoadIds.has(load._id)) {
-                // Check if this is a MAPEH component load that should be preserved
-                const isPreservedMapehLoad = load.subComponent &&
-                    mapehComponentLoads.has(load.subjectTaughtId) &&
-                    mapehComponentLoads.get(load.subjectTaughtId)!.has(load._id);
-
-                if (!isPreservedMapehLoad) {
-                    console.warn(`Deleting teaching load ${load._id}. Implement cleanup for class records, scores etc.`);
-                    await ctx.db.delete(load._id);
-                }
+                console.warn(`Deleting teaching load ${load._id}. Implement cleanup for class records, scores etc.`);
+                // Add cleanup for classRecords, scores etc. before deleting load
+                await ctx.db.delete(load._id);
             }
         }
 

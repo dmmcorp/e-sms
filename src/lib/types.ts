@@ -148,6 +148,7 @@ export interface StudentScoresType extends Doc<'students'> {
 
 export interface StudentNeedsIntervention extends Doc<'students'> {
   classRecord: Doc<'classRecords'> | null
+<<<<<<< HEAD
 }
 
 interface StudentGradesTypes{
@@ -159,4 +160,6 @@ interface StudentGradesTypes{
 export interface StudentSF10Types extends Doc<'students'> {
   currentSection: Doc<'sections'> | null;
   studentGrades: StudentGradesTypes[];
+=======
+>>>>>>> parent of e4d8544 (refactor: mapeh sf9)
 }
