@@ -227,14 +227,6 @@ const schema = defineSchema({
     .searchIndex("search_name", {
       searchField: "firstName",
       filterFields: ["isArchived"]
-    })
-    .searchIndex("search_full_name", {
-      searchField: "lastName",
-      filterFields: ["isArchived"]
-    })
-    .searchIndex("search_middle_name", {
-      searchField: "middleName",
-      filterFields: ["isArchived"]
     }),
 
   interventions: defineTable({
