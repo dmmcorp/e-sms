@@ -86,7 +86,7 @@ function SectionSummary({
                             <h3 key={"returning" + student.student?._id}>{index + 1}.{student.student?.lastName}, {student.student?.firstName} {student.student?.middleName?.charAt(0) || ""} </h3>
                           )): (
                             <div className="flex items-center justify-center text-center w-full h-full">
-                              No students have returned for this quarter.
+                              No returning students.
                             </div>
                           )}
                       </div>

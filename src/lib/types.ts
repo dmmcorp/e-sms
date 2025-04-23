@@ -134,6 +134,7 @@ export type SubjectTaughtQueryResult = {
 
 export interface StudentScoresType extends Doc<'students'>{
   written: Doc<'writtenWorks'>[];
+  enrollment: Doc<'enrollment'> | null;
   performance: Doc<'performanceTasks'>[];
   exam: Doc<'majorExams'>[];
   classRecord: Doc<'classRecords'>;
@@ -142,4 +143,15 @@ export interface StudentScoresType extends Doc<'students'>{
 
 export interface StudentNeedsIntervention extends Doc<'students'>{
   classRecord: Doc<'classRecords'> | null
+}
+
+interface StudentGradesTypes{
+  subjects: StudentWithSectionStudent[] | undefined,
+  section:  Doc<'sections'> ,
+  adviser:  Doc<'users'> ,
+  enrollment:  Doc<'enrollment'> | null,
+}
+export interface StudentSF10Types extends Doc<'students'> {
+  currentSection: Doc<'sections'> | null;
+  studentGrades: StudentGradesTypes[];
 }

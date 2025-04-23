@@ -3,7 +3,6 @@ import { mutation } from "./_generated/server";
 import { gradeLevel } from "./schema";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { asyncMap } from "convex-helpers";
-import { createClassRecords } from "./classRecords";
 import { internal } from "./_generated/api";
 
 export const addToSection = mutation({

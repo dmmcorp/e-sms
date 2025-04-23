@@ -1,9 +1,10 @@
 import { ConvexError, v } from "convex/values";
-import { internalQuery, mutation, query } from "./_generated/server";
+import { internalQuery, mutation, query, QueryCtx } from "./_generated/server";
 import { asyncMap } from "convex-helpers";
 import { gradeLevel } from "./schema";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { Doc } from "./_generated/dataModel";
+import { Doc, Id } from "./_generated/dataModel";
+import { GradeLevelsTypes, SemesterType } from "../src/lib/types";
 
 export const getStudents = query({
     args:{
@@ -71,32 +72,6 @@ handler: async (ctx, args) => {
 }
 });
 
-export const getStudentSection = query({
-    args:{
-        sectionStudentId: v.id('sectionStudents')
-    },
-    handler: async(ctx, args) =>{
-        const sectionStudent = await ctx.db.get(args.sectionStudentId);
-        if (!sectionStudent) return null;
-        const student = await ctx.db.get(sectionStudent.studentId);
-        if (!student) return null;
-        const section = await ctx.db.get(sectionStudent.sectionId)
-        if (!section) return null;
-        const adviser = await ctx.db.get(section.adviserId)
-        if (!adviser) return null;
-
-        const classRecords = await ctx.db.query("classRecords")
-        .filter(q => q.eq(q.field('studentId'), student._id))
-        .collect()
-        return {
-            ...student,
-            sectionStudentId: sectionStudent._id,
-            sectionDoc: section,
-            adviser: adviser,
-            classRecords: classRecords,
-        };
-    }
-})
 
 export const getStudentGrades = query({
     args:{
@@ -314,8 +289,15 @@ export const sectionStudents = query({
             const sortedExam = exam.sort((a,b)=> a.assessmentNo - b.assessmentNo)
             const isSubmitted = classRecord.needsIntervention !== undefined && classRecord.needsIntervention !== null;
             
+            const enrollment = await ctx.db.query('enrollment')
+            .filter(q=> q.eq(q.field('studentId'), student._id ))
+            .filter(q=> q.eq(q.field('status'), "enrolled" ))
+            .order('desc').unique()
+            if(enrollment === null) return null;
+            if(enrollment?.status === 'dropped') return null;
             return {
                 ...student,
+                enrollment: enrollment,
                 written: sortedWritten,
                 performance: sortedPerformance,
                 exam: sortedExam,
@@ -324,7 +306,9 @@ export const sectionStudents = query({
             }
         });
 
-        return students
+        const filteredStudents = students.filter(s => s !== null)
+
+        return filteredStudents
 
     }
 });
@@ -359,6 +343,15 @@ export const needsIntervention = query({
     }
 })
 
+export const getStudentSection = query({
+    args:{
+        sectionStudentId: v.id('sectionStudents')
+    },
+    handler: async(ctx, args) =>{
+    const data = await getStudentGradesData(ctx, args.sectionStudentId)
+    return data;
+    }
+})
 
 export const getSubjects = query({
     args:{
@@ -366,98 +359,306 @@ export const getSubjects = query({
         studentId: v.id('students')
     },
     handler: async(ctx, args) =>{
-        if(!args.sectionSubjects) return
-        const classsRecords = await ctx.db.query('classRecords').withIndex('by_studentId').collect()
+      const subjectsWithGrades = await getStudentSubjects(args.sectionSubjects, ctx, args.studentId);
+      const filterSubjectsWithGrades = subjectsWithGrades?.filter(s => s !== null)
+      return filterSubjectsWithGrades;
+    }
+})
 
-        const ClassRecordsWithTeachingLoad = await asyncMap(classsRecords, async(record)=>{ 
-            const load = await ctx.db.get(record.teachingLoadId)
-            if(!load) return null
+const getStudentGradesData = async(
+    ctx: QueryCtx, // Convex context
+    sectionStudentId: Id<'sectionStudents'> // ID of the section student
+) => {
+    const sectionStudent = await ctx.db.get(sectionStudentId);
+    if (!sectionStudent) return null;
+    const student = await ctx.db.get(sectionStudent.studentId);
+    if (!student) return null;
+    const section = await ctx.db.get(sectionStudent.sectionId)
+    if (!section) return null;
+    const adviser = await ctx.db.get(section.adviserId)
+    if (!adviser) return null;
 
-            return {
-                ...record,
-                teachingLoad: load
-            }
-        })
+    const classRecords = await ctx.db.query("classRecords")
+    .filter(q => q.eq(q.field('studentId'), student._id))
+    .collect()
+    return {
+        ...student,
+        sectionStudentId: sectionStudent._id,
+        sectionDoc: section,
+        adviser: adviser,
+        classRecords: classRecords,
+    };
+}
 
-        const filteredCR = ClassRecordsWithTeachingLoad.filter(r => r !== null)
+// Function to retrieve subjects along with grades and interventions for a student in a specific section
+const getStudentSubjects = async(
+    sectionSubjects: Id<'subjectTaught'>[] | undefined, // List of subject IDs for the section
+    ctx: QueryCtx, // Convex context
+    studentId: Id<'students'> // ID of the student
+) => {
+    // If no section subjects are provided, return early
+    if (!sectionSubjects) return;
 
-        const subjectWithGrades = await asyncMap(args.sectionSubjects, async(subjectId)=>{
-            const subject = await ctx.db.get(subjectId);
-          
-            if(!subject) return null
+    // Fetch all class records for the student
+    const classsRecords = await ctx.db.query('classRecords').withIndex('by_studentId', (q) => q.eq('studentId', studentId)).collect();
 
-            // Define the type for grades
-            type QuarterGrades = {
-                "1st": number | undefined;
-                "2nd": number | undefined;
-                "3rd": number | undefined;
-                "4th": number | undefined;
+    // Map class records to include teaching load details
+    const ClassRecordsWithTeachingLoad = await asyncMap(classsRecords, async(record) => { 
+        const load = await ctx.db.get(record.teachingLoadId);
+        if (!load) return null;
+
+        return {
+            ...record,
+            teachingLoad: load
+        }; 
+    });
+
+    // Filter out null values from the mapped class records
+    const filteredCR = ClassRecordsWithTeachingLoad.filter(r => r !== null);
+
+    // Map section subjects to include grades and interventions
+    const subjectWithGrades = await asyncMap(sectionSubjects, async(subjectId) => {
+        const subject = await ctx.db.get(subjectId);
+      
+        // If the subject does not exist, skip it
+        if (!subject) return null;
+
+        // Define the type for grades
+        type QuarterGrades = {
+            "1st": number | undefined;
+            "2nd": number | undefined;
+            "3rd": number | undefined;
+            "4th": number | undefined;
+        };
+
+        // Define the type for interventions
+        type QuarterInterventions = {
+            "1st": {
+                grade: number | undefined;
+                used: string[] | undefined;
+                remarks: string | undefined;
             };
-
-            // Define the type for interventions
-            type QuarterInterventions = {
-                "1st": {
-                    grade: number | undefined;
-                    used: string[] | undefined;
-                    remarks: string | undefined;
-                };
-                "2nd": {
-                    grade: number | undefined;
-                    used: string[] | undefined;
-                    remarks: string | undefined;
-                };
-                "3rd": {
-                    grade: number | undefined;
-                    used: string[] | undefined;
-                    remarks: string | undefined;
-                };
-                "4th": {
-                    grade: number | undefined;
-                    used: string[] | undefined;
-                    remarks: string | undefined;
-                };
+            "2nd": {
+                grade: number | undefined;
+                used: string[] | undefined;
+                remarks: string | undefined;
             };
-
-            // Initialize the grades object
-            const grades: QuarterGrades = {
-                "1st": undefined,
-                "2nd": undefined,
-                "3rd": undefined,
-                "4th": undefined,
+            "3rd": {
+                grade: number | undefined;
+                used: string[] | undefined;
+                remarks: string | undefined;
             };
-
-            // Initialize the interventions object
-            const interventions: QuarterInterventions = {
-                "1st": { grade: undefined, used: undefined, remarks: undefined },
-                "2nd": { grade: undefined, used: undefined, remarks: undefined },
-                "3rd": { grade: undefined, used: undefined, remarks: undefined },
-                "4th": { grade: undefined, used: undefined, remarks: undefined }
+            "4th": {
+                grade: number | undefined;
+                used: string[] | undefined;
+                remarks: string | undefined;
             };
+        };
 
-            for (const record of filteredCR) {
-                if (record.teachingLoad.subjectTaughtId === subjectId) {
-                    const quarter = record.teachingLoad.quarter?.replace(' quarter', '') as keyof QuarterGrades;
-                    if (quarter && quarter in grades) {
-                        grades[quarter] = record.quarterlyGrade;
-                        
-                        if (record.needsIntervention) {
-                            interventions[quarter] = {
-                                grade: record.interventionGrade,
-                                used: record.interventionUsed,
-                                remarks: record.interventionRemarks
-                            };
-                        }
+        // Initialize the grades object
+        const grades: QuarterGrades = {
+            "1st": undefined,
+            "2nd": undefined,
+            "3rd": undefined,
+            "4th": undefined,
+        };
+
+        // Initialize the interventions object
+        const interventions: QuarterInterventions = {
+            "1st": { grade: undefined, used: undefined, remarks: undefined },
+            "2nd": { grade: undefined, used: undefined, remarks: undefined },
+            "3rd": { grade: undefined, used: undefined, remarks: undefined },
+            "4th": { grade: undefined, used: undefined, remarks: undefined }
+        };
+
+        // Populate grades and interventions for each quarter
+        for (const record of filteredCR) {
+            if (record.teachingLoad.subjectTaughtId === subjectId) {
+                // Extract the quarter from the teaching load
+                const quarter = record.teachingLoad.quarter?.replace(' quarter', '') as keyof QuarterGrades;
+                if (quarter && quarter in grades) {
+                    // Assign the quarterly grade
+                    grades[quarter] = record.quarterlyGrade;
+                    
+                    // If the record indicates intervention, populate the intervention details
+                    if (record.needsIntervention) {
+                        interventions[quarter] = {
+                            grade: record.interventionGrade,
+                            used: record.interventionUsed,
+                            remarks: record.interventionRemarks
+                        };
                     }
                 }
             }
+        }
+
+        // Return the subject along with grades and interventions
+        return {
+            ...subject,
+            grades: grades,
+            interventions: interventions
+        };
+    });
+
+    // Return the list of subjects with grades and interventions
+    return subjectWithGrades;
+};
+
+// Function to retrieve subjects along with grades and interventions for a student in a specific section
+const getSectionSubjects = async(
+    ctx: QueryCtx, 
+    sectionSubjects: Id<'subjectTaught'>[] | undefined, // List of subject IDs for the section
+    studentId: Id<'students'> // ID of the student
+) => {
+    if (!sectionSubjects) return;
+
+    // Fetch all class records for the student
+    const classsRecords = await ctx.db.query('classRecords').withIndex('by_studentId', (q) => q.eq('studentId', studentId)).collect();
+
+    // Map class records to include teaching load details
+    const ClassRecordsWithTeachingLoad = await asyncMap(classsRecords, async(record) => { 
+        const load = await ctx.db.get(record.teachingLoadId);
+        if (!load) return null;
+
+        return {
+            ...record,
+            teachingLoad: load
+        };
+    });
+
+    // Filter out null values from the mapped class records
+    const filteredCR = ClassRecordsWithTeachingLoad.filter(r => r !== null);
+
+    // Map section subjects to include grades and interventions
+    const subjectWithGrades = await asyncMap(sectionSubjects, async(subjectId) => {
+        const subject = await ctx.db.get(subjectId);
+        if (!subject) return null;
+
+        // Define the type for grades
+        type QuarterGrades = {
+            "1st": number | undefined;
+            "2nd": number | undefined;
+            "3rd": number | undefined;
+            "4th": number | undefined;
+        };
+
+        // Define the type for interventions
+        type QuarterInterventions = {
+            "1st": {
+                grade: number | undefined;
+                used: string[] | undefined;
+                remarks: string | undefined;
+            };
+            "2nd": {
+                grade: number | undefined;
+                used: string[] | undefined;
+                remarks: string | undefined;
+            };
+            "3rd": {
+                grade: number | undefined;
+                used: string[] | undefined;
+                remarks: string | undefined;
+            };
+            "4th": {
+                grade: number | undefined;
+                used: string[] | undefined;
+                remarks: string | undefined;
+            };
+        };
+
+        // Initialize the grades object
+        const grades: QuarterGrades = {
+            "1st": undefined,
+            "2nd": undefined,
+            "3rd": undefined,
+            "4th": undefined,
+        };
+
+        // Initialize the interventions object
+        const interventions: QuarterInterventions = {
+            "1st": { grade: undefined, used: undefined, remarks: undefined },
+            "2nd": { grade: undefined, used: undefined, remarks: undefined },
+            "3rd": { grade: undefined, used: undefined, remarks: undefined },
+            "4th": { grade: undefined, used: undefined, remarks: undefined }
+        };
+
+        // Populate grades and interventions for each quarter
+        for (const record of filteredCR) {
+            if (record.teachingLoad.subjectTaughtId === subjectId) {
+                const quarter = record.teachingLoad.quarter?.replace(' quarter', '') as keyof QuarterGrades;
+                if (quarter && quarter in grades) {
+                    grades[quarter] = record.quarterlyGrade;
+
+                    if (record.needsIntervention) {
+                        interventions[quarter] = {
+                            grade: record.interventionGrade,
+                            used: record.interventionUsed,
+                            remarks: record.interventionRemarks
+                        };
+                    }
+                }
+            }
+        }
+
+        // Return the subject along with grades and interventions
+        return {
+            ...subject,
+            grades: grades,
+            interventions: interventions
+        };
+    });
+
+    // Return the list of subjects with grades and interventions
+    return subjectWithGrades;
+};
+
+
+// Query to get student grades by enrollment
+export const getStudentSubjectsByEnrollment = query({
+    args: {
+        sectionStudentId: v.id('sectionStudents'), // ID of the section student
+        isSHS: v.boolean() 
+    },
+    handler: async (ctx, args) => {
+        // Fetch the section student document
+        const sectionStudent = await ctx.db.get(args.sectionStudentId);
+        if (!sectionStudent) return null;
+
+        // Fetch the student document
+        const student = await ctx.db.get(sectionStudent.studentId);
+        if (student === null) return null;
+
+        // Fetch the current section document
+        const currentSection = await ctx.db.get(sectionStudent.sectionId);
+        if (currentSection === null) return null;
+
+        // Fetch all enrollments for the student, ordered by ascending date
+        const enrollments = await ctx.db.query('enrollment')
+            .withIndex('by_studentId', (q) => q.eq('studentId', student._id))
+            .order('asc')
+            .collect();
+
+        // Map through the enrollments to fetch section and grade data
+        const studentEnrollments = await asyncMap(enrollments, async (e) => {
+            // Fetch the section document for the enrollment
+            const section = await ctx.db.get(e.sectionId);
+            if (section === null) return null;
+            if (args.isSHS && section.gradeLevel !== "Grade 11" && section.gradeLevel !== "Grade 12") return null;
+            if (!args.isSHS && (section.gradeLevel === "Grade 11" || section.gradeLevel === "Grade 12")) return null;
 
             return {
-                ...subject,
-                grades: grades,
-                interventions: interventions
-            }
-        })
+                ...section,
+                sectionSubjects: section.subjects,
+            };
+        });
 
-        return subjectWithGrades;
+        // Filter out null values from the mapped enrollments
+        const filteredStudentGrades = studentEnrollments.filter(e => e !== null);
+
+        // Return the current section and the filtered student grades
+        return {
+            currentSection: currentSection,
+            studentEnrollments: filteredStudentGrades,
+        };
     }
-})
+});

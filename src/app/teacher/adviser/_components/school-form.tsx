@@ -6,6 +6,7 @@ import { Id } from '../../../../../convex/_generated/dataModel';
 import { StudentTypes, StudentWithGrades, StudentWithSectionStudent } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import SF9 from './sf9';
+import SF10 from './SF10';
 
 interface SchoolFormTypes {
     sectionId: Id<'sections'> 
@@ -38,10 +39,6 @@ function getFullName(student: StudentTypes) {
         <Button size={'lg'} onClick={() => setSelectedButton('sf9')} className={`mr-2 ${selectedButton === 'sf9' ? 'bg-blue-500' : 'bg-gray-300'}`}>School Form 9</Button>
         <Button size={'lg'} onClick={() => setSelectedButton('sf10')} className={`${selectedButton === 'sf10' ? 'bg-blue-500' : 'bg-gray-300'}`}>School Form 10</Button>
       </div>
-      
-
-     
-
       <div className="mt-4">
         {selectedButton === 'sf9' ? (
           <div className=''>
@@ -87,6 +84,11 @@ function getFullName(student: StudentTypes) {
                 </SelectContent>
             </Select>
             </div>
+            {selectedStudent && (
+              <div className="">
+                <SF10 sectionStudentId={selectedStudent as Id<'sectionStudents'>}/>
+              </div>
+            )}
           </div>
         ) : (
             <div>

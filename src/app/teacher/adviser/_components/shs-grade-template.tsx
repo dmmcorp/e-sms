@@ -1,10 +1,10 @@
+'use client'
 import React from 'react'
 import { SemesterType, StudentWithSectionStudent } from '@/lib/types'
 import { useQuery } from 'convex/react'
 import { api } from '../../../../../convex/_generated/api'
 import { Doc } from '../../../../../convex/_generated/dataModel'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { getAverageForShs } from '@/lib/utils'
+import { calculateQuarterlyAverage } from '@/lib/utils'
 
 function SrGradesTemplate({
     student,
@@ -28,6 +28,8 @@ function SrGradesTemplate({
         studentId: student._id
     });
 
+
+
     // Function to get the remedial grade for a specific subject
     function getRemedialGrade(remedialGrade: Doc<'finalGrades'>, subjectName: string): number | null {
         const subject = remedialGrade?.subjects.find((s) => s.subjectName.toLowerCase() === subjectName.toLowerCase());
@@ -44,13 +46,7 @@ function SrGradesTemplate({
     const allSubjects = [...(coreSubjects || []), ...(appliedAndSpecialized || [])];
 
     // Function to calculate the average of quarterly grades
-    function calculateQuarterlyAverage(grades: { "1st": number | undefined; "2nd": number | undefined; "3rd": number | undefined; "4th": number | undefined; } | undefined): number | null {
-        if (!grades) return null; // Return null if grades are undefined
-        const validGrades = Object.values(grades).filter((grade): grade is number => grade !== undefined); // Filter out undefined grades
-        if (validGrades.length === 0) return null; // Return null if no valid grades exist
-        const sum = validGrades.reduce((acc, grade) => acc + grade, 0); // Sum up all valid grades
-        return sum / validGrades.length; // Return the average
-    }
+ 
 
   return (
     <div className="max-w-full">

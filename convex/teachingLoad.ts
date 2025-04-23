@@ -41,91 +41,98 @@ export const getTeachingLoad = query({
         // Process each teaching load entry
         return await asyncMap(query, async (load) => {
             // Fetch initial class records associated with the teaching load
-          
             const initClassRecords = await ctx.db.query('classRecords').filter(q => q.eq(q.field('teachingLoadId'), load._id)).collect();
-         
-            const filteredEnrollments = enrollments.filter(e => e.sectionId === load.sectionId)
-              
+
+            const filteredEnrollments = enrollments.filter(e => e.sectionId === load.sectionId);
 
             // Process each class record to calculate averages and prepare chart data
             const classRecords = await asyncMap(initClassRecords, async (classRecord) => {
-                const ww = await ctx.db.query('writtenWorks').filter(q => q.eq(q.field('classRecordId'), classRecord._id)).collect();
-                const pt = await ctx.db.query('performanceTasks').filter(q => q.eq(q.field('classRecordId'), classRecord._id)).collect();
-                const me = await ctx.db.query('majorExams').filter(q => q.eq(q.field('classRecordId'), classRecord._id)).collect();
-                
-                const enrollment = filteredEnrollments.find(e => e.studentId === classRecord.studentId);
-                const isDropped = enrollment?.status === 'dropped'
-                const isReturning = enrollment?.isReturning ? enrollment.isReturning : false
+            const enrollment = filteredEnrollments.find(e => e.studentId === classRecord.studentId);
+            const isDropped = enrollment?.status === 'dropped';
+            const isReturning = enrollment?.isReturning ? enrollment.isReturning : false;
 
-                // Calculate the number of entries for each type
-                const wwLength = ww.length;
-                const ptLength = pt.length;
-                const meLength = me.length;
-
-                // Calculate average scores for each type
-                const wwAverage = wwLength > 0 ? ww.reduce((sum, item) => sum + item.score, 0) / wwLength : 0;
-                const ptAverage = ptLength > 0 ? pt.reduce((sum, item) => sum + item.score, 0) / ptLength : 0;
-                const meAverage = meLength > 0 ? me.reduce((sum, item) => sum + item.score, 0) / meLength : 0;
-
-                // Prepare chart data for the class record
-                const chartData = [
-                    {
-                        type: "Written",
-                        aveScores: wwAverage,
-                    },
-                    {
-                        type: "Performance",
-                        aveScores: ptAverage,
-                    },
-                    {
-                        type: "Major Exam",
-                        aveScores: meAverage,
-                    },
-                ];
-
-                // Return the class record with chart data
+            if (isDropped) {
                 return {
-                    ...classRecord,
-                    chartData: chartData,
-                    isReturning: isReturning,
-                    isDropped: isDropped
+                ...classRecord,
+                chartData: [],
+                isReturning: isReturning,
+                isDropped: isDropped
                 };
+            }
+
+            const ww = await ctx.db.query('writtenWorks').filter(q => q.eq(q.field('classRecordId'), classRecord._id)).collect();
+            const pt = await ctx.db.query('performanceTasks').filter(q => q.eq(q.field('classRecordId'), classRecord._id)).collect();
+            const me = await ctx.db.query('majorExams').filter(q => q.eq(q.field('classRecordId'), classRecord._id)).collect();
+
+            // Calculate the number of entries for each type
+            const wwLength = ww.length;
+            const ptLength = pt.length;
+            const meLength = me.length;
+
+            // Calculate average scores for each type
+            const wwAverage = wwLength > 0 ? ww.reduce((sum, item) => sum + item.score, 0) / wwLength : 0;
+            const ptAverage = ptLength > 0 ? pt.reduce((sum, item) => sum + item.score, 0) / ptLength : 0;
+            const meAverage = meLength > 0 ? me.reduce((sum, item) => sum + item.score, 0) / meLength : 0;
+
+            // Prepare chart data for the class record
+            const chartData = [
+                {
+                type: "Written",
+                aveScores: wwAverage,
+                },
+                {
+                type: "Performance",
+                aveScores: ptAverage,
+                },
+                {
+                type: "Major Exam",
+                aveScores: meAverage,
+                },
+            ];
+
+            // Return the class record with chart data
+            return {
+                ...classRecord,
+                chartData: chartData,
+                isReturning: isReturning,
+                isDropped: isDropped
+            };
             });
 
             // Fetch dropped students and include their details
             const droppedStudents = await asyncMap(
-                classRecords.filter(record => record.isDropped),
-                async (record) => {
-                    const student = await ctx.db.get(record.studentId);
-                    return {
-                        ...record,
-                        student: student
-                    };
-                }
+            classRecords.filter(record => record.isDropped),
+            async (record) => {
+                const student = await ctx.db.get(record.studentId);
+                return {
+                ...record,
+                student: student
+                };
+            }
             );
 
             // Fetch returning students and include their details
             const returningStudents = await asyncMap(
-                classRecords.filter(record => record.isReturning),
-                async (record) => {
-                    const student = await ctx.db.get(record.studentId);
-                    return {
-                        ...record,
-                        student: student
-                    };
-                }
+            classRecords.filter(record => record.isReturning),
+            async (record) => {
+                const student = await ctx.db.get(record.studentId);
+                return {
+                ...record,
+                student: student
+                };
+            }
             );
 
             // Fetch students needing interventions and include their details
             const needsInterventions = await asyncMap(
-                classRecords.filter(record => record.needsIntervention),
-                async (record) => {
-                    const student = await ctx.db.get(record.studentId);
-                    return {
-                        ...record,
-                        student: student
-                    };
-                }
+            classRecords.filter(record => record.needsIntervention),
+            async (record) => {
+                const student = await ctx.db.get(record.studentId);
+                return {
+                ...record,
+                student: student
+                };
+            }
             );
 
             // Fetch section and subject details for the teaching load
@@ -134,13 +141,13 @@ export const getTeachingLoad = query({
 
             // Return the teaching load with all associated data
             return {
-                ...load,
-                section: section,
-                subject: subject,
-                classRecords: classRecords,
-                droppedStud: droppedStudents,
-                returningStud: returningStudents,
-                needsInterventions: needsInterventions
+            ...load,
+            section: section,
+            subject: subject,
+            classRecords: classRecords,
+            droppedStud: droppedStudents,
+            returningStud: returningStudents,
+            needsInterventions: needsInterventions
             };
         });
     }

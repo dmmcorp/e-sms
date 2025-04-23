@@ -211,6 +211,7 @@ const schema = defineSchema({
     })),
     isArchived: v.optional(v.boolean()),
     juniorHighDateOfAdmission: v.string(),
+    seniorHighDateOfAdmission: v.optional(v.string()),
     alsRating: v.optional(v.string()),
     status: v.union(
       v.literal("graduated"),
