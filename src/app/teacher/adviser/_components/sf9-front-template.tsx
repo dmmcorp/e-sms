@@ -52,7 +52,7 @@ function SF9FrontTemplate({student}: SF9FrontTemplateProps) {
     return age;
   }
   return (
-    <div className='grid grid-cols-2 gap-x-10 p-10  text-black  w-full border-2 rounded-2xl'>
+    <div className='grid grid-cols-2 gap-x-10 p-9 text-black  w-full border-2 rounded-2xl'>
         <div className={cn(isSHS ? "py-10" : "py-0")}>
             <div onClick={()=> setAttendanceDialog(true)} className='hover:cursor-pointer'>
 
@@ -149,7 +149,7 @@ function SF9FrontTemplate({student}: SF9FrontTemplateProps) {
                
                 <div className={cn(isSHS ?"pl-0" :"pl-20" ,"col-span-12 text-xs")}>
                     <h1 className='text-center font-semibold text-sm font-serif my-5'>LEARNER&apos;S PROGRESS REPORT CARD</h1>
-                    <div className="grid grid-cols-12 gap-x-2 items-baseline gap-y-6 font-semibold">
+                    <div className="grid grid-cols-12 gap-x-2 items-baseline gap-y-4 font-semibold">
                         <h1 className='col-span-12 flex gap-x-2 '>Name:  <span className='font-normal text-center border-b-black border-b flex-1 px-2 inline-block capitalize'>{student.firstName} {student.middleName} {student.lastName}</span></h1>
                         {!isSHS && (
                             <h1 className='col-span-12 flex gap-x-2 '>Learner&apos;s Reference Number:  <span className='font-normal text-center border-b-black border-b flex-1 px-2 inline-block capitalize'>{student.lrn}</span></h1>
@@ -165,7 +165,7 @@ function SF9FrontTemplate({student}: SF9FrontTemplateProps) {
                         )} */}
                     </div>
                 </div>
-                <div className={cn(isSHS?"pl-0" :"pl-20" ,"col-span-12  font-semibold mt-10")}>
+                <div className={cn(isSHS?"pl-0" :"pl-20" ,"col-span-12  font-semibold mt-7")}>
                     <h1>Dear Parent,</h1>
                     <p className="text-sm text-justify"><span className='mr-4'></span>This report card shows the ability and progress your child has made in different learning areas as well as his/her core values.  </p>
                     <p className="text-sm"><span className='mr-4'></span>The school welcomes you should you desire to know more about your child&apos;s progress.</p>

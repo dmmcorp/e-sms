@@ -204,3 +204,14 @@ export interface ShsSubject extends BaseSubject {
 }
 
 export type SubjectType = MapehComponent | MapehMainSubject | ShsSubject;
+
+export interface StudentEnrollmentSection extends Doc<'sections'> {
+    sectionSubjects: Id<"subjectTaught">[] | undefined
+    adviser: Doc<"users"> | null
+    sectionStudentId: Id<'sectionStudents'>
+}
+
+export type OrganizedGrade = {
+    gradeLevel: string;
+    data: StudentEnrollmentSection | undefined;
+};

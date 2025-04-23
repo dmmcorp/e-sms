@@ -141,3 +141,13 @@ export const saveInterventionGrade = mutation({
         
     }
 })
+
+export const getRemedialClassRecords = query({
+    args:{
+        studentId: v.id('students'),
+    },
+    handler: async(ctx, args) =>{
+
+        return
+    }
+})

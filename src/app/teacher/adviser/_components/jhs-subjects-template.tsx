@@ -1,41 +1,56 @@
 import React from 'react'
 import JrGradesTemplate from './jhs-grade-template'
-import { StudentWithSectionStudent } from '@/lib/types'
+import { OrganizedGrade } from '@/lib/types'
 import { useQuery } from 'convex/react';
 import { api } from '../../../../../convex/_generated/api';
+import { Id } from '../../../../../convex/_generated/dataModel';
+import JhsEmptyGrades from './jhs-empty-grades';
+import RemedialTemplate from './remedial-template';
 
 interface JhsSubjectsTemplateProps {
-    student: StudentWithSectionStudent
+
+    record: OrganizedGrade
 }
 function JhsSubjectsTemplate({
-    student
-}: JhsSubjectsTemplateProps) {
-    const subjects = useQuery(api.students.getSubjects, {
-        sectionSubjects: student.sectionDoc.subjects,
-        studentId: student._id
-    });
 
-    const schoolYear = student.sectionDoc.schoolYear
-    const section =  student.sectionDoc.name
-    const adviser = student.adviser.fullName
-    const gradeLevel = student.sectionDoc.gradeLevel
+    record
+}: JhsSubjectsTemplateProps) {
+    const sectionStudentId = record.data?.sectionStudentId
+    const student = useQuery(api.students.getStudentSection, {
+        sectionStudentId: sectionStudentId as Id<'sectionStudents'>
+    })
+    const noRecord = !student || student == null
+    const schoolYear = record.data?.schoolYear
+    const section =  record.data?.name
+    const adviser = record.data?.adviser?.fullName
+    const gradeLevel = record.data?.gradeLevel
+    const isSHS = gradeLevel === 'Grade 11' || gradeLevel === 'Grade 12'
  
   return (
-    <div>
+    <div className='mb-2'>
         <div className="grid grid-cols-12 gap-x-2 text-[0.55rem] font-semibold px-2 pt-1 border-t-black border-t border-x-black border-x leading-3">
-            <h1 className="col-span-5 flex items-baseline leading-3">School : <input type="text" value={"Tanjay National High School (OPAO)" } className='bg-transparent border-b capitalize w-5 font-normal border-b-black flex-1 px-3  h-3' /> </h1>
-            <h1 className="col-span-2 flex items-baseline leading-3">School ID: <input type="number" value={"303280"} className='bg-transparent border-b uppercase border-b-black font-normal flex-1 px-3  w-5 h-3' /> </h1>
-            <h1 className="col-span-4 flex items-baseline leading-3">District: <input type="text" value={"Tanjay City, Negros Oriental" } className='bg-transparent border-b capitalize font-normal border-b-black flex-1 px-3 w-5  h-3' /> </h1>
-            <h1 className="col-span-1 flex items-baseline leading-3">Region: <input type="text" value={"VII"} className='bg-transparent border-b capitalize border-b-black font-normal flex-1 w-5 h-3' /> </h1>
+            <h1 className="col-span-5 flex items-baseline leading-3">School : <span className='bg-transparent border-b capitalize w-full font-normal border-b-black flex-1 px-3 h-3'>{noRecord ? "" : "Tanjay National High School (OPAO)"}</span> </h1>
+            <h1 className="col-span-2 flex items-baseline leading-3">School ID: <span className='bg-transparent border-b uppercase border-b-black font-normal flex-1 px-3 w-full h-3'>303280</span> </h1>
+            <h1 className="col-span-4 flex items-baseline leading-3">District: <span className='bg-transparent border-b capitalize font-normal border-b-black flex-1 px-3 w-full h-3'>Tanjay City, Negros Oriental</span> </h1>
+            <h1 className="col-span-1 flex items-baseline leading-3">Region: <span className='bg-transparent border-b capitalize border-b-black font-normal flex-1 w-full h-3'>VII</span> </h1>
         </div>
         <div className="grid grid-cols-12 gap-x-2 font-semibold px-2 text-[0.55rem] pb-1 border-b-black border-b border-x-black border-x">
-            <h1 className="col-span-2 flex items-baseline leading-3">Classified as Grade: <input type="text" value={gradeLevel} className='bg-transparent border-b font-normal capitalize w-5 border-b-black flex-1 px-3  h-3' /> </h1>
-            <h1 className="col-span-2 flex items-baseline leading-3">Section: <input type="text" value={section} className='bg-transparent border-b capitalize w-10 font-normal border-b-black flex-1 px-3  h-3' /> </h1>
-            <h1 className="col-span-2 flex items-baseline leading-3">School Year: <input type="text" value={schoolYear} className='bg-transparent border-b capitalize w-10 font-normal border-b-black flex-1 px-3  h-3' /> </h1>
-            <h1 className="col-span-4 flex items-baseline leading-3">Name of Advisor/Teacher: <input type="text" value={adviser} className='bg-transparent border-b capitalize font-normal w-10 border-b-black flex-1 px-3  h-3' /> </h1>
-            <h1 className="col-span-2 flex items-baseline leading-3">Signature: <input type="text" value={""} className='bg-transparent border-b capitalize w-10 border-b-black font-normal flex-1 px-3  h-3' /> </h1>
+            <h1 className="col-span-2 flex items-baseline leading-3">Classified as Grade: <span className='bg-transparent border-b font-normal capitalize w-full border-b-black flex-1 px-3 h-3'>{gradeLevel}</span> </h1>
+            <h1 className="col-span-2 flex items-baseline leading-3">Section: <span className='bg-transparent border-b capitalize w-full font-normal border-b-black flex-1 px-3 h-3'>{section}</span> </h1>
+            <h1 className="col-span-2 flex items-baseline leading-3">School Year: <span className='bg-transparent border-b capitalize w-full font-normal border-b-black flex-1 px-3 h-3'>{schoolYear}</span> </h1>
+            <h1 className="col-span-4 flex items-baseline leading-3">Name of Advisor/Teacher: <span className='bg-transparent border-b capitalize font-normal w-full border-b-black flex-1 px-3 h-3'>{adviser}</span> </h1>
+            <h1 className="col-span-2 flex items-baseline leading-3">Signature: <span className='bg-transparent border-b capitalize w-full border-b-black font-normal flex-1 px-3 h-3'></span> </h1>
         </div>
-        <JrGradesTemplate student={student} sf10 />
+        {(!student || student === null) ? (
+            <><JhsEmptyGrades /></>
+        ): (
+            <div className="">
+                <JrGradesTemplate student={student} sf10 />
+                <RemedialTemplate student={student} isSHS={isSHS}/>
+            </div>
+        ) }
+      
+        
     </div>
   )
 }

@@ -16,6 +16,8 @@ import JrGradesTemplate from "./jhs-grade-template"
 import Values from "./values"
 import SrGradesTemplate from "./shs-grade-template"
 import InputValues from "./input-values"
+import { Button } from "@/components/ui/button"
+import { Printer } from "lucide-react"
 interface SF9Props {
   sectionStudentId: Id<'sectionStudents'>
   readOnly?: boolean
@@ -56,20 +58,27 @@ export default function SF9({
   if (!student) return <Loading />
 
   return (
-    <div className="w-full max-w-[1100px] mx-auto p-4 bg-white">
-       <Tabs defaultValue="front" className="w-full" onValueChange={handleTabChange}>
-        <TabsList className="grid w-[200px] grid-cols-2 mb-6">
-          <TabsTrigger value="front">Front</TabsTrigger>
-          <TabsTrigger value="back">Back</TabsTrigger>
-        </TabsList>
+    <div className="w-full mx-auto p-4 flex ">
+       <Tabs defaultValue="front" className="w-full mx-auto container overflow-auto" onValueChange={handleTabChange}>
+        <div className="grid grid-cols-12">
 
-        <TabsContent value='front'>
-          <div ref={componentRef || localComponentRef}>
+          <TabsList className="col-span-9 grid w-[200px] grid-cols-2 mb-6">
+            <TabsTrigger value="front">Front</TabsTrigger>
+            <TabsTrigger value="back">Back</TabsTrigger>
+          </TabsList>
+          <div className="flex justify-end col-span-3">
+
+            <Button size={'icon'} onClick={()=> {handlePrint(reactToPrintContent)}}><Printer/></Button>
+          </div>
+        </div>
+
+        <TabsContent value='front' className=" overflow-auto  min-w-[1100px] ">
+          <div ref={componentRef || localComponentRef} className="">
             <SF9FrontTemplate student={student} />
           </div>
         </TabsContent>
 
-        <TabsContent value="back" className="mt-0">
+        <TabsContent value="back" className="mt-0  overflow-auto  min-w-[1100px]">
           <div ref={componentRef || localComponentRef}>
           {isSHS ? (
             <Card className="border-2 p-6 grid grid-cols-2 gap-4">
@@ -101,7 +110,7 @@ export default function SF9({
               />
             </Card>
           ) : (
-            <Card className="border-2 p-6 grid grid-cols-2 gap-6">
+            <Card className="border-2 p-6 grid grid-cols-2 gap-6 ">
               <JrGradesTemplate student={student} sf9 />
               <div onClick={() => setValuesDialog(true)}>
                 <Values

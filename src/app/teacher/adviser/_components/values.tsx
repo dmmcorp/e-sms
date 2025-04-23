@@ -148,7 +148,7 @@ function Values({
             )}
       </div>
         
-        <h1 className={cn(isSHS ? "text-[0.6rem]" : "text-lg" ,' font-semibold text-center ')}>REPORT ON LEARNER&apos;S OBSERVANCE OF VALUES</h1>
+        <h1 className={cn(isSHS ? "text-[0.6rem]" : "text-sm" ,' font-semibold text-center ')}>REPORT ON LEARNER&apos;S OBSERVANCE OF VALUES</h1>
         
         <div className="grid grid-cols-12 w-full border-collapse border border-black  border-b-0 bg-gray-200 items-center text-center font-semibold text-sm">
             <div className={cn(sf9 ? "text-xs col-span-3": "col-span-4",' flex items-center justify-center  h-full border-r border-r-black ')}>Core Values</div>

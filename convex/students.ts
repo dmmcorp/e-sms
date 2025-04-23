@@ -4,7 +4,7 @@ import { asyncMap } from "convex-helpers";
 import { gradeLevel } from "./schema";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { Doc, Id } from "./_generated/dataModel";
-import { Quarter, QuarterGrades } from "../src/lib/types";
+import { OrganizedGrade, Quarter, QuarterGrades, StudentEnrollmentSection } from "../src/lib/types";
 
 export const getStudents = query({
     args: {
@@ -291,10 +291,11 @@ export const sectionStudents = query({
             
             const enrollment = await ctx.db.query('enrollment')
             .filter(q=> q.eq(q.field('studentId'), student._id ))
-            .filter(q=> q.eq(q.field('status'), "enrolled" ))
-            .order('desc').unique()
+            .filter(q=> q.eq(q.field('sectionId'), data.sectionId ))
+            .unique()
+            console.log(enrollment)
             if(enrollment === null) return null;
-            if(enrollment?.status === 'dropped') return null;
+          
             return {
                 ...student,
                 enrollment: enrollment,
@@ -345,11 +346,12 @@ export const needsIntervention = query({
 
 export const getStudentSection = query({
     args:{
-        sectionStudentId: v.id('sectionStudents')
+        sectionStudentId: v.optional(v.id('sectionStudents'))
     },
     handler: async(ctx, args) =>{
-    const data = await getStudentGradesData(ctx, args.sectionStudentId)
-    return data;
+        if(!args.sectionStudentId) return null
+        const data = await getStudentGradesData(ctx, args.sectionStudentId)
+        return data;
     }
 })
 
@@ -379,9 +381,15 @@ const getStudentGradesData = async(
     const adviser = await ctx.db.get(section.adviserId)
     if (!adviser) return null;
 
+    if(section.subjects)
+    await asyncMap(section.subjects, async(s)=>{
+        const subjectTaught = await ctx.db.get(s)
+    })
+
     const classRecords = await ctx.db.query("classRecords")
     .filter(q => q.eq(q.field('studentId'), student._id))
     .collect()
+
     return {
         ...student,
         sectionStudentId: sectionStudent._id,
@@ -400,8 +408,7 @@ const getStudentSubjects = async(
     if (!sectionSubjects) return;
     // Get all class records for the student
     const classRecords = await ctx.db.query('classRecords')
-        .withIndex('by_studentId')
-        .filter(q => q.eq(q.field('studentId'), studentId))
+        .withIndex('by_studentId', (q)=> q.eq('studentId',studentId))
         .collect();
 
     // Get all teaching loads for these class records
@@ -681,22 +688,56 @@ export const getStudentSubjectsByEnrollment = query({
             // Fetch the section document for the enrollment
             const section = await ctx.db.get(e.sectionId);
             if (section === null) return null;
+            const adviser = await ctx.db.get(section?.adviserId);
+            const sectionStudent = await ctx.db.query('sectionStudents').
+                withIndex('by_sectionId', (q) => q.eq('sectionId', section._id))
+                .filter(q => q.eq(q.field('studentId'), student._id))
+                .unique()
+            if (sectionStudent === null) return null;
             if (args.isSHS && section.gradeLevel !== "Grade 11" && section.gradeLevel !== "Grade 12") return null;
             if (!args.isSHS && (section.gradeLevel === "Grade 11" || section.gradeLevel === "Grade 12")) return null;
 
             return {
                 ...section,
+                adviser: adviser,
                 sectionSubjects: section.subjects,
+                sectionStudentId: sectionStudent._id
             };
         });
 
         // Filter out null values from the mapped enrollments
         const filteredStudentGrades = studentEnrollments.filter(e => e !== null);
 
+        const gradeLevels = [
+            "Grade 7",
+            "Grade 8",
+            "Grade 9",
+            "Grade 10",
+            "Grade 11",
+            "Grade 12"
+        ];
+
+   
+
+        // Create a map for quick lookup by gradeLevel
+        const gradeLevelMap: Record<string, StudentEnrollmentSection> = {};
+        filteredStudentGrades.forEach(e => {
+            if (e && e.gradeLevel) {
+            gradeLevelMap[e.gradeLevel] = e;
+            }
+        });
+
+        // Build the result array, ensuring all grade levels are present
+        const organizedGrades: OrganizedGrade[] = gradeLevels.map(level => {
+            if (gradeLevelMap[level]) {
+            return { gradeLevel: level, data: gradeLevelMap[level] };
+            }
+            return { gradeLevel: level, data: undefined };
+        });
         // Return the current section and the filtered student grades
         return {
             currentSection: currentSection,
-            studentEnrollments: filteredStudentGrades,
+            studentEnrollments: organizedGrades,
         };
     }
 });

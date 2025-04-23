@@ -1,5 +1,5 @@
 'use client'
-import { GradeLevelsTypes, SemesterType, StudentWithSectionStudent } from '@/lib/types'
+import { GradeLevelsTypes, SemesterType, ShsSubject, StudentWithSectionStudent } from '@/lib/types'
 import { useQuery } from 'convex/react';
 import React, { useState } from 'react'
 import { api } from '../../../../../convex/_generated/api';
@@ -15,17 +15,18 @@ function ShsSubjectsTemplate({ student, level, sem }: ShsSubjectsTemplateProps) 
     const subjects = useQuery(api.students.getSubjects, {
         sectionSubjects: student.sectionDoc.subjects,
         studentId: student._id
-    });
+    }) as ShsSubject[] | undefined;
+
     const schoolYear = student.sectionDoc.schoolYear
     const semester = student.sectionDoc.semester
     const section =  student.sectionDoc.name
     const trackStrand = "STEM"
 
     // Filter core subjects based on category and semester
-    const coreSubjects = subjects?.filter(s => s?.category === "core").filter(s => s?.semester?.includes(sem));
+    const coreSubjects = subjects?.filter(s => s.category === "core" && s.semester.includes(sem));
 
     // Filter applied and specialized subjects based on category and semester
-    const appliedAndSpecialized = subjects?.filter(s => s?.category === "specialized").filter(s => s?.semester?.includes(sem));
+    const appliedAndSpecialized = subjects?.filter(s => s.category === "specialized" && s.semester.includes(sem));
 
     // Combine all subjects into a single array
     const allSubjects = [...(coreSubjects || []), ...(appliedAndSpecialized || [])];
@@ -71,7 +72,7 @@ function ShsSubjectsTemplate({ student, level, sem }: ShsSubjectsTemplateProps) 
             </div>
         </div>
         
-        {allSubjects ? allSubjects?.map((subject, index) => (
+        {allSubjects ? allSubjects?.map((subject: ShsSubject, index: number) => (
             <div key={subject?._id + index} className="grid grid-cols-12 border-b-black border-b  text-[0.6rem] h-[0.95rem]">
                 <div className="col-span-2 text-center border-l-black border-l h-full uppercase"><p>{subject?.category}</p></div>
                 <div className="col-span-6 flex items-center justify-start px-2 border-x-black border-x h-full"><h1 className='uppercase text-center my-auto'>{subject?.subjectName}</h1></div>

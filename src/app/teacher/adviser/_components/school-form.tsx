@@ -44,15 +44,15 @@ function getFullName(student: StudentTypes) {
           <div className=''>
             <div className="flex w-full justify-center">
               <Select onValueChange={(value) => setSelectedStudent(value)}>
-                  <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select a student" />
+                  <SelectTrigger className="w-[180px] capitalize">
+                      <SelectValue placeholder="Select a student" className='capitalize' />
                   </SelectTrigger>
                   <SelectContent className='max-h-64'>
                       <SelectGroup>
                       <SelectLabel>Students</SelectLabel>
                       {students?.map((student) => (
-                          <SelectItem key={student._id} value={student.sectionStudentId}>
-                          {getFullName(student)}
+                          <SelectItem key={student._id} value={student.sectionStudentId} className={"capitalize"}>
+                            {getFullName(student)}
                           </SelectItem>
                       ))}
                       </SelectGroup>
@@ -69,14 +69,14 @@ function getFullName(student: StudentTypes) {
           <div>
             <div className="flex w-full justify-center">
             <Select onValueChange={(value) => setSelectedStudent(value)}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[180px] capitalize">
                     <SelectValue placeholder="Select a student" />
                 </SelectTrigger>
                 <SelectContent className='max-h-64'>
                     <SelectGroup>
                     <SelectLabel>Students</SelectLabel>
                     {students?.map((student) => (
-                        <SelectItem key={student._id} value={student.sectionStudentId}>
+                        <SelectItem key={student._id} value={student.sectionStudentId} className='capitalize'>
                         {getFullName(student)}
                         </SelectItem>
                     ))}

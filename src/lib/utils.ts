@@ -171,11 +171,11 @@ export const remarks = (average: number | string) =>{
 }
 
 export function calculateQuarterlyAverage(grades: { "1st": number | undefined; "2nd": number | undefined; "3rd": number | undefined; "4th": number | undefined; } | undefined): number | null {
-  if (!grades) return null; // Return null if grades are undefined
-  const validGrades = Object.values(grades).filter((grade): grade is number => grade !== undefined); // Filter out undefined grades
-  if (validGrades.length === 0) return null; // Return null if no valid grades exist
-  const sum = validGrades.reduce((acc, grade) => acc + grade, 0); // Sum up all valid grades
-  return sum / validGrades.length; // Return the average
+    if (!grades) return null;
+    const validGrades = Object.values(grades).filter((grade): grade is number => grade !== undefined);
+    if (validGrades.length === 0) return null;
+    const sum = validGrades.reduce((acc, grade) => acc + grade, 0);
+    return sum / validGrades.length;
 }
 
 export function getPassFailStatus(quarterlyAverage: number | null): string {

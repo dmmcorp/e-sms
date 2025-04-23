@@ -17,10 +17,10 @@ function SrGradesTemplate({
     sf9?: boolean
 }) {
     // Query to fetch remedial grades for the student in the current section
-    const remedialGrades = useQuery(api.finalGrades.remedialGrades, {
-        studentId: student._id,
-        sectionId: student.sectionDoc?._id
-    });
+    // const remedialGrades = useQuery(api.finalGrades.remedialGrades, {
+    //     studentId: student._id,
+    //     sectionId: student.sectionDoc?._id
+    // });
 
     // Query to fetch subjects for the student in the current section
     const subjects = useQuery(api.students.getSubjects, {
@@ -31,10 +31,10 @@ function SrGradesTemplate({
 
 
     // Function to get the remedial grade for a specific subject
-    function getRemedialGrade(remedialGrade: Doc<'finalGrades'>, subjectName: string): number | null {
-        const subject = remedialGrade?.subjects.find((s) => s.subjectName.toLowerCase() === subjectName.toLowerCase());
-        return subject?.remedialGrade ?? null;
-    }
+    // function getRemedialGrade(remedialGrade: Doc<'finalGrades'>, subjectName: string): number | null {
+    //     const subject = remedialGrade?.subjects.find((s) => s.subjectName.toLowerCase() === subjectName.toLowerCase());
+    //     return subject?.remedialGrade ?? null;
+    // }
 
     // Filter core subjects based on category and semester
     const coreSubjects = subjects?.filter(s => s.category === "core" && s.semester.includes(sem));

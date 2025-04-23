@@ -133,7 +133,7 @@ const schema = defineSchema({
     needsIntervention: v.optional(v.boolean()),
     interventionGrade: v.optional(v.number()),
     interventionUsed: v.optional(v.array(v.string())), // ex. Big book, General remarks
-    interventionRemarks: v.optional(v.string())
+    interventionRemarks: v.optional(v.string()),
   }).index('by_teachingLoadId', ['teachingLoadId'])
     .index('by_studentId', ['studentId']),
 
@@ -203,11 +203,13 @@ const schema = defineSchema({
       genAve: v.string(),
       school: v.string(),
       address: v.string(),
+      schoolId: v.optional(v.string())
     }),
     juniorHigh: v.optional(v.object({
       genAve: v.string(),
       school: v.string(),
       address: v.string(),
+      completion: v.optional(v.string())
     })),
     isArchived: v.optional(v.boolean()),
     juniorHighDateOfAdmission: v.string(),
@@ -383,23 +385,28 @@ const schema = defineSchema({
     }),
   }),
 
-  finalGrades: defineTable({
-    adviserId: v.id('users'),
+   finalGrades: defineTable({
     studentId: v.id('students'),
     sectionId: v.id('sections'),
-    subjects: v.array(v.object({
-      subjectTaughtId: v.id('subjectTaught'),
-      subjectName: v.string(),
-      finalGrade: v.number(),
-      forRemedial: v.boolean(),
-      remedialGrade: v.optional(v.number()),
-      status: v.optional(v.string())
-    })),
+    subjectTaughtId: v.id('subjectTaught'),
     generalAverage: v.number(),
-    semester: v.optional(v.string()),
-    isPassed: v.optional(v.boolean()),
-    dateSubmitted: v.optional(v.string()),
-    promotionType: v.optional(v.string())
+    forRemedial: v.optional(v.boolean()),
+    remedialGrade: v.optional(v.number()),
+    status: v.optional(v.string()),
+
+    // subjects: v.array(v.object({
+    //   subjectTaughtId: v.id('subjectTaught'),
+    //   subjectName: v.string(),
+    //   finalGrade: v.number(),
+    //   forRemedial: v.boolean(),
+    //   remedialGrade: v.optional(v.number()),
+    //   status: v.optional(v.string())
+    // })),
+ 
+    // semester: v.optional(v.string()),
+    // isPassed: v.optional(v.boolean()),
+    // dateSubmitted: v.optional(v.string()),
+    // promotionType: v.optional(v.string())
   }),
 
   promotion: defineTable({

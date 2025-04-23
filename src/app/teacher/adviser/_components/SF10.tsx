@@ -1,5 +1,5 @@
 'use client'
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { Id } from '../../../../../convex/_generated/dataModel'
 import { useQuery } from 'convex/react'
 import { api } from '../../../../../convex/_generated/api'
@@ -14,12 +14,15 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import ShsSubjectsTemplate from './shs-subjects-template'
 import JhsSubjectsTemplate from './jhs-subjects-template'
+import { Printer } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 interface SF10Types {
     sectionStudentId: Id<'sectionStudents'>
 }
 
 function SF10({sectionStudentId}: SF10Types) {
+    const [activeTab, setActiveTab] = useState("front")
     const student = useQuery(api.students.getStudentSection, {
         sectionStudentId: sectionStudentId
     })
@@ -32,18 +35,24 @@ function SF10({sectionStudentId}: SF10Types) {
         sectionStudentId: sectionStudentId,
         isSHS: isSHS
     });
-    const reactToPrintContent = () => { 
+
+    const handleTabChange = (value: string) => {
+        setActiveTab(value);
+      };
+
+    const reactToPrintContent = () => {
         return componentRef.current;
-    };
-
+      };
+  
     const handlePrint = useReactToPrint({
-        documentTitle: `School form 10`,
-
+      documentTitle: `School form 10 - ${activeTab === 'front' ? 'Front' : 'Back'}`,
     });
+  
 
     if (!student) {
         return <Loading />
     }
+
 
     const formatDateString = (dateString: string) => {
         const date = new Date(dateString);
@@ -54,11 +63,18 @@ function SF10({sectionStudentId}: SF10Types) {
     };
   return (
     <div className='max-w-5xl mx-auto p-4 bg-white'>
-        <Tabs  defaultValue="front" className="w-full">
-        <TabsList className="grid w-[200px] grid-cols-2 mb-6">
-          <TabsTrigger value="front">Front</TabsTrigger>
-          <TabsTrigger value="back">Back</TabsTrigger>
-        </TabsList>
+        <Tabs  defaultValue="front" className="w-full" onValueChange={handleTabChange}>
+        <div className="grid grid-cols-12">
+
+            <TabsList className="col-span-9 grid w-[200px] grid-cols-2 mb-6">
+            <TabsTrigger value="front">Front</TabsTrigger>
+            <TabsTrigger value="back">Back</TabsTrigger>
+            </TabsList>
+            <div className="flex justify-end col-span-3">
+
+            <Button size={'icon'} onClick={()=> {handlePrint(reactToPrintContent)}}><Printer/></Button>
+            </div>
+        </div>
             <TabsContent value='front'>
             <div ref={componentRef} className='border-2 p-6 text-black text-sm'>
                 <div className="grid grid-cols-12 h-fit text-sm ">
@@ -102,14 +118,14 @@ function SF10({sectionStudentId}: SF10Types) {
                         <>
                             <div className="grid grid-cols-4 gap-x-2 uppercase text-[0.6rem] my-1">
                                 <h1 className=' flex'>Last Name: <span className='border-b-black border-b flex-1 px-1 text-center'>{student.lastName}</span></h1>
-                                <h1 className=' flex'>First Name: <span className='border-b-black border-b flex-1 px-1' text-center>{student.firstName}</span></h1>
+                                <h1 className=' flex'>First Name: <span className='border-b-black border-b flex-1 px-1  text-center' text-center>{student.firstName}</span></h1>
                                 <h1 className=' flex'>Name EXTN.(Jr,I,II): <span className='border-b-black border-b flex-1 px-1  text-center'>{}</span></h1>
                                 <h1 className=' flex'>MIddle Name: <span className='border-b-black border-b flex-1 px-1  text-center'>{student.middleName}</span></h1>
                             </div>
                             <div className="grid grid-cols-12 gap-x-2  mt-[-2px] text-[0.6rem]">
                                 <h1 className='flex col-span-5 capitalize'>Learner Reference Number (LRN): <span className='border-b-black border-b flex-1 px-1  text-center'>{student.lrn}</span></h1>
                                 <h1 className='flex col-span-4'>Birthdate (MM/DD/YYYY): <span className='border-b-black border-b flex-1 px-1  text-center'>{formatDateString(student.dateOfBirth)}</span></h1>
-                                <h1 className='flex col-span-3'>Sex: <span className='border-b-black border-b flex-1 px-1  text-center'>{student.sex}</span></h1>
+                                <h1 className='flex col-span-3'>Sex: <span className='border-b-black border-b flex-1 px-1  text-center uppercase'>{student.sex}</span></h1>
 
                             </div>
                         </>
@@ -147,7 +163,8 @@ function SF10({sectionStudentId}: SF10Types) {
                         <div className="col-span-4 flex gap-x-5 text-[0.6rem] mb-1">
                             <Checkbox 
                                 id="elemSchoolCompleter" 
-                                className='rounded-none border-black border size-4 ml-0 ' 
+                                className='rounded-none border-black border size-4 ml-0 '
+                                checked 
                                 
                             />
                             <Label htmlFor="elemSchoolCompleter" className='ml-[-15px] text-[0.6rem]'>Elementary School Completer*</Label>
@@ -155,22 +172,22 @@ function SF10({sectionStudentId}: SF10Types) {
                         
                         </div>
                         
-                        <h1 className='col-span-4 flex gap-x-3 w-1/2 items-baseline '>Gen. Ave: <input type="number"  className='bg-transparent border-b border-b-black flex-1 text-center w-1/3 px-3 h-3' /></h1>
-                        <h1 className='col-span-4 flex gap-x-3 items-baseline '>Citation(if Any): <input type="text"  className='bg-transparent border-b border-b-black text-center  flex-1 w-1/3 px-3 h-3' /></h1>
+                        <h1 className='col-span-4 flex gap-x-3 w-1/2 items-baseline '>Gen. Ave: <span className='bg-transparent border-b border-b-black flex-1 text-center w-1/3 px-3 h-4'>{student.elementary.genAve}</span></h1>
+                        <h1 className='col-span-4 flex gap-x-3 items-baseline '>Citation(if Any): <span className='bg-transparent border-b border-b-black text-center flex-1 w-1/3 px-3 h-4'></span></h1>
                         
                     </div>
                     )}
                     {isSHS ? (
                     <div className="grid grid-cols-12 text-[0.55rem]  mt-[-4px]">
-                        <h1 className='flex gap-x-1 items-baseline col-span-5'>Date of Gradeuation/Completion (MM/DD/YYYY): <input type="text"  className='bg-transparent border-b border-b-black flex-1  h-3 w-1/3 px-3' /></h1>
-                        <h1 className='flex gap-x-1 items-baseline col-span-3'>Name of School: <input type="text"  className='bg-transparent border-b border-b-black line-clamp-1 flex-1 w-1/3 px-3 h-3' /></h1>
-                        <h1 className='flex gap-x-1 items-baseline col-span-4'>School Address: <input type="text"  className='bg-transparent border-b line-clamp-1 border-b-black flex-1 w-1/3 px-3  h-3' /></h1>
+                        <h1 className='flex gap-x-1 items-baseline col-span-5'>Date of Gradeuation/Completion (MM/DD/YYYY): <span className='bg-transparent border-b border-b-black flex-1  h-4 w-1/3 px-3'>{student.juniorHigh?.completion}</span></h1>
+                        <h1 className='flex gap-x-1 items-baseline col-span-3'>Name of School: <span className='bg-transparent border-b border-b-black line-clamp-1 flex-1 w-1/3 px-3 h-4'>{student.juniorHigh?.school}</span></h1>
+                        <h1 className='flex gap-x-1 items-baseline col-span-4'>School Address: <span className='bg-transparent border-b line-clamp-1 border-b-black flex-1 w-1/3 px-3  h-4'>{student.juniorHigh?.address}</span></h1>
                     </div>
                     ):(
                     <div className="grid grid-cols-12 gap-x-5 text-[0.6rem] ">
-                        <h1 className='flex gap-x-1 items-baseline col-span-5 pl-5'>Name of Elementary School: <input type="text"  className='bg-transparent border-b border-b-black flex-1  h-3 w-1/3 px-3' /></h1>
-                        <h1 className='flex gap-x-1 items-baseline col-span-3'>School ID: <input type="text"  className='bg-transparent border-b border-b-black line-clamp-1 flex-1 w-1/3 px-3 h-3' /></h1>
-                        <h1 className='flex gap-x-1 items-baseline col-span-4'>Address of School: <input type="text"  className='bg-transparent border-b line-clamp-1 border-b-black flex-1 w-1/3 px-3  h-3' /></h1>
+                        <h1 className='flex gap-x-1 col-span-5 pl-5'>Name of Elementary School: <span className='bg-transparent border-b border-b-black flex-1 h-4 w-1/3 px-3'>{student.elementary.school}</span></h1>
+                        <h1 className='flex gap-x-1  col-span-3'>School ID: <span className='bg-transparent border-b border-b-black line-clamp-1 flex-1 w-1/3 px-3 h-4'>{student.elementary.schoolId}</span></h1>
+                        <h1 className='flex gap-x-1  col-span-4'>Address of School: <span className='bg-transparent border-b line-clamp-1 border-b-black flex-1 w-1/3 px-3 h-4'>{student.elementary.address}</span></h1>
                     </div>    
                     )}
                 </div>
@@ -232,9 +249,9 @@ function SF10({sectionStudentId}: SF10Types) {
                     <div className="">
                         {enrollments?.studentEnrollments.map((enrollment) => {
                             if (enrollment.gradeLevel != "Grade 11") return undefined
-                            if (!enrollment.semester) return undefined
+                            if (!enrollment.data?.semester) return undefined
                             return (
-                                <ShsSubjectsTemplate student={student} level={enrollment.gradeLevel} sem={enrollment.semester} />
+                                <ShsSubjectsTemplate student={student} level={enrollment.gradeLevel} sem={enrollment.data.semester} />
                             )
                         })}
                     </div>
@@ -254,9 +271,9 @@ function SF10({sectionStudentId}: SF10Types) {
                         <JHSSubjectsTemplate student={student} finalGrades={studentFinalGrades as FinalGradesWithDetails[]} level='8' sf10 /> */}
 
                         {enrollments?.studentEnrollments.map((enrollment) => {
-                        
+                            if(enrollment.gradeLevel === "Grade 7" || enrollment.gradeLevel === "Grade 8")
                             return (
-                                <JhsSubjectsTemplate student={student} />
+                                <JhsSubjectsTemplate record={enrollment}/>
                             )
                         })}
                         <div className="mt-2 border border-black p-1">

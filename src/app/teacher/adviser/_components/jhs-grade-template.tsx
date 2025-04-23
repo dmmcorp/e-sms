@@ -19,22 +19,16 @@ interface JrGradesTemplateProps {
 function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
 
     // Fetch remedial grades for the student
-    const remedialGrades = useQuery(api.finalGrades.remedialGrades, {
-        studentId: student._id,
-        sectionId: student.sectionDoc?._id
-    });
+    // const remedialGrades = useQuery(api.finalGrades.remedialGrades, {
+    //     studentId: student._id,
+    //     sectionId: student.sectionDoc?._id
+    // });
 
     // Fetch subjects for the student
     const subjects = useQuery(api.students.getSubjects, {
         sectionSubjects: student.sectionDoc.subjects,
         studentId: student._id
     });
-
-    // Get the remedial grade for a specific subject
-    function getRemedialGrade(remedialGrade: Doc<'finalGrades'>, subjectName: string): number | null {
-        const subject = remedialGrade?.subjects.find((s) => s.subjectName.toLowerCase() === subjectName.toLowerCase());
-        return subject?.remedialGrade ?? null;
-    }
 
     // Calculate the quarterly average for a subject
     // Function to calculate quarterly average
@@ -56,7 +50,6 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                 "3rd": subject?.interventions?.["3rd"]?.grade ?? subject?.grades?.["3rd"],
                 "4th": subject?.interventions?.["4th"]?.grade ?? subject?.grades?.["4th"],
             } as const;
-
             const subjectAvg = calculateQuarterlyAverage(modifiedGrades);
             if (subjectAvg !== null) {
                 total += subjectAvg;
@@ -139,10 +132,10 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
     }
 
        // Organize subjects with MAPEH at the bottom
-       const organizedSubjects = useMemo(() => {
+    const organizedSubjects = useMemo(() => {
         if (!subjects) return [];
 
-        // First, separate MAPEH components and other subjects
+        // Separate MAPEH components and other subjects
         const mapehComponents = subjects.filter(subject =>
             subject?.subjectName && ["Music", "Arts", "Physical Education", "Health"].includes(subject.subjectName)
         ) as MapehComponent[];
@@ -152,18 +145,15 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
             !["Music", "Arts", "Physical Education", "Health", "MAPEH"].includes(subject.subjectName)
         ) as MapehComponent[];
 
+        // If there are no MAPEH components, just return other subjects
+        if (mapehComponents.length === 0) {
+            return otherSubjects as SubjectType[];
+        }
+
         // Calculate MAPEH average
         const mapehAverage = calculateMapehAverage(mapehComponents);
 
-        // Create MAPEH main entry
-        const mapehEntry: MapehMainSubject = {
-            _id: "mapeh",
-            subjectName: "MAPEH",
-            grades: mapehAverage,
-            isMapehMain: true
-        };
-
-        // Sort MAPEH components in the correct order
+        // Create MAPEH main entry only if all components exist
         const orderedComponents = ["Music", "Arts", "Physical Education", "Health"];
         const sortedMapehComponents = orderedComponents
             .map(componentName =>
@@ -179,25 +169,34 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                 subjectName: comp.subjectName === "Physical Education" ? "Physical Education (PE)" : comp.subjectName
             }));
 
+        // Only include MAPEH main entry if all components are present
+        const mapehEntry: MapehMainSubject | null = sortedMapehComponents.length === orderedComponents.length
+            ? {
+                _id: "mapeh",
+                subjectName: "MAPEH",
+                grades: mapehAverage,
+                isMapehMain: true
+            }
+            : null;
+
         // Return organized subjects with MAPEH and its components at the bottom
         return [
             ...otherSubjects,
-            mapehEntry,
+            ...(mapehEntry ? [mapehEntry] : []),
             ...sortedMapehComponents
         ] as SubjectType[];
     }, [subjects]);
 
     const generalAverage = calculateGeneralAverage()
 
-    console.log(organizedSubjects, "organized subjects")
     return (
         <div className='text-sm md:text-sm w-full gap-x-10'>
 
-            <h1 className={cn('text-lg font-semibold text-center ')}>REPORT ON LEARNING PROGRESS AND ACHIEVEMENT</h1>
+            <h1 className={cn(sf10 && 'hidden', 'text-sm font-semibold text-center ')}>REPORT ON LEARNING PROGRESS AND ACHIEVEMENT</h1>
 
                 {/* Header row */}
-            <div className="grid grid-cols-12 w-full items-center text-center font-semibold text-sm md:text-sm bg-gray-200">
-                <div className='col-span-5 h-full flex items-center justify-start pl-4 border-x border-x-black border-b-black border-b border-t-black border-t'>Learning Areas</div>
+            <div className="grid grid-cols-12 w-full text-xs items-center text-center font-semibold  bg-gray-200">
+                <div className='col-span-5 text-xs h-full flex items-center justify-center pl-4 border-x border-x-black border-b-black border-b border-t-black border-t'>Learning Areas</div>
                 <div className="col-span-3 grid grid-cols-4 text-center items-center">
                     <div className={cn("col-span-4 border-b border-black border-r border-r-black border-y border-y-black", sf9 ? 'text-sm p-1' : 'p-2')}>Quarter</div>
                     {Array.from({ length: 4 }, (_, i) => (
@@ -222,10 +221,10 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
 
                {/* Render subjects */}
                {organizedSubjects.map((subject: SubjectType) => (
-                <div key={subject._id} className="grid grid-cols-12 w-full items-center text-center font-semibold text-sm md:text-sm">
+                <div key={subject._id} className={cn( sf10 ? 'text-[0.55rem] leading-3' : 'text-sm ' ,"grid grid-cols-12 w-full items-center text-center font-semibold ")}>
                     <div className={cn(
                         'col-span-5 h-full flex items-center border-x border-x-black border-b-black border-b',
-                        'isMapehComponent' in subject && subject.isMapehComponent ? 'pl-8' : 'pl-4',
+                        'isMapehComponent' in subject && subject.isMapehComponent ? 'pl-5' : 'pl-2',
                         'justify-start'
                     )}>
                         {subject.subjectName}
@@ -236,8 +235,9 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                         {quarters.map((quarter) => {
                             if ('isMapehMain' in subject && subject.isMapehMain) {
                                 const grade = subject.grades[quarter];
+                              
                         return (
-                                <div key={quarter} className='col-span-1 border-b border-black border-r h-full flex justify-center items-center min-h-[2rem]'>
+                                <div key={quarter} className={cn(sf10 ? 'min-h-[1.5rem] text-0.55rem': 'min-h-[2rem] text-sm','col-span-1 border-b border-black border-r h-full flex justify-center items-center ')}>
                                         {grade !== undefined ? Math.round(grade) : ""}
                                     </div>
                                 );
@@ -246,7 +246,7 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                             const intervention = 'interventions' in subject ? subject.interventions?.[quarter] : undefined;
                             const grade = subject.grades?.[quarter];
                             return (
-                                <div key={quarter} className='col-span-1 border-b border-black border-r h-full flex justify-center items-center min-h-[2rem]'>
+                                <div key={quarter} className={cn(sf10 ? ' min-h-[1.5rem] text-[0.55rem]' : 'min-h-[2rem] text-sm','col-span-1 border-b border-black border-r h-full flex justify-center items-center ')}>
                                     {intervention?.grade ? (
                                         <CustomTooltip
                                             trigger={<span>{Math.round(intervention.grade)}</span>}
@@ -260,7 +260,7 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                         })}
                     </div>
                     
-                    <div className='col-span-2 border-b border-black border-r h-full flex justify-center items-center min-h-[2rem]'>
+                    <div className={cn(sf10 ? ' min-h-[1.5rem] text-[0.55rem]' : 'min-h-[2rem] text-sm','col-span-2 border-b border-black border-r h-full flex justify-center items-center ')}>
                         {calculateQuarterlyAverage('isMapehMain' in subject && subject.isMapehMain ?
                             subject.grades :
                             {
@@ -271,8 +271,8 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                             }
                         )}
                     </div>
-                    <div className='col-span-2 border-b border-black border-r h-full flex justify-center items-center min-h-[2rem]'>
-                        {getPassFailStatus(subject)}
+                    <div className={cn(sf10 ? ' min-h-[1.5rem] text-[0.55rem]' : "min-h-[2rem] text-sm", 'col-span-2 border-b border-black border-r h-full flex justify-center items-center')}>
+                        { getPassFailStatus(subject) }
                     </div>
 
                 </div>
@@ -280,11 +280,26 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
 
             {/* General average row */}
             <div className={cn(
-                  sf10 && 'text-[0.55rem] leading-3',
-                "grid grid-cols-12 w-full items-center text-center border-b border-b-black border-l border-l-black font-medium text-sm")}>
-                <div className={cn(sf9 ? "text-sm p-1" : "text-lg", 'col-span-9 border-r border-r-black font-semibold tracking-widest font-serif')}>General Average</div>
-                <div className={cn(sf9 ? "text-sm p-1" : "text-lg", 'col-span-1 h-full border-r-black border-r font-semibold')}>{generalAverage}</div>
-                <div className={cn(sf9 ? "text-sm p-1" : "text-lg", 'col-span-2 h-full border-r-black border-r font-semibold')}>{generalAverage ? generalAverage <= 74 ? "Failed" : "Passed" : null}</div>
+                sf10 && 'text-[0.55rem] leading-3',
+                "grid grid-cols-12 w-full items-center text-center border-b border-b-black border-l border-l-black font-medium text-sm")}
+            >
+                {sf10 && (
+                    <div className={cn('col-span-5 h-full border-r border-r-black pl-5 ')}>
+                        {}
+                    </div>
+                )}
+                <div className={cn(
+                    sf9 ? "text-sm p-1" : "text-lg", 
+                    sf10 ? "col-span-3 text-xs font-semibold italic" : "col-span-8", 
+                    ' border-r border-r-black font-semibold tracking-widest font-serif')}>General Average</div>
+                <div className={cn(
+                    sf9 ? "text-sm p-1" : "text-lg", 
+                    sf10 ? "col-span-2 text-xs" : "col-span-2", 
+                    ' h-full border-r-black border-r font-semibold')}>{generalAverage?.toFixed(0)}</div>
+                <div className={cn(
+                    sf9 ? "text-sm p-1" : "text-lg", 
+                    sf10 ? "col-span-2 text-xs" : "col-span-2", 
+                    ' h-full border-r-black border-r font-semibold')}>{generalAverage ? generalAverage <= 74 ? "Failed" : "Passed" : null}</div>
             </div>
 
             {/* SF9-specific descriptors */}
