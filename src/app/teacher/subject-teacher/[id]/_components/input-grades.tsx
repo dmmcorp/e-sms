@@ -19,9 +19,10 @@ export type DialogType = "highest scores" | string;
 export type Component = "Written Works" | "Performance Tasks" | "Major Exam"
 interface ClassRecordTemplateProps {
   teachingLoad: TeachingLoadType;
+  selectedComponent?: string;
 }
 
-function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
+function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTemplateProps) {
   const highestScores = useQuery(api.highestScores.getScores, {
     loadId: teachingLoad._id,
   });
@@ -40,8 +41,8 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
     gradeWeights.other?.some((weight) => weight.component === "Major Exam") ??
     false;
 
-  const students = useQuery(api.students.sectionStudents,{
-    sectionId:section._id,
+  const students = useQuery(api.students.sectionStudents, {
+    sectionId: section._id,
     teachingLoadId: teachingLoad._id
   })
 
@@ -99,33 +100,33 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
 
   const wwhighestScores = highestScores
     ? highestScores.find((score) => score.componentType === "Written Works")
-        ?.scores
+      ?.scores
     : undefined;
 
   const pthighestScores = highestScores
     ? highestScores.find((score) => score.componentType === "Performance Tasks")
-        ?.scores
+      ?.scores
     : undefined;
 
   const mehighestScores = highestScores
     ? highestScores.find((score) => score.componentType === "Major Exam")
-        ?.scores
+      ?.scores
     : undefined;
 
   const wwTotal = getTotalScore(wwhighestScores);
   const ptTotal = getTotalScore(pthighestScores);
   const meTotal = getTotalScore(mehighestScores);
 
-  const males = !students ? [] : students.filter(student=> student !== null)
+  const males = !students ? [] : students.filter(student => student !== null)
     .filter((student) => student.sex.toLowerCase() === "male")
     .sort((a, b) => a.lastName.localeCompare(b.lastName));
 
-  const females = !students ? [] : students.filter(student=> student !== null)
+  const females = !students ? [] : students.filter(student => student !== null)
     .filter((student) => student.sex.toLowerCase() === "female")
     .sort((a, b) => a.lastName.localeCompare(b.lastName));
 
-  const handleDialogOpen = (component: Component, type: DialogType, student?: StudentScoresType, transmutedGrade?:number, isSubmitted?: boolean | undefined, ) => {
-    if(type === 'highest scores') {
+  const handleDialogOpen = (component: Component, type: DialogType, student?: StudentScoresType, transmutedGrade?: number, isSubmitted?: boolean | undefined,) => {
+    if (type === 'highest scores') {
       setType(type);
       setDialogOpen(true);
       setStudentScores(undefined);
@@ -141,6 +142,10 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
     }
   };
 
+  // Add component name to the header if it's a MAPEH subject
+  const isMapeh = teachingLoad.subjectTaught.subjectName.toLowerCase() === 'mapeh';
+  const componentName = isMapeh ? teachingLoad.subComponent : '';
+
   return (
     <div className="min-w-6xl text-primary">
       <div className="flex w-full ">
@@ -155,6 +160,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
         </h1>
         <h1 className="border w-[25%] px-3 py-1 uppercase border-black  text-[0.6rem] font-semibold text-center">
           {subjectThought.subjectName}
+          {isMapeh && componentName && ` - ${componentName}`}
         </h1>
       </div>
       <div className="flex max-w-full">
@@ -231,18 +237,18 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
         </div>
         {(learningMode?.toLowerCase() === "face to face" ||
           (learningMode?.toLowerCase() === "other" && OthersExam)) && (
-          <div className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
-            <h1 className=" h-full uppercase border border-black border-b-0 border-t-0  text-[0.6rem]flex justify-center items-center  font-semibold text-center">
-              1
-            </h1>
-            <h1 className=" h-full uppercase border border-black border-b-0 border-t-0  text-[0.6rem] flex justify-center items-center  font-semibold text-center">
-              PS
-            </h1>
-            <h1 className=" h-full uppercase border border-black border-b-0 border-t-0  text-[0.6rem] flex justify-center items-center  font-semibold text-center">
-              WS
-            </h1>
-          </div>
-        )}
+            <div className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
+              <h1 className=" h-full uppercase border border-black border-b-0 border-t-0  text-[0.6rem]flex justify-center items-center  font-semibold text-center">
+                1
+              </h1>
+              <h1 className=" h-full uppercase border border-black border-b-0 border-t-0  text-[0.6rem] flex justify-center items-center  font-semibold text-center">
+                PS
+              </h1>
+              <h1 className=" h-full uppercase border border-black border-b-0 border-t-0  text-[0.6rem] flex justify-center items-center  font-semibold text-center">
+                WS
+              </h1>
+            </div>
+          )}
         <h1
           className={cn(
             learningMode === "Face to face" ||
@@ -268,13 +274,13 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
       </div>
       <div
         className="flex max-w-full hover:bg-gray-200 "
-       
+
       >
         <h1 className="w-[3%] uppercase border-x border-x-black border-b-black border-b text-sm font-semibold text-center"></h1>
         <h1 className="w-[22%] uppercase  border-b-black border-b  text-[0.6rem] flex justify-end items-center font-semibold text-right">
           Highest possible score
         </h1>
-        <div  onClick={() => handleDialogOpen("Written Works", "highest scores")} className="w-[27%] uppercase border border-x-0 border-black  text-sm flex justify-center items-center font-semibold text-center">
+        <div onClick={() => handleDialogOpen("Written Works", "highest scores")} className="w-[27%] uppercase border border-x-0 border-black  text-sm flex justify-center items-center font-semibold text-center">
           {Array.from({ length: 10 }).map((_, index) => (
             <h1
               key={index}
@@ -282,10 +288,10 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
             >
               {wwhighestScores
                 ? wwhighestScores.find((ww) => ww.assessmentNo === index + 1)
-                    ?.score === 0
+                  ?.score === 0
                   ? ""
                   : wwhighestScores.find((ww) => ww.assessmentNo === index + 1)
-                      ?.score
+                    ?.score
                 : ""}
             </h1>
           ))}
@@ -302,7 +308,7 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
             )}
           </h1>
         </div>
-        <div  onClick={() => handleDialogOpen("Performance Tasks", "highest scores")} className="w-[28%] hover:bg-gray-200  uppercase border border-black border-x-0  text-sm flex justify-center items-center font-semibold text-center">
+        <div onClick={() => handleDialogOpen("Performance Tasks", "highest scores")} className="w-[28%] hover:bg-gray-200  uppercase border border-black border-x-0  text-sm flex justify-center items-center font-semibold text-center">
           {Array.from({ length: 10 }).map((_, index) => (
             <h1
               key={index}
@@ -310,10 +316,10 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
             >
               {pthighestScores
                 ? pthighestScores.find((pt) => pt.assessmentNo === index + 1)
-                    ?.score === 0
+                  ?.score === 0
                   ? ""
                   : pthighestScores.find((pt) => pt.assessmentNo === index + 1)
-                      ?.score
+                    ?.score
                 : ""}
             </h1>
           ))}
@@ -425,24 +431,24 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
           )}
         ></h1>
       </div>
-      {males.map((student, index)=>{
+      {males.map((student, index) => {
         const fullName = `${student.lastName}, ${student.firstName} ${student.middleName?.charAt(0) ?? ""}`;
-        const wwTotalScore =  calculateTotalScore(student.written.map(w => w.score))
+        const wwTotalScore = calculateTotalScore(student.written.map(w => w.score))
         const wwPercentageScore = calculatePercentageScore(wwTotalScore, wwTotal)
         const wwWeightedScore = calculateWeightedScore(wwPercentageScore, wwGradeWeights ?? 0)
 
-        const ptTotalScore =  calculateTotalScore(student.performance.map(p => p.score))
+        const ptTotalScore = calculateTotalScore(student.performance.map(p => p.score))
         const ptPercentageScore = calculatePercentageScore(ptTotalScore, ptTotal)
         const ptWeightedScore = calculateWeightedScore(ptPercentageScore, ptGradeWeights ?? 0)
 
-        const meTotalScore =  calculateTotalScore(student.exam.map(e => e.score))
+        const meTotalScore = calculateTotalScore(student.exam.map(e => e.score))
         const mePercentageScore = calculatePercentageScore(meTotalScore, meTotal)
         const meWeightedScore = calculateWeightedScore(mePercentageScore, meGradeWeights ?? 0)
 
         const initialGrade = calculateInitialGrade(wwWeightedScore, ptWeightedScore, meWeightedScore)
-        const transmutedGrade = convertToTransmutedGrade(initialGrade, section.gradeLevel, learningMode, subjectThought.category )
+        const transmutedGrade = convertToTransmutedGrade(initialGrade, section.gradeLevel, learningMode, subjectThought.category)
         return (
-          <div 
+          <div
             key={student._id}
             className="flex max-w-full hover:bg-gray-200 "
           >
@@ -453,71 +459,72 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
               {student.lastName}, {student.firstName} {student.middleName?.charAt(0) ?? ""}
             </h1>
 
-          {/* Written works scores  */}
-          <div onClick={()=> {handleDialogOpen("Written Works" ,fullName, student, transmutedGrade, student.isSubmitted)}}  className="w-[27%] uppercase border-b-black border-b  border-l-black text-sm flex justify-center items-center font-semibold text-center">
-            {Array.from({ length: 10 }).map((_, wwindex) => (
-              <h1
-                key={"ww-m" + wwindex}
-                className="w-[7%] h-full uppercase border border-b-0 border-black first:border-l-2   text-[0.6rem] flex justify-center items-center font-semibold text-center"
-              >
-                {student.written[wwindex]?.score === 0 ? "0" :student.written[wwindex]?.score || "" } {/* Display score or empty string */}
+            {/* Written works scores  */}
+            <div onClick={() => { handleDialogOpen("Written Works", fullName, student, transmutedGrade, student.isSubmitted) }} className="w-[27%] uppercase border-b-black border-b  border-l-black text-sm flex justify-center items-center font-semibold text-center">
+              {Array.from({ length: 10 }).map((_, wwindex) => (
+                <h1
+                  key={"ww-m" + wwindex}
+                  className="w-[7%] h-full uppercase border border-b-0 border-black first:border-l-2   text-[0.6rem] flex justify-center items-center font-semibold text-center"
+                >
+                  {student.written[wwindex]?.score === 0 ? "0" : student.written[wwindex]?.score || ""} {/* Display score or empty string */}
+                </h1>
+              ))}
+
+              <h1 className="w-[10%]  h-full border border-b-0 border-black  text-[0.6rem] flex justify-center items-center font-semibold text-center">
+                {wwTotalScore === 0 ? "" : wwTotalScore}
               </h1>
-            ))}
-  
-            <h1 className="w-[10%]  h-full border border-b-0 border-black  text-[0.6rem] flex justify-center items-center font-semibold text-center">
-              {wwTotalScore === 0 ? "": wwTotalScore}
-            </h1>
-            <h1 className="w-[10%]  h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
-              {wwPercentageScore === 0 ? "" :wwPercentageScore.toFixed(1)}
-            </h1>
-            <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
-              {wwWeightedScore === 0 ? "" :wwWeightedScore.toFixed(1)}
-            </h1>
-          </div>
-          <div onClick={()=> {handleDialogOpen("Performance Tasks" ,fullName, student, transmutedGrade, student.isSubmitted)}} className="w-[28%] uppercase border-b-black border-b text-sm flex justify-center items-center font-semibold text-center">
-            {Array.from({ length: 10 }).map((_, ptindex) => (
-              <h1
-                key={"pt-m" + ptindex}
-                className="w-[7%] h-full uppercase border border-b-0 border-black  text-[0.6rem] flex justify-center items-center font-semibold text-center"
-              >
-                {student.performance[ptindex]?.score === 0 ? "0" :student.performance[ptindex]?.score || "" } {/* Display score or empty string */}
+              <h1 className="w-[10%]  h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
+                {wwPercentageScore === 0 ? "" : wwPercentageScore.toFixed(1)}
               </h1>
-            ))}
-            <h1 className="w-[10%] h-full border border-b-0 border-black  text-[0.6rem] flex justify-center items-center font-semibold text-center">
-              {ptTotalScore === 0 ? "": ptTotalScore}
-            </h1>
-            <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
-              {ptPercentageScore === 0 ? "" : ptPercentageScore.toFixed(1)}
-            </h1>
-            <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
-              {ptPercentageScore === 0 ? "" : ptPercentageScore.toFixed(1)}
-            </h1>
-          </div>
-          {learningMode?.toLowerCase() === "face to face" && (
-          <div onClick={()=> {handleDialogOpen("Major Exam" ,fullName, student, transmutedGrade, student.isSubmitted)}} className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
-            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
-            {meTotalScore === 0 ? "": meTotalScore}
-            </h1>
-            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
-              {mePercentageScore === 0 ? "" : mePercentageScore.toFixed(1)}
-            </h1>
-            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
-              {mePercentageScore === 0 ? "" : mePercentageScore.toFixed(1)}
-            </h1>
-          </div>
-          )}
-          <div
-            className={cn(
-              learningMode === "Face to face" ? "w-[12%]": "w-[20%]" ,
-              " uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-2 justify-center items-center font-semibold text-center"
+              <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
+                {wwWeightedScore === 0 ? "" : wwWeightedScore.toFixed(1)}
+              </h1>
+            </div>
+            <div onClick={() => { handleDialogOpen("Performance Tasks", fullName, student, transmutedGrade, student.isSubmitted) }} className="w-[28%] uppercase border-b-black border-b text-sm flex justify-center items-center font-semibold text-center">
+              {Array.from({ length: 10 }).map((_, ptindex) => (
+                <h1
+                  key={"pt-m" + ptindex}
+                  className="w-[7%] h-full uppercase border border-b-0 border-black  text-[0.6rem] flex justify-center items-center font-semibold text-center"
+                >
+                  {student.performance[ptindex]?.score === 0 ? "0" : student.performance[ptindex]?.score || ""} {/* Display score or empty string */}
+                </h1>
+              ))}
+              <h1 className="w-[10%] h-full border border-b-0 border-black  text-[0.6rem] flex justify-center items-center font-semibold text-center">
+                {ptTotalScore === 0 ? "" : ptTotalScore}
+              </h1>
+              <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
+                {ptPercentageScore === 0 ? "" : ptPercentageScore.toFixed(1)}
+              </h1>
+              <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
+                {ptPercentageScore === 0 ? "" : ptPercentageScore.toFixed(1)}
+              </h1>
+            </div>
+            {learningMode?.toLowerCase() === "face to face" && (
+              <div onClick={() => { handleDialogOpen("Major Exam", fullName, student, transmutedGrade, student.isSubmitted) }} className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
+                <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
+                  {meTotalScore === 0 ? "" : meTotalScore}
+                </h1>
+                <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
+                  {mePercentageScore === 0 ? "" : mePercentageScore.toFixed(1)}
+                </h1>
+                <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
+                  {mePercentageScore === 0 ? "" : mePercentageScore.toFixed(1)}
+                </h1>
+              </div>
             )}
-          >
-            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "": initialGrade.toFixed(1)}</h1>
-            <h1 className={cn(transmutedGrade <= 74 && "text-red-500","h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{transmutedGrade === 60 ? "": transmutedGrade.toFixed(0)}</h1>
+            <div
+              className={cn(
+                learningMode === "Face to face" ? "w-[12%]" : "w-[20%]",
+                " uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-2 justify-center items-center font-semibold text-center"
+              )}
+            >
+              <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "" : initialGrade.toFixed(1)}</h1>
+              <h1 className={cn(transmutedGrade <= 74 && "text-red-500", "h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{transmutedGrade === 60 ? "" : transmutedGrade.toFixed(0)}</h1>
+            </div>
           </div>
-          </div>
-      )})}
-    
+        )
+      })}
+
 
       {/* Females */}
       <div className="flex max-w-full bg-gray-300 ">
@@ -548,46 +555,46 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
           <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.6rem] flex justify-center items-center font-semibold text-center"></h1>
         </div>
         {learningMode?.toLowerCase() === "face to face" && (
-        <div className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
-          <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center"></h1>
-          <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center"></h1>
-          <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center"></h1>
-        </div>
+          <div className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
+            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center"></h1>
+            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center"></h1>
+            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center"></h1>
+          </div>
         )}
 
         <h1
           className={cn(
-            learningMode === "Face to face" ? "w-[6%] ": "w-[10%] ",
+            learningMode === "Face to face" ? "w-[6%] " : "w-[10%] ",
             "h-full uppercase border  border-black border-b  text-xs flex justify-center items-start  font-semibold text-center"
           )}
         ></h1>
         <h1
           className={cn(
-            learningMode === "Face to face" ? "w-[6%] ": "w-[10%] ",
+            learningMode === "Face to face" ? "w-[6%] " : "w-[10%] ",
             "h-full uppercase border  border-black border-b   text-xs flex justify-center items-start font-semibold text-center"
           )}
         ></h1>
       </div>
-      {females.map((student, index)=>{
+      {females.map((student, index) => {
         const fullName = `${student.lastName}, ${student.firstName} ${student.middleName?.charAt(0) ?? ""}`;
-        const wwTotalScore =  calculateTotalScore(student.written.map(w => w.score))
+        const wwTotalScore = calculateTotalScore(student.written.map(w => w.score))
         const wwPercentageScore = calculatePercentageScore(wwTotalScore, wwTotal)
         const wwWeightedScore = calculateWeightedScore(wwPercentageScore, wwGradeWeights ?? 0)
 
-        const ptTotalScore =  calculateTotalScore(student.performance.map(p => p.score))
+        const ptTotalScore = calculateTotalScore(student.performance.map(p => p.score))
         const ptPercentageScore = calculatePercentageScore(ptTotalScore, ptTotal)
         const ptWeightedScore = calculateWeightedScore(ptPercentageScore, ptGradeWeights ?? 0)
 
-        const meTotalScore =  calculateTotalScore(student.exam.map(e => e.score))
+        const meTotalScore = calculateTotalScore(student.exam.map(e => e.score))
         const mePercentageScore = calculatePercentageScore(meTotalScore, meTotal)
         const meWeightedScore = calculateWeightedScore(mePercentageScore, meGradeWeights ?? 0)
 
         const initialGrade = calculateInitialGrade(wwWeightedScore, ptWeightedScore, meWeightedScore)
-        const transmutedGrade = convertToTransmutedGrade(initialGrade, section.gradeLevel, learningMode, subjectThought.category )
+        const transmutedGrade = convertToTransmutedGrade(initialGrade, section.gradeLevel, learningMode, subjectThought.category)
         return (
-          <div 
+          <div
             key={student._id}
-           
+
             className="flex max-w-full hover:bg-gray-200 "
           >
             <h1 className="w-[3%] uppercase border-x-black border-x border-b-black border-b text-sm font-semibold text-center">
@@ -597,73 +604,74 @@ function ClassRecordTemplate({ teachingLoad }: ClassRecordTemplateProps) {
               {student.lastName}, {student.firstName} {student.middleName?.charAt(0) ?? ""}
             </h1>
 
-          {/* Written works scores  */}
-          <div 
-            onClick={()=> {handleDialogOpen("Written Works" ,fullName, student, transmutedGrade, student.isSubmitted)}}
-            className="w-[27%] uppercase border-b-black border-b  border-l-black text-sm flex justify-center items-center font-semibold text-center">
-            {Array.from({ length: 10 }).map((_, index) => (
-              <h1
-                key={"ww-f" + index}
-                className="w-[7%] h-full uppercase border border-b-0 border-black first:border-l-2   text-[0.6rem] flex justify-center items-center font-semibold text-center"
-              >
-                {student.written[index]?.score === 0 ? "0" :student.written[index]?.score || "" } {/* Display score or empty string */}
+            {/* Written works scores  */}
+            <div
+              onClick={() => { handleDialogOpen("Written Works", fullName, student, transmutedGrade, student.isSubmitted) }}
+              className="w-[27%] uppercase border-b-black border-b  border-l-black text-sm flex justify-center items-center font-semibold text-center">
+              {Array.from({ length: 10 }).map((_, index) => (
+                <h1
+                  key={"ww-f" + index}
+                  className="w-[7%] h-full uppercase border border-b-0 border-black first:border-l-2   text-[0.6rem] flex justify-center items-center font-semibold text-center"
+                >
+                  {student.written[index]?.score === 0 ? "0" : student.written[index]?.score || ""} {/* Display score or empty string */}
+                </h1>
+              ))}
+
+              <h1 className="w-[10%]  h-full border border-b-0 border-black  text-[0.6rem] flex justify-center items-center font-semibold text-center">
+                {wwTotalScore === 0 ? "" : wwTotalScore}
               </h1>
-            ))}
-  
-            <h1 className="w-[10%]  h-full border border-b-0 border-black  text-[0.6rem] flex justify-center items-center font-semibold text-center">
-              {wwTotalScore === 0 ? "": wwTotalScore}
-            </h1>
-            <h1 className="w-[10%]  h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
-              {wwPercentageScore === 0 ? "" :wwPercentageScore.toFixed(1)}
-            </h1>
-            <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
-              {wwWeightedScore === 0 ? "" :wwWeightedScore.toFixed(1)}
-            </h1>
-          </div>
-          <div onClick={()=> {handleDialogOpen("Performance Tasks" ,fullName, student, transmutedGrade, student.isSubmitted)}} className="w-[28%] uppercase border-b-black border-b text-sm flex justify-center items-center font-semibold text-center">
-            {Array.from({ length: 10 }).map((_, aindex) => (
-              <h1
-                key={"pt-f" + aindex}
-                className="w-[7%] h-full uppercase border border-b-0 border-black  text-[0.6rem] flex justify-center items-center font-semibold text-center"
-              >
-                {student.written[index]?.score === 0 ? "0" :student.written[index]?.score || "" } {/* Display score or empty string */}
+              <h1 className="w-[10%]  h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
+                {wwPercentageScore === 0 ? "" : wwPercentageScore.toFixed(1)}
               </h1>
-            ))}
-            <h1 className="w-[10%] h-full border border-b-0 border-black  text-[0.6rem] flex justify-center items-center font-semibold text-center">
-              {ptTotalScore === 0 ? "": ptTotalScore}
-            </h1>
-            <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
-              {ptPercentageScore === 0 ? "" : ptPercentageScore.toFixed(1)}
-            </h1>
-            <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
-              {ptPercentageScore === 0 ? "" : ptPercentageScore.toFixed(1)}
-            </h1>
-          </div>
-          {learningMode?.toLowerCase() === "face to face" && (
-          <div  onClick={()=> {handleDialogOpen("Major Exam" ,fullName, student, transmutedGrade, student.isSubmitted)}} className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
-            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
-              {meTotalScore === 0 ? "": meTotalScore}
-            </h1>
-            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
-              {mePercentageScore === 0 ? "" : mePercentageScore.toFixed(1)}
-            </h1>
-            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
-              {mePercentageScore === 0 ? "" : mePercentageScore.toFixed(1)}
-            </h1>
-          </div>
-          )}
-          <div
-            className={cn(
-              learningMode === "Face to face" ? "w-[12%]": "w-[20%]" ,
-              " uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-2 justify-center items-center font-semibold text-center"
+              <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
+                {wwWeightedScore === 0 ? "" : wwWeightedScore.toFixed(1)}
+              </h1>
+            </div>
+            <div onClick={() => { handleDialogOpen("Performance Tasks", fullName, student, transmutedGrade, student.isSubmitted) }} className="w-[28%] uppercase border-b-black border-b text-sm flex justify-center items-center font-semibold text-center">
+              {Array.from({ length: 10 }).map((_, aindex) => (
+                <h1
+                  key={"pt-f" + aindex}
+                  className="w-[7%] h-full uppercase border border-b-0 border-black  text-[0.6rem] flex justify-center items-center font-semibold text-center"
+                >
+                  {student.written[index]?.score === 0 ? "0" : student.written[index]?.score || ""} {/* Display score or empty string */}
+                </h1>
+              ))}
+              <h1 className="w-[10%] h-full border border-b-0 border-black  text-[0.6rem] flex justify-center items-center font-semibold text-center">
+                {ptTotalScore === 0 ? "" : ptTotalScore}
+              </h1>
+              <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
+                {ptPercentageScore === 0 ? "" : ptPercentageScore.toFixed(1)}
+              </h1>
+              <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
+                {ptPercentageScore === 0 ? "" : ptPercentageScore.toFixed(1)}
+              </h1>
+            </div>
+            {learningMode?.toLowerCase() === "face to face" && (
+              <div onClick={() => { handleDialogOpen("Major Exam", fullName, student, transmutedGrade, student.isSubmitted) }} className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
+                <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
+                  {meTotalScore === 0 ? "" : meTotalScore}
+                </h1>
+                <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
+                  {mePercentageScore === 0 ? "" : mePercentageScore.toFixed(1)}
+                </h1>
+                <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
+                  {mePercentageScore === 0 ? "" : mePercentageScore.toFixed(1)}
+                </h1>
+              </div>
             )}
-          >
-            <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "": initialGrade.toFixed(1)}</h1>
-            <h1 className={cn(transmutedGrade <= 74 && "text-red-500","h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{transmutedGrade === 60 ? "": transmutedGrade.toFixed(0)}</h1>
+            <div
+              className={cn(
+                learningMode === "Face to face" ? "w-[12%]" : "w-[20%]",
+                " uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-2 justify-center items-center font-semibold text-center"
+              )}
+            >
+              <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "" : initialGrade.toFixed(1)}</h1>
+              <h1 className={cn(transmutedGrade <= 74 && "text-red-500", "h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{transmutedGrade === 60 ? "" : transmutedGrade.toFixed(0)}</h1>
+            </div>
           </div>
-          </div>
-      )})}
-      
+        )
+      })}
+
       <InputDialog
         dialogOpen={dialogOpen}
         setDialogOpen={setDialogOpen}

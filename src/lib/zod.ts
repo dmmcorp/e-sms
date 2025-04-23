@@ -28,23 +28,23 @@ const gradeWeightSchema = z.object({
 
 export const UserForm = z.object({
   // BASIC USER INFORMATION
-  role: z.enum([
-    "admin",
-    "subject-teacher",
-    "adviser",
-    "adviser/subject-teacher",
-    "principal",
-    "registrar",
+  role: z.union([
+    z.literal("admin"),
+    z.literal("subject-teacher"),
+    z.literal("adviser"),
+    z.literal("adviser/subject-teacher"),
+    z.literal("principal"),
+    z.literal("registrar"),
   ]),
   fullName: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters long"),
 
   // FOR PRINCIPAL
-  principalType: z.enum([
-    "junior-department",
-    "senior-department",
-    "entire-school",
+  principalType: z.union([
+    z.literal("junior-department"),
+    z.literal("senior-department"),
+    z.literal("entire-school"),
   ]).optional(),
 
   // FOR TEACHERS
@@ -54,8 +54,19 @@ export const UserForm = z.object({
     sectionId: z.string(),
     quarter: z.array(z.enum(quarters)),
     semester: z.array(z.enum(semesters)).optional(),
+    isMapeh: z.boolean().optional(),
+    mapehComponent: z.union([
+      z.literal('Music'),
+      z.literal('Arts'),
+      z.literal('Physical Education'),
+      z.literal('Health'),
+    ]).optional(),
     gradeWeights: gradeWeightSchema,
-    category: z.enum(["core", "specialized", "applied"]).optional(),
+    category: z.union([
+      z.literal('core'),
+      z.literal('specialized'),
+      z.literal('applied'),
+    ]).optional(),
   })).optional(),
 
   // FOR ADVISERS

@@ -19,7 +19,7 @@ function SubjectThought() {
   const [selectedSubject, setSelectedSubject] = useState<SubjectTypes | undefined>()
 
   // Show a loading state while the subjects are being fetched
-  if (!subjects) return <Loading/>
+  if (!subjects) return <Loading />
 
   // Show a message if no subjects are found
   if (subjects.length === 0) {
@@ -31,10 +31,10 @@ function SubjectThought() {
   }
 
   const handleSelectSubject = (subject: SubjectTypes) => {
-    setSelectedSubject(subject) 
+    setSelectedSubject(subject)
 
     setSelectedQtr(subject.quarter?.[0])
-    if(subject.semester){
+    if (subject.semester) {
       setSelectedSem(subject.semester?.[0])
     }
     else {
@@ -51,10 +51,10 @@ function SubjectThought() {
           <CardContent>
             {/* Render a button for each subject */}
             {subjects.map((sub) => (
-              <Button 
-                variant={'ghost'} 
-                onClick={() => handleSelectSubject(sub)} 
-                key={sub._id} 
+              <Button
+                variant={'ghost'}
+                onClick={() => handleSelectSubject(sub)}
+                key={sub._id}
                 className={cn(
                   selectedSubject?._id === sub._id && "bg-primary text-white hover:bg-primary/80 hover:text-white",
                   "w-full hover:cursor-pointer"
@@ -66,15 +66,15 @@ function SubjectThought() {
           </CardContent>
         </ScrollArea>
       </Card>
-      
+
       {/* Main content area to display the section list for the selected subject */}
       <div className="flex-1 p-5">
-        <SectionList 
-          selectedSubject={selectedSubject} 
-          selectedSem={selectedSem} 
-          setSelectedSem={setSelectedSem} 
-          selectedQtr={selectedQtr} 
-          setSelectedQtr={setSelectedQtr} 
+        <SectionList
+          selectedSubject={selectedSubject}
+          selectedSem={selectedSem}
+          setSelectedSem={setSelectedSem}
+          selectedQtr={selectedQtr}
+          setSelectedQtr={setSelectedQtr}
         />
       </div>
     </div>

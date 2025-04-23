@@ -5,8 +5,8 @@ import { asyncMap } from "convex-helpers";
 
 
 export const getSubjects = query({
-    handler: async(ctx) =>{
-        
+    handler: async (ctx) => {
+
         const teacherId = await getAuthUserId(ctx);
         const subjectTaught = await ctx.db.query("subjectTaught").filter(q => q.eq(q.field('teacherId'), teacherId)).collect();
 

@@ -18,18 +18,18 @@ function Page() {
     id: id as Id<'teachingLoad'>
   })
 
-  if(!teachingLoad) return <Loading/>
+  if (!teachingLoad) return <Loading />
   return (
     <Card className='my-5 md:my-10 flex-1 mx-auto container '>
       <CardHeader>
-      <Button variant="ghost" size="icon" onClick={() => router.back()}>
-        <ArrowLeft className="h-4 w-4" />
-      </Button>
-      
-        <SectionInfo teachingLoad={teachingLoad}/>
+        <Button variant="ghost" size="icon" onClick={() => router.push('/teacher/subject-teacher')}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+
+        <SectionInfo teachingLoad={teachingLoad} />
       </CardHeader>
       <CardContent className='p-0 md:px-5'>
-        <ClassrecordTabs teachingLoad={teachingLoad}/>
+        <ClassrecordTabs teachingLoad={teachingLoad} />
       </CardContent>
     </Card>
   )

@@ -227,8 +227,16 @@ const schema = defineSchema({
     .searchIndex("search_name", {
       searchField: "firstName",
       filterFields: ["isArchived"]
+    })
+    .searchIndex("search_full_name", {
+      searchField: "lastName",
+      filterFields: ["isArchived"]
+    })
+    .searchIndex("search_middle_name", {
+      searchField: "middleName",
+      filterFields: ["isArchived"]
     }),
-    
+
   interventions: defineTable({
     name: v.string(),
     description: v.optional(v.string())
@@ -401,13 +409,13 @@ const schema = defineSchema({
     dateSubmitted: v.optional(v.string()),
     promotionType: v.optional(v.string())
   }),
-  
+
   promotion: defineTable({
     finalGradeId: v.id('finalGrades'),
     studentId: v.id('students'),
     type: v.string()
   }),
-  
+
 });
 
 

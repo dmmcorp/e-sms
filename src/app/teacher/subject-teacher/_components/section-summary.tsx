@@ -31,7 +31,7 @@ function SectionSummary({
   });
 
   // Display a loading message while the data is being fetched
-  if (!loads) return <Loading/>;
+  if (!loads) return <Loading />;
 
   // Display a message if there is no assigned sections
   if (loads?.length === 0) {
@@ -39,7 +39,7 @@ function SectionSummary({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-1">
       {loads.map((load) => (
         <Card key={load._id} className="">
           <CardContent>
@@ -51,9 +51,17 @@ function SectionSummary({
                 <h1 className="text-lg md:text-xl  font-semibold">
                   {load.subject?.gradeLevel}
                 </h1>
-                <h1 className="text-lg md:text-xl text-right font-semibold">
-                  {load.section?.name}
-                </h1>
+                <div className="text-right">
+                  <h1 className="text-lg md:text-xl font-semibold">
+                    {load.section?.name}
+                  </h1>
+                  {load.subject?.subjectName.toLowerCase() === 'mapeh' && load.subComponent && (
+                    <div className="flex items-center justify-end gap-2 mt-1">
+                      <div className="h-2 w-2 rounded-full bg-primary"></div>
+                      <span className="text-sm text-muted-foreground">{load.subComponent}</span>
+                    </div>
+                  )}
+                </div>
               </div>
               <Separator className="my-2" />
 
@@ -65,13 +73,13 @@ function SectionSummary({
                     trigger={<h1 className="">Dropped: {load.droppedStud.length}</h1>}
                     content={
                       <div className="flex items-center justify-center min-h-56 min-w-56">
-                        {load.droppedStud.length !== 0 ? load.droppedStud.map((student,index)=>(
-                            <h3 key={"dropped" + student.student?._id}>{index + 1}.{student.student?.lastName}, {student.student?.firstName} {student.student?.middleName?.charAt(0) || ""} </h3>
-                          )): (
-                            <div className="flex items-center justify-center text-center w-full h-full">
-                              No students has been dropped for this quarter.
-                            </div>
-                          )}
+                        {load.droppedStud.length !== 0 ? load.droppedStud.map((student, index) => (
+                          <h3 key={"dropped" + student.student?._id}>{index + 1}.{student.student?.lastName}, {student.student?.firstName} {student.student?.middleName?.charAt(0) || ""} </h3>
+                        )) : (
+                          <div className="flex items-center justify-center text-center w-full h-full">
+                            No students has been dropped for this quarter.
+                          </div>
+                        )}
                       </div>
                     }
                   />

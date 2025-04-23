@@ -16,13 +16,13 @@ interface JuniorHighProps {
 
 
 function JuniorHigh({ sectionId, selectedQtr }: JuniorHighProps) {
-  
+
   const loads = useQuery(api.teachingLoad.getLoadUsingSectionId, {
     sectionId: sectionId,
     quarter: selectedQtr,
   });
 
-  
+
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10">
@@ -41,6 +41,7 @@ function JuniorHigh({ sectionId, selectedQtr }: JuniorHighProps) {
                     <Chart
                       classRecords={load.classRecords}
                       label={load.subject.subjectName}
+                      subComponent={load.subComponent}
                     />
                   </div>
                 </div>

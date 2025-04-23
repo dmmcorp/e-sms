@@ -54,7 +54,7 @@ export type PrincipalDepartmentType =
   "senior-department" |
   "entire-school";
 
-  
+
 export type AssessmentNoType = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10
 
 export type SectionType = Doc<'sections'>;
@@ -71,7 +71,7 @@ interface subjectThoughtWithTeacherInfo extends Doc<'subjectTaught'> {
   teacher: Doc<'users'> | null
 }
 
-interface SubjectWithDetailsTypes  {
+interface SubjectWithDetailsTypes {
   subject: Doc<'subjectTaught'> | null;
 
 }
@@ -87,7 +87,7 @@ export interface StudentWithEnrollment extends Doc<'students'> {
   currentSection: EnrollmentWithSection | undefined
 }
 
-export interface ClassRecordsWithTeachingLoad extends Doc<'classRecords'>{
+export interface ClassRecordsWithTeachingLoad extends Doc<'classRecords'> {
   teachingLoad: Doc<'teachingLoad'> | null
 }
 export interface StudentWithGrades extends Doc<'students'> {
@@ -122,7 +122,9 @@ export type GradeWeights = {
   other?: OtherComponent[];
 };
 
-export type SubjectTaughtQueryResult = {
+export type MapehComponentType = 'Music' | 'Arts' | 'Physical Education' | 'Health';
+
+export interface SubjectTaughtQueryResult {
   id: string;
   subjectName: string;
   gradeLevel: GradeLevelsTypes;
@@ -130,9 +132,12 @@ export type SubjectTaughtQueryResult = {
   quarter: string[];
   semester: string[];
   gradeWeights: GradeWeights;
-};
+  category?: 'core' | 'specialized' | 'applied';
+  isMapeh?: boolean;
+  mapehComponent?: MapehComponentType;
+}
 
-export interface StudentScoresType extends Doc<'students'>{
+export interface StudentScoresType extends Doc<'students'> {
   written: Doc<'writtenWorks'>[];
   enrollment: Doc<'enrollment'> | null;
   performance: Doc<'performanceTasks'>[];
@@ -141,7 +146,7 @@ export interface StudentScoresType extends Doc<'students'>{
   isSubmitted: boolean | undefined
 }
 
-export interface StudentNeedsIntervention extends Doc<'students'>{
+export interface StudentNeedsIntervention extends Doc<'students'> {
   classRecord: Doc<'classRecords'> | null
 }
 
