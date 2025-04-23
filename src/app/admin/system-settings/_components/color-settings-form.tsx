@@ -48,50 +48,54 @@ export function ColorSettingsForm() {
   };
 
   return (
-    <Card className="max-w-md">
-      <CardHeader>
-        <CardTitle>Theme Settings</CardTitle>
-        <CardDescription>
-          Customize the primary color for all users in the system.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="primaryColor">Primary Color</Label>
-          <div className="flex items-center gap-4">
-            <Input
-              id="primaryColor"
-              type="text"
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-              placeholder="#0f172a"
-            />
-            <Input
-              type="color"
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-              className="w-12 h-10 p-1 cursor-pointer"
-            />
-          </div>
-        </div>
+    <div className="container mx-auto py-10">
+      <h1 className="text-3xl font-bold mb-6">System Settings</h1>
 
-        <div className="mt-6">
-          <h3 className="text-sm font-medium mb-2">Preview:</h3>
-          <div className="flex flex-wrap gap-2">
-            <div
-              className="w-24 h-10 rounded"
-              style={{ backgroundColor: color }}
-            ></div>
-            <Button style={{ backgroundColor: color }}>Button</Button>
-            <Button variant="outline" style={{ borderColor: color, color }}>
-              Outline
-            </Button>
+      <Card className="max-w-md">
+        <CardHeader>
+          <CardTitle>Theme Settings</CardTitle>
+          <CardDescription>
+            Customize the primary color for all users in the system.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="primaryColor">Primary Color</Label>
+            <div className="flex items-center gap-4">
+              <Input
+                id="primaryColor"
+                type="text"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                placeholder="#0f172a"
+              />
+              <Input
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="w-12 h-10 p-1 cursor-pointer"
+              />
+            </div>
           </div>
-        </div>
-      </CardContent>
-      <CardFooter>
-        <Button onClick={handleSave}>Save Changes</Button>
-      </CardFooter>
-    </Card>
+
+          <div className="mt-6">
+            <h3 className="text-sm font-medium mb-2">Preview:</h3>
+            <div className="flex flex-wrap gap-2">
+              <div
+                className="w-24 h-10 rounded"
+                style={{ backgroundColor: color }}
+              ></div>
+              <Button style={{ backgroundColor: color }}>Button</Button>
+              <Button variant="outline" style={{ borderColor: color, color }}>
+                Outline
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={handleSave}>Save Changes</Button>
+        </CardFooter>
+      </Card>
+    </div>
   );
 }
