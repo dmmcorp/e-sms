@@ -662,3 +662,17 @@ export const getStudentSubjectsByEnrollment = query({
         };
     }
 });
+
+export const getStudentSectionId = query({
+    args: {
+        studentId: v.id('students')
+    },
+    handler: async (ctx, args) => {
+        const sectionStudent = await ctx.db
+            .query('sectionStudents')
+            .withIndex('by_studentId', q => q.eq('studentId', args.studentId))
+            .first();
+
+        return sectionStudent?._id;
+    }
+});

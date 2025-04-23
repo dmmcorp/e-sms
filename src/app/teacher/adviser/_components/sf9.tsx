@@ -18,25 +18,37 @@ import SrGradesTemplate from "./shs-grade-template"
 import InputValues from "./input-values"
 interface SF9Props {
   sectionStudentId: Id<'sectionStudents'>
+  readOnly?: boolean
+  componentRef?: React.RefObject<HTMLDivElement>
+  onTabChange?: (tab: string) => void
 }
 
 export default function SF9({
   sectionStudentId,
+  readOnly = false,
+  componentRef,
+  onTabChange,
 }: SF9Props) {
   const [activeTab, setActiveTab] = useState("front")
   const [valuesDialog, setValuesDialog] = useState<boolean>(false);
   const student = useQuery(api.students.getStudentSection, { sectionStudentId: sectionStudentId })
-  const componentRef = useRef(null);
+  const localComponentRef = useRef(null);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    onTabChange?.(value);
+  };
 
     const gradeLevel = student?.sectionDoc?.gradeLevel
     const isSHS = gradeLevel === "Grade 11" || gradeLevel === "Grade 12" 
 
-  const reactToPrintContent = () => {
-    return componentRef.current;
-  };
+    const reactToPrintContent = () => {
+      return (componentRef || localComponentRef).current;
+    };
 
   const handlePrint = useReactToPrint({
-    documentTitle: `School form 9`,
+    documentTitle: `School form 9 - ${activeTab === 'front' ? 'Front' : 'Back'}`,
+
 
   });
 
@@ -45,19 +57,20 @@ export default function SF9({
 
   return (
     <div className="w-full max-w-[1100px] mx-auto p-4 bg-white">
-      <Tabs defaultValue="front" className="w-full" onValueChange={setActiveTab}>
+       <Tabs defaultValue="front" className="w-full" onValueChange={handleTabChange}>
         <TabsList className="grid w-[200px] grid-cols-2 mb-6">
           <TabsTrigger value="front">Front</TabsTrigger>
           <TabsTrigger value="back">Back</TabsTrigger>
         </TabsList>
 
         <TabsContent value='front'>
-          <div ref={componentRef}>
+          <div ref={componentRef || localComponentRef}>
             <SF9FrontTemplate student={student} />
           </div>
         </TabsContent>
 
         <TabsContent value="back" className="mt-0">
+          <div ref={componentRef || localComponentRef}>
           {isSHS ? (
             <Card className="border-2 p-6 grid grid-cols-2 gap-4">
               <div>
@@ -109,6 +122,7 @@ export default function SF9({
               />
             </Card>
           )}
+          </div>
         </TabsContent>
       </Tabs>
     </div>
