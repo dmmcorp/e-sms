@@ -17,24 +17,19 @@ export const getClassRecords = query({
 export const createClassRecords = internalMutation({
     args:{
         teachingLoadId: v.id('teachingLoad'),
+        studentId: v.id('students')
     },
     handler: async(ctx,args) =>{
         const load = await ctx.db.get(args.teachingLoadId)
         if(load === null) return 
-
-        const sectionId = load.sectionId;
+        
         const loadId = load._id;
 
-        const students = await ctx.db.query('sectionStudents')
-            .withIndex('by_sectionId', (q)=> q.eq("sectionId", sectionId))
-            .collect();
-
-        await asyncMap(students, async(student)=>{
-            await ctx.db.insert('classRecords',{
-                teachingLoadId: loadId,
-                studentId: student.studentId,
-            })
+        await ctx.db.insert('classRecords',{
+            teachingLoadId: loadId,
+            studentId: args.studentId,
         })
+        
         
     }
 });

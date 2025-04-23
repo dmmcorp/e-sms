@@ -160,3 +160,47 @@ export interface StudentSF10Types extends Doc<'students'> {
   currentSection: Doc<'sections'> | null;
   studentGrades: StudentGradesTypes[];
 }
+
+
+
+export type Quarter = "1st" | "2nd" | "3rd" | "4th";
+export type QuarterGrades = Record<Quarter, number | undefined>;
+export type QuarterAverages = Record<Quarter, number>;
+export type ValidCounts = Record<Quarter, number>;
+
+export type SubjectCategory = 'core' | 'specialized' | 'applied';
+
+export interface BaseSubject {
+  _id: string;
+  subjectName: string;
+  grades: QuarterGrades;
+}
+
+export interface MapehComponent extends BaseSubject {
+  interventions?: {
+    [key in Quarter]?: {
+      grade: number;
+      remarks: string;
+      used: string[];
+    };
+  };
+  isMapehComponent?: boolean;
+}
+
+export interface MapehMainSubject extends BaseSubject {
+  isMapehMain: boolean;
+}
+
+export interface ShsSubject extends BaseSubject {
+  category: SubjectCategory;
+  semester: SemesterType[];
+  interventions?: {
+    [key in Quarter]?: {
+      grade: number;
+      remarks: string;
+      used: string[];
+    };
+  };
+}
+
+export type SubjectType = MapehComponent | MapehMainSubject | ShsSubject;

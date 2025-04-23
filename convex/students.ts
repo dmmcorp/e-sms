@@ -4,7 +4,7 @@ import { asyncMap } from "convex-helpers";
 import { gradeLevel } from "./schema";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { Doc, Id } from "./_generated/dataModel";
-import { GradeLevelsTypes, SemesterType } from "../src/lib/types";
+import { Quarter, QuarterGrades } from "../src/lib/types";
 
 export const getStudents = query({
     args: {
@@ -359,6 +359,7 @@ export const getSubjects = query({
         studentId: v.id('students')
     },
     handler: async(ctx, args) =>{
+        
       const subjectsWithGrades = await getStudentSubjects(args.sectionSubjects, ctx, args.studentId);
       const filterSubjectsWithGrades = subjectsWithGrades?.filter(s => s !== null)
       return filterSubjectsWithGrades;
@@ -396,66 +397,34 @@ const getStudentSubjects = async(
     ctx: QueryCtx, // Convex context
     studentId: Id<'students'> // ID of the student
 ) => {
-    // If no section subjects are provided, return early
     if (!sectionSubjects) return;
+    // Get all class records for the student
+    const classRecords = await ctx.db.query('classRecords')
+        .withIndex('by_studentId')
+        .filter(q => q.eq(q.field('studentId'), studentId))
+        .collect();
 
-    // Fetch all class records for the student
-    const classsRecords = await ctx.db.query('classRecords').withIndex('by_studentId', (q) => q.eq('studentId', studentId)).collect();
-
-    // Map class records to include teaching load details
-    const ClassRecordsWithTeachingLoad = await asyncMap(classsRecords, async(record) => { 
+    // Get all teaching loads for these class records
+    const classRecordsWithTeachingLoad = await asyncMap(classRecords, async (record) => {
         const load = await ctx.db.get(record.teachingLoadId);
         if (!load) return null;
 
         return {
             ...record,
             teachingLoad: load
-        }; 
+        };
     });
 
     // Filter out null values from the mapped class records
-    const filteredCR = ClassRecordsWithTeachingLoad.filter(r => r !== null);
+    const filteredCR = classRecordsWithTeachingLoad.filter(r => r !== null);
 
-    // Map section subjects to include grades and interventions
-    const subjectWithGrades = await asyncMap(sectionSubjects, async(subjectId) => {
+    // Process each subject
+    const subjectWithGrades = await asyncMap(sectionSubjects, async (subjectId) => {
         const subject = await ctx.db.get(subjectId);
-      
-        // If the subject does not exist, skip it
         if (!subject) return null;
 
-        // Define the type for grades
-        type QuarterGrades = {
-            "1st": number | undefined;
-            "2nd": number | undefined;
-            "3rd": number | undefined;
-            "4th": number | undefined;
-        };
 
-        // Define the type for interventions
-        type QuarterInterventions = {
-            "1st": {
-                grade: number | undefined;
-                used: string[] | undefined;
-                remarks: string | undefined;
-            };
-            "2nd": {
-                grade: number | undefined;
-                used: string[] | undefined;
-                remarks: string | undefined;
-            };
-            "3rd": {
-                grade: number | undefined;
-                used: string[] | undefined;
-                remarks: string | undefined;
-            };
-            "4th": {
-                grade: number | undefined;
-                used: string[] | undefined;
-                remarks: string | undefined;
-            };
-        };
-
-        // Initialize the grades object
+        // Initialize grades object
         const grades: QuarterGrades = {
             "1st": undefined,
             "2nd": undefined,
@@ -463,19 +432,88 @@ const getStudentSubjects = async(
             "4th": undefined,
         };
 
-        // Initialize the interventions object
-        const interventions: QuarterInterventions = {
-            "1st": { grade: undefined, used: undefined, remarks: undefined },
-            "2nd": { grade: undefined, used: undefined, remarks: undefined },
-            "3rd": { grade: undefined, used: undefined, remarks: undefined },
-            "4th": { grade: undefined, used: undefined, remarks: undefined }
+       // Initialize interventions object
+       const interventions: {
+            [key in Quarter]?: {
+                grade: number;
+                used: string[];
+                remarks: string;
+            };
+        } = {
+            "1st": undefined,
+            "2nd": undefined,
+            "3rd": undefined,
+            "4th": undefined
         };
 
+        // If this is MAPEH, we need to handle its components
+        if (subject.subjectName.toLowerCase() === 'mapeh') {
+            // Get all teaching loads for this subject
+            const teachingLoads = await ctx.db.query('teachingLoad')
+                .withIndex('subjectTaughtId', q => q.eq('subjectTaughtId', subjectId))
+                .collect();
+
+            // Group teaching loads by component
+            const componentLoads = teachingLoads.reduce((acc, load) => {
+                if (load.subComponent) {
+                    if (!acc[load.subComponent]) {
+                        acc[load.subComponent] = [];
+                    }
+                    acc[load.subComponent].push(load);
+                }
+                return acc;
+            }, {} as Record<string, typeof teachingLoads>);
+
+            // Create a subject entry for each MAPEH component
+            const mapehComponents = await Promise.all(
+                Object.entries(componentLoads).map(async ([component, loads]) => {
+                    const componentGrades: QuarterGrades = {
+                        "1st": undefined,
+                        "2nd": undefined,
+                        "3rd": undefined,
+                        "4th": undefined,
+                    };
+
+                    const componentInterventions: typeof interventions = {
+                        "1st": undefined,
+                        "2nd": undefined,
+                        "3rd": undefined,
+                        "4th": undefined
+                    };
+
+                    // Process each load for this component
+                    for (const load of loads) {
+                        const quarter = load.quarter?.replace(' quarter', '') as Quarter;
+                        const record = filteredCR.find(r => r.teachingLoad._id === load._id);
+
+                        if (record && quarter) {
+                            componentGrades[quarter] = record.quarterlyGrade;
+                            if (record.needsIntervention) {
+                                componentInterventions[quarter] = {
+                                    grade: record.interventionGrade ?? 0,
+                                    used: record.interventionUsed || [],
+                                    remarks: record.interventionRemarks || ''
+                                };
+                            }
+                        }
+                    }
+
+                    return {
+                        _id: `${subjectId}-${component}`,
+                        subjectName: component,
+                        grades: componentGrades,
+                        interventions: componentInterventions,
+                        isMapehComponent: true
+                    };
+                })
+            );
+
+            return mapehComponents;
+        }
         // Populate grades and interventions for each quarter
         for (const record of filteredCR) {
             if (record.teachingLoad.subjectTaughtId === subjectId) {
-                // Extract the quarter from the teaching load
-                const quarter = record.teachingLoad.quarter?.replace(' quarter', '') as keyof QuarterGrades;
+                const quarter = record.teachingLoad.quarter?.replace(' quarter', '') as Quarter;
                 if (quarter && quarter in grades) {
                     // Assign the quarterly grade
                     grades[quarter] = record.quarterlyGrade;
@@ -483,9 +521,9 @@ const getStudentSubjects = async(
                     // If the record indicates intervention, populate the intervention details
                     if (record.needsIntervention) {
                         interventions[quarter] = {
-                            grade: record.interventionGrade,
-                            used: record.interventionUsed,
-                            remarks: record.interventionRemarks
+                            grade: record.interventionGrade ?? 0,
+                            used: record.interventionUsed || [],
+                            remarks: record.interventionRemarks || ''
                         };
                     }
                 }
@@ -495,13 +533,13 @@ const getStudentSubjects = async(
         // Return the subject along with grades and interventions
         return {
             ...subject,
-            grades: grades,
-            interventions: interventions
+            grades,
+            interventions
         };
     });
 
-    // Return the list of subjects with grades and interventions
-    return subjectWithGrades;
+    // Flatten the array since MAPEH subjects return an array of components
+    return subjectWithGrades.flat().filter(Boolean);
 };
 
 // Function to retrieve subjects along with grades and interventions for a student in a specific section

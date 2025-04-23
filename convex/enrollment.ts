@@ -49,18 +49,21 @@ export const addToSection = mutation({
             studentId: args.studentId
         })
 
-        const loads = await asyncMap(args.subjects, async (subject) => {
+        const loads = await asyncMap(args.subjects, async (subjectTaughtId) => {
             const teachingLoad = await ctx.db.query('teachingLoad')
-                .withIndex('subjectTaughtId', (q) => q.eq('subjectTaughtId', subject))
+                .withIndex('subjectTaughtId', (q) => q.eq('subjectTaughtId', subjectTaughtId))
                 .filter((q) => q.eq(q.field('sectionId'), args.sectionId))
-                .first()
+                .collect()
             return teachingLoad
         })
-        const filteredLoads = loads.filter(l => l !== null)
+
+        const flatLoads = loads.flat()
+        const filteredLoads = flatLoads.filter(l => l !== null)
 
         await asyncMap(filteredLoads, async (load) => {
             await ctx.runMutation(internal.classRecords.createClassRecords, {
-                teachingLoadId: load._id
+                teachingLoadId: load._id,
+                studentId: args.studentId,
             })
         })
     }
