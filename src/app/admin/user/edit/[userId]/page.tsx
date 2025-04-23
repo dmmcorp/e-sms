@@ -279,12 +279,12 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
           principalType: formData.principalType,
           subjectsTaught:
             formData.role === "subject-teacher" ||
-            formData.role === "adviser/subject-teacher"
+              formData.role === "adviser/subject-teacher"
               ? cleanedSubjects
               : undefined,
           sections:
             formData.role === "adviser" ||
-            formData.role === "adviser/subject-teacher"
+              formData.role === "adviser/subject-teacher"
               ? cleanedSections
               : undefined,
         },
@@ -318,6 +318,11 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
           className="w-full flex items-center justify-center"
         >
           <Card className="lg:w-1/2">
+            <div className="bg-blue-50 p-3 rounded border border-blue-200 text-sm mb-4">
+              <p className="text-blue-700">
+                Note: If you are creating a MAPEH subject, please name it exactly as "MAPEH" (case insensitive).
+              </p>
+            </div>
             <CardContent>
               {!user ? (
                 <div className="flex items-center justify-center p-8">
@@ -337,9 +342,9 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
                           setFormData((prev) =>
                             prev
                               ? {
-                                  ...prev,
-                                  role: value as RoleType,
-                                }
+                                ...prev,
+                                role: value as RoleType,
+                              }
                               : null
                           )
                         }
@@ -374,10 +379,10 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
                             setFormData((prev) =>
                               prev
                                 ? {
-                                    ...prev,
-                                    principalType:
-                                      value as PrincipalDepartmentType,
-                                  }
+                                  ...prev,
+                                  principalType:
+                                    value as PrincipalDepartmentType,
+                                }
                                 : null
                             )
                           }
@@ -472,34 +477,34 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
                   {/* Role-specific forms */}
                   {(formData.role === "adviser" ||
                     formData.role === "adviser/subject-teacher") && (
-                    <>
-                      <SectionForm
-                        formData={formData}
-                        setFormData={
-                          setFormData as Dispatch<SetStateAction<UserFormData>>
-                        }
-                        errors={errors}
-                        handleChange={handleChange}
-                        isPending={isPending}
-                      />
-                      {formData.role === "adviser/subject-teacher" && (
-                        <Separator className="my-3" />
-                      )}
-                    </>
-                  )}
+                      <>
+                        <SectionForm
+                          formData={formData}
+                          setFormData={
+                            setFormData as Dispatch<SetStateAction<UserFormData>>
+                          }
+                          errors={errors}
+                          handleChange={handleChange}
+                          isPending={isPending}
+                        />
+                        {formData.role === "adviser/subject-teacher" && (
+                          <Separator className="my-3" />
+                        )}
+                      </>
+                    )}
 
                   {(formData.role === "subject-teacher" ||
                     formData.role === "adviser/subject-teacher") && (
-                    <SubjectTaughtForm
-                      errors={errors}
-                      formData={formData}
-                      isPending={isPending}
-                      setFormData={
-                        setFormData as Dispatch<SetStateAction<UserFormData>>
-                      }
-                      sections={sections}
-                    />
-                  )}
+                      <SubjectTaughtForm
+                        errors={errors}
+                        formData={formData}
+                        isPending={isPending}
+                        setFormData={
+                          setFormData as Dispatch<SetStateAction<UserFormData>>
+                        }
+                        sections={sections}
+                      />
+                    )}
 
                   <div className="flex justify-end gap-2 mt-6">
                     <Button

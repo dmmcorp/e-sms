@@ -19,7 +19,7 @@ function ShsSubjectsTemplate({ student, level, sem }: ShsSubjectsTemplateProps) 
 
     const schoolYear = student.sectionDoc.schoolYear
     const semester = student.sectionDoc.semester
-    const section =  student.sectionDoc.name
+    const section = student.sectionDoc.name
     const trackStrand = "STEM"
 
     // Filter core subjects based on category and semester
@@ -31,7 +31,7 @@ function ShsSubjectsTemplate({ student, level, sem }: ShsSubjectsTemplateProps) 
     // Combine all subjects into a single array
     const allSubjects = [...(coreSubjects || []), ...(appliedAndSpecialized || [])];
 
-    const generalAverage = allSubjects?.reduce((acc, subject) => {  
+    const generalAverage = allSubjects?.reduce((acc, subject) => {
         const average = calculateQuarterlyAverage(subject.grades);
         if (average !== null) {
             return acc + average;
@@ -130,25 +130,25 @@ function GradesInputsTemplate() {
     const [input1Value, setInput1Value] = useState<string>('');
     const [input2Value, setInput2Value] = useState<string>('');
 
-  
+
 
     const average = (input1Value && input2Value) ? (parseFloat(input1Value) + parseFloat(input2Value)) / 2 : '';
 
     return (
-    <div className="grid grid-cols-12 border-b-black border-b  text-[0.6rem] h-[0.95rem]">
-        <input type="text" className='col-span-2 bg-transparent text-center border-l-black border-l h-[0.95rem]  pt-1 uppercase' />
-        <input type="text" className='col-span-6 bg-transparent border-x-black border-x h-[0.95rem]  pt-1 uppercase' />
-       
-        <input type="number" value={input1Value} onChange={e => setInput1Value(e.target.value)} className='col-span-1 h-[0.95rem] bg-transparent border-none text-center pt-1' />
-        <input type="number" value={input2Value} onChange={e => setInput2Value(e.target.value)} className='col-span-1 h-[0.95rem] bg-transparent border-l-black border-l pt-1  text-center' />
-         
-        <div className="col-span-1 text-center border-l-black border-l h-full">
-            <p className=''>{average}</p>
+        <div className="grid grid-cols-12 border-b-black border-b  text-[0.6rem] h-[0.95rem]">
+            <input type="text" className='col-span-2 bg-transparent text-center border-l-black border-l h-[0.95rem]  pt-1 uppercase' />
+            <input type="text" className='col-span-6 bg-transparent border-x-black border-x h-[0.95rem]  pt-1 uppercase' />
+
+            <input type="number" value={input1Value} onChange={e => setInput1Value(e.target.value)} className='col-span-1 h-[0.95rem] bg-transparent border-none text-center pt-1' />
+            <input type="number" value={input2Value} onChange={e => setInput2Value(e.target.value)} className='col-span-1 h-[0.95rem] bg-transparent border-l-black border-l pt-1  text-center' />
+
+            <div className="col-span-1 text-center border-l-black border-l h-full">
+                <p className=''>{average}</p>
+            </div>
+            <div className="col-span-1 text-center border-l-black border-l border-r border-r-black h-full">
+                <p>{typeof average === 'number' ? average <= 74 ? "Failed" : "Passed" : ""}</p>
+            </div>
         </div>
-        <div className="col-span-1 text-center border-l-black border-l border-r border-r-black h-full">
-            <p>{typeof average === 'number' ? average <= 74 ? "Failed": "Passed" : ""}</p>
-        </div>
-     </div>
     )
 }
 
