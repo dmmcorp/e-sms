@@ -27,11 +27,8 @@ function SrGradesTemplate({
         sectionSubjects: student.sectionDoc.subjects,
         studentId: student._id
     });
-<<<<<<< HEAD
 
 
-=======
->>>>>>> parent of e4d8544 (refactor: mapeh sf9)
 
     // Function to get the remedial grade for a specific subject
     function getRemedialGrade(remedialGrade: Doc<'finalGrades'>, subjectName: string): number | null {
@@ -49,9 +46,6 @@ function SrGradesTemplate({
     const allSubjects = [...(coreSubjects || []), ...(appliedAndSpecialized || [])];
 
     // Function to calculate the average of quarterly grades
-<<<<<<< HEAD
- 
-=======
     function calculateQuarterlyAverage(grades: { "1st": number | undefined; "2nd": number | undefined; "3rd": number | undefined; "4th": number | undefined; } | undefined): number | null {
         if (!grades) return null; // Return null if grades are undefined
         const validGrades = Object.values(grades).filter((grade): grade is number => grade !== undefined); // Filter out undefined grades
@@ -59,7 +53,6 @@ function SrGradesTemplate({
         const sum = validGrades.reduce((acc, grade) => acc + grade, 0); // Sum up all valid grades
         return sum / validGrades.length; // Return the average
     }
->>>>>>> parent of e4d8544 (refactor: mapeh sf9)
 
   return (
     <div className="max-w-full">
