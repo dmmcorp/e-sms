@@ -307,11 +307,6 @@ function UserPage() {
       >
         <Card className="lg:w-1/2 ">
           <CardContent>
-            <div className="bg-blue-50 p-3 rounded border border-blue-200 text-sm mb-4">
-              <p className="text-blue-700">
-                Note: If you are creating a MAPEH subject, please name it exactly as "MAPEH" (case insensitive).
-              </p>
-            </div>
             <form onSubmit={handleSubmit} className="space-y-2">
               <div className="flex items-center gap-x-3 w-full">
                 <Label htmlFor="role" className="w-[15%]">
