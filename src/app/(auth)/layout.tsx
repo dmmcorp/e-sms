@@ -3,6 +3,7 @@ import "@/lib/globals.css";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { ConvexClientProvider } from "@/components/convex-client-provider";
 import { ThemeProviderWithDynamicColors } from "@/components/theme-provider-with-dynamic-colors";
+import { Footer } from "@/components/footer";
 
 export const metadata: Metadata = {
   title: "ERMS-Authentication",
@@ -22,6 +23,7 @@ export default function RootLayout({
             <body className={`antialiased flex`} suppressHydrationWarning>
               {children}
             </body>
+            <Footer />
           </ThemeProviderWithDynamicColors>
         </html>
       </ConvexClientProvider>

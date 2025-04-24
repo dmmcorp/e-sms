@@ -6,6 +6,7 @@ import MainNav from "@/components/main-nav";
 import { SystemAdminGuard } from "@/components/guards/admin-guard";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProviderWithDynamicColors } from "@/components/theme-provider-with-dynamic-colors";
+import { Footer } from "@/components/footer";
 
 export const metadata: Metadata = {
   title: "ERMS-Admin",
@@ -29,6 +30,7 @@ export default function RootLayout({
                 <MainNav />
                 <Toaster richColors />
                 <div className="flex-1 overflow-hidden">{children}</div>
+                <Footer />
               </ThemeProviderWithDynamicColors>
             </SystemAdminGuard>
           </body>

@@ -6,6 +6,7 @@ import MainNav from "@/components/main-nav";
 import { TeacherGuard } from "@/components/guards/teacher-guard";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProviderWithDynamicColors } from "@/components/theme-provider-with-dynamic-colors";
+import { Footer } from "@/components/footer";
 
 export const metadata: Metadata = {
   title: "ERMS-Teacher",
@@ -28,6 +29,7 @@ export default function RootLayout({
               <ThemeProviderWithDynamicColors>
                 <MainNav />
                 {children}
+                <Footer />
               </ThemeProviderWithDynamicColors>
             </TeacherGuard>
             <Toaster richColors />
