@@ -5,11 +5,11 @@ import React, { useState } from 'react'
 import { api } from '../../../../../convex/_generated/api';
 
 function RemedialTemplate({student, isSHS}:{
-    student: StudentWithSectionStudent,
-    isSHS: boolean
+    student?: StudentWithSectionStudent,
+    isSHS?: boolean
 }) {
-    const forRemedialSubjects = useQuery(api.finalGrades.getFinalGradesForSF10, {studentId: student._id, sectionId:student.sectionDoc._id})
-
+    const forRemedialSubjects = useQuery(api.finalGrades.getFinalGradesForSF10, {studentId: student?._id, sectionId:student?.sectionDoc._id})
+    console.log("isSHS:", isSHS)
    
   return (
     <div>
@@ -65,8 +65,8 @@ function RemedialTemplate({student, isSHS}:{
                 <div className="grid grid-cols-12 font-semibold text-[0.6rem]">
                     <h1 className='col-span-4 text-center flex items-center justify-center'>Remedial Classes</h1>
                     <div className="col-span-8 flex border-l border-l-black px-2 py-1">
-                        <h1 className='flex items-baseline'>Conducted from (mm/dd/yyyy) <span className='border-b border-b-black px-2'></span></h1>
-                        <h1 className='flex items-baseline'>to (mm/dd/yyyy) <span className='border-b border-b-black flex-1 px-2'></span></h1>
+                        <h1 className='flex items-baseline flex-1'>Conducted from (mm/dd/yyyy) <span className='border-b border-b-black px-2 flex-1'></span></h1>
+                        <h1 className='flex items-baseline flex-1'>to (mm/dd/yyyy) <span className='border-b border-b-black flex-1 px-2'></span></h1>
                     </div>
                 </div>
                 <div className="grid grid-cols-12 border-y-black border-y font-semibold text-[0.6rem]">

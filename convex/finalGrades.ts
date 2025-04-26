@@ -6,10 +6,12 @@ import { GradeLevelsTypes } from "../src/lib/types";
 
 export const getFinalGradesForSF10 = query({
     args:{
-        studentId: v.id('students'),
-        sectionId: v.id('sections')
+        studentId: v.optional(v.id('students')),
+        sectionId: v.optional(v.id('sections'))
     },
     handler: async(ctx, args) =>{
+        if(!args.sectionId) return
+        if(!args.studentId) return
         const student = await ctx.db.get(args.studentId)
         if(student === null) return
         const  finalGrades = await ctx.db.query('finalGrades')

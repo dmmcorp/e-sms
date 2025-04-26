@@ -16,6 +16,7 @@ import ShsSubjectsTemplate from './shs-subjects-template'
 import JhsSubjectsTemplate from './jhs-subjects-template'
 import { Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import JhsEmptyGrades from './jhs-empty-grades'
 
 interface SF10Types {
     sectionStudentId: Id<'sectionStudents'>
@@ -36,6 +37,7 @@ function SF10({sectionStudentId}: SF10Types) {
         isSHS: isSHS
     });
 
+    console.log(enrollments)
     const handleTabChange = (value: string) => {
         setActiveTab(value);
       };
@@ -111,7 +113,7 @@ function SF10({sectionStudentId}: SF10Types) {
                                 <h1 className='flex col-span-2'>LRN: <span className='border-b-black border-b flex-1 px-1'>{student.lrn}</span></h1>
                                 <h1 className='flex col-span-4'>Date of Birth (MM/DD/YYYY): <span className='border-b-black border-b flex-1 px-1'>{formatDateString(student.dateOfBirth)}</span></h1>
                                 <h1 className='flex col-span-1'>Sex: <span className='border-b-black border-b flex-1 px-1'>{student.sex}</span></h1>
-                                <h1 className='flex col-span-5'>Date of SHS Admission (MM/DD/YYYY): <span className='border-b-black border-b flex-1 px-1'>{student.seniorHighDateOfAdmission}</span></h1>
+                                <h1 className='flex col-span-5'>Date of SHS Admission (MM/DD/YYYY): <span className='border-b-black border-b flex-1 px-1'>{student.seniorHighDateOfAdmission ? formatDateString(student.seniorHighDateOfAdmission) : ""}</span></h1>
                             </div>
                         </>
                     ) : (
@@ -155,7 +157,7 @@ function SF10({sectionStudentId}: SF10Types) {
                                 />
                                 <Label htmlFor="juniorHighSchoolCompleter" className='ml-[-15px] text-[0.6rem]'>Junior High School Completer*</Label>
 
-                                <h1 className='flex w-1/3 items-baseline'>Gen. Ave: <input type="number"   className='bg-transparent border-b border-b-black flex-1 w-1/3 px-3 h-3' /></h1>
+                                <h1 className='flex w-1/3 items-baseline'>Gen. Ave: <span className='bg-transparent border-b border-b-black flex-1 w-1/3 px-3 h-3' >{student.juniorHigh?.genAve}</span></h1>
                             </div>
                     </div>
                     ):(
@@ -179,7 +181,7 @@ function SF10({sectionStudentId}: SF10Types) {
                     )}
                     {isSHS ? (
                     <div className="grid grid-cols-12 text-[0.55rem]  mt-[-4px]">
-                        <h1 className='flex gap-x-1 items-baseline col-span-5'>Date of Gradeuation/Completion (MM/DD/YYYY): <span className='bg-transparent border-b border-b-black flex-1  h-4 w-1/3 px-3'>{student.juniorHigh?.completion}</span></h1>
+                        <h1 className='flex gap-x-1 items-baseline col-span-5'>Date of Gradeuation/Completion (MM/DD/YYYY): <span className='bg-transparent border-b border-b-black flex-1  h-4 w-1/3 px-3'>{student.juniorHigh?.completion ? formatDateString(student.juniorHigh?.completion) : ""}</span></h1>
                         <h1 className='flex gap-x-1 items-baseline col-span-3'>Name of School: <span className='bg-transparent border-b border-b-black line-clamp-1 flex-1 w-1/3 px-3 h-4'>{student.juniorHigh?.school}</span></h1>
                         <h1 className='flex gap-x-1 items-baseline col-span-4'>School Address: <span className='bg-transparent border-b line-clamp-1 border-b-black flex-1 w-1/3 px-3  h-4'>{student.juniorHigh?.address}</span></h1>
                     </div>
@@ -247,29 +249,20 @@ function SF10({sectionStudentId}: SF10Types) {
                 </div>
                 {isSHS ? (
                     <div className="">
+                        <h1 className='uppercase text-center bg-gray-300 text-[0.7rem] font-semibold'>Scholastic Record</h1>
                         {enrollments?.studentEnrollments.map((enrollment) => {
-                            if (enrollment.gradeLevel != "Grade 11") return undefined
-                            if (!enrollment.data?.semester) return undefined
-                            return (
-                                <ShsSubjectsTemplate student={student} level={enrollment.gradeLevel} sem={enrollment.data.semester} />
+                            if (
+                                enrollment.gradeLevel === "Grade 11 - 1st semester" ||
+                                enrollment.gradeLevel === "Grade 11 - 2nd semester" 
                             )
+                                return (
+                                    <ShsSubjectsTemplate record={enrollment} />
+                                );
                         })}
                     </div>
                 ) : (
                     <div className="">
                         <h1 className='uppercase text-center bg-gray-300 text-[0.7rem] font-semibold'>Scholastic Record</h1>
-                        {/* <div className="mb-3 mt-3">
-                            <JHSSubjectsTemplate student={student} finalGrades={studentFinalGrades as FinalGradesWithDetails[]} level='7' sf10 />
-
-                        </div>
-                        {enrollments?.studentEnrollments.map((enrollment) => {
-                            return (
-                                <JHSSubjectsTemplate student={student} finalGrades={studentFinalGrades as FinalGradesWithDetails[]} level='7' sf10 />
-                            )
-                        })}
-
-                        <JHSSubjectsTemplate student={student} finalGrades={studentFinalGrades as FinalGradesWithDetails[]} level='8' sf10 /> */}
-
                         {enrollments?.studentEnrollments.map((enrollment) => {
                             if(enrollment.gradeLevel === "Grade 7" || enrollment.gradeLevel === "Grade 8")
                             return (
@@ -301,7 +294,114 @@ function SF10({sectionStudentId}: SF10Types) {
                 )}
             </div>
             </TabsContent>
+
+
             <TabsContent value='back'>
+                {isSHS ? (
+                    <div ref={componentRef} className='border-2 p-6 text-black text-sm'>
+                        <div className="text-[0.55rem] flex justify-between items-center border-b-black border-b-2 font-semibold">
+                            <h1 className='uppercase'>Page 2 <span className='text-center h-3 inline-block  ml-10'>{student.lastName}, {student.firstName} {student.middleName} </span></h1>
+                            <h1 className='uppercase'>SF10 JHS</h1>
+                        </div>
+                        <div className="">
+                        {enrollments?.studentEnrollments.map((enrollment) => {
+                            if (
+                                enrollment.gradeLevel === "Grade 12 - 1st semester" ||
+                                enrollment.gradeLevel === "Grade 12 - 2nd semester" 
+                            )
+                                return (
+                                    <ShsSubjectsTemplate record={enrollment} />
+                                );
+                        })}
+                        </div>
+                        <div className='my-2 w-full h-2 bg-gray-300'></div>
+                        <div className="grid grid-cols-12 gap-x-5 text-[0.6rem] font-semibold">
+                            <h1 className='col-span-10 flex items-baseline'>Track/Strand Accomplished: <span className='border-b-black border-b flex-1 px-3 uppercase h-5'></span></h1>
+                            <h1 className='col-span-2 flex items-baseline'>SHS Gen Average: <span className='border-b-black border-b flex-1 px-3 w-2 h-5 uppercase'></span></h1>
+                        </div>
+                        <div className="grid grid-cols-12 gap-x-5 text-[0.6rem]  font-semibold">
+                            <h1 className='col-span-8 flex items-baseline'>Awards/Honors Received: <span className='border-b-black border-b flex-1 px-3 uppercase h-5'></span></h1>
+                            <h1 className='col-span-4 flex items-baseline'>Date of SHS Graduation (MM/DD/YYYY): <span className='border-b-black border-b flex-1 w-1 h-5 uppercase'></span></h1>
+                        </div>
+                        <div className="grid grid-cols-12 gap-x-5 text-[0.6rem]  font-semibold">
+                            <h1 className='col-span-6 flex items-baseline'>Certified By:</h1>
+                            <h1 className='col-span-6 flex items-baseline'>Place School Seal Here:</h1>
+                        </div>
+                        <div className="grid grid-cols-2">
+                            <div className="pr-5">
+                                <div className="grid grid-cols-12 text-[0.6rem] gap-x-10">
+                                    <span className='border-b-black border-b col-span-6 text-center uppercase'></span>
+                                    <span className='border-b-black border-b col-span-4 text-center uppercase'></span>
+                                    <h1 className='text-center col-span-6'>Signature of School Head Over Printed Name</h1>
+                                    <h1 className='text-center col-span-4'>Date</h1>
+                                </div>
+                                <div className="p-2 border border-black text-[0.5rem]">
+                                    <h1 className='text-xs font-semibold'>Note:</h1>
+                                    <p className='leading-3'>This permanent record or a photocopy of this permanent record that bears the seal of the school and the original signature in ink of the school head shall be considered valid for all legal purposes. Any erasure or alteration made on this copy should be validated by the School head.</p>
+                                    <p className='leading-3'>If the student transfers to another school, the originating school should produce one (1) certified true copy of this permanent record for safekeeping. The receiving school shall continue filling up the original form.</p>
+                                    <p className='leading-3'>Upon graduation, the school from which the student graduated should keep the original form and produce one (1) certified true copy for the Division office.</p>
+                                </div>
+                            </div>
+                            <div className="border-l-black border-l">
+
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div ref={componentRef} className='border-2 p-6 text-black text-sm'>
+                        <div className="text-[0.55rem] flex justify-between items-center">
+                            <h1 className='uppercase'>SF10 JHS</h1>
+                            <h1 className='uppercase'>Page 2 of <span className='border-b border-b-black text-center h-3 inline-block w-10'></span></h1>
+                        </div>
+                        <div className="">
+                            { enrollments?.studentEnrollments.map((enrollment) => {
+                                if(enrollment.gradeLevel === "Grade 9" || enrollment.gradeLevel === "Grade 10")
+                                return (
+                                    <JhsSubjectsTemplate record={enrollment}/>
+                                )
+                            })}
+                            <div className="">
+                                <div className="grid grid-cols-12 gap-x-2 text-[0.55rem] font-semibold px-2 pt-1 border-t-black border-t border-x-black border-x leading-3">
+                                    <h1 className="col-span-5 flex items-baseline leading-3">School : <span className='bg-transparent border-b capitalize w-full font-normal border-b-black flex-1 px-3 h-3'></span> </h1>
+                                    <h1 className="col-span-2 flex items-baseline leading-3">School ID: <span className='bg-transparent border-b uppercase border-b-black font-normal flex-1 px-3 w-full h-3'></span> </h1>
+                                    <h1 className="col-span-4 flex items-baseline leading-3">District: <span className='bg-transparent border-b capitalize font-normal border-b-black flex-1 px-3 w-full h-3'></span> </h1>
+                                    <h1 className="col-span-1 flex items-baseline leading-3">Region: <span className='bg-transparent border-b capitalize border-b-black font-normal flex-1 w-full h-3'></span> </h1>
+                                </div>
+                                <div className="grid grid-cols-12 gap-x-2 font-semibold px-2 text-[0.55rem] pb-1 border-b-black border-b border-x-black border-x">
+                                    <h1 className="col-span-2 flex items-baseline leading-3">Classified as Grade: <span className='bg-transparent border-b font-normal capitalize w-full border-b-black flex-1 px-3 h-3'></span> </h1>
+                                    <h1 className="col-span-2 flex items-baseline leading-3">Section: <span className='bg-transparent border-b capitalize w-full font-normal border-b-black flex-1 px-3 h-3'></span> </h1>
+                                    <h1 className="col-span-2 flex items-baseline leading-3">School Year: <span className='bg-transparent border-b capitalize w-full font-normal border-b-black flex-1 px-3 h-3'></span> </h1>
+                                    <h1 className="col-span-4 flex items-baseline leading-3">Name of Advisor/Teacher: <span className='bg-transparent border-b capitalize font-normal w-full border-b-black flex-1 px-3 h-3'></span> </h1>
+                                    <h1 className="col-span-2 flex items-baseline leading-3">Signature: <span className='bg-transparent border-b capitalize w-full border-b-black font-normal flex-1 px-3 h-3'></span> </h1>
+                                </div>
+                                <JhsEmptyGrades/>
+                            </div>
+                        </div>
+                        <h1 className="font-bold text-[0.6rem] leading-4 mt-5">For Transfer Out / JHS Completer only</h1>
+                        <div className=" border border-black p-1">
+                            <h1 className='text-center font-semibold text-xs mb-1'>Certification</h1>
+                            <div className="grid grid-cols-12 gap-x-2">
+                                <h1 className='text-[0.6rem] col-span-6 flex items-baseline leading-3'>I CERTIFY that this is true record of <span className='border-b border-b-black flex-1 w-3 text-center h-3 inline-block'></span></h1>
+                                <h1 className='text-[0.6rem] col-span-2 flex items-baseline leading-3'>with LRN <span className='border-b border-b-black flex-1 w-3 text-center h-3 inline-block'>{student.lrn}</span></h1>
+                                <h1 className='text-[0.6rem] col-span-4 flex items-baseline leading-3'>and that he/she is eligible for admission to Grade <span className='border-b border-b-black flex-1 w-3 text-center h-3 inline-block'></span>.</h1>
+                            </div>
+                            <div className="grid grid-cols-12 gap-x-2 mt-1">
+                                <h1 className='text-[0.6rem] col-span-5 flex items-baseline leading-3'>Name of school: <span className='border-b border-b-black flex-1 w-3 h-3 inline-block'></span></h1>
+                                <h1 className='text-[0.6rem] col-span-3 flex items-baseline leading-3'>School ID: <span className='border-b border-b-black flex-1 w-3 h-3 inline-block'></span></h1>
+                                <h1 className='text-[0.6rem] col-span-4 flex items-baseline leading-3'>Last School Year Attended: <span className='border-b border-b-black flex-1 w-3 h-3 inline-block'></span></h1>
+                            </div>
+                            <div className="grid grid-cols-12 gap-x-5 text-[0.6rem] mt-10">
+                                <span className='col-span-4 border-b border-b-black text-center mt-3 inline-block'></span>
+                                <span className='col-span-5 border-b border-b-black text-center mt-3 inline-block'></span>
+                                <h1 className='col-span-3 mt-3'></h1>
+                                <h1 className='col-span-4 text-center '>Date</h1>
+                                <h1 className='col-span-5 text-center'>Name of Principal/School Head over Printed Name</h1>
+                                <h1 className='col-span-3 text-center'>(affix School seal heare)</h1>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
             </TabsContent>
         </Tabs>
     </div>

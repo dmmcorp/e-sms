@@ -35,48 +35,45 @@ export default function JhsEmptyGrades() {
             
         </div>
         {mainSubjects.map((subject)=> (
-            <div key={subject} className="grid grid-cols-12 w-full items-center text-center font-semibold  text-[0.55rem] leading-3">
-                <div className={cn(
-                    'col-span-5 h-full flex items-center border-x border-x-black border-b-black border-b px-2 ',
+            <div key={subject} className="grid grid-cols-12 w-full items-center text-center font-semibold  text-[0.55rem] leading-3 border-b-black border-b h-4">
+                <h1 className={cn(
+                    'col-span-5 flex items-center border-x border-x-black  px-2 leading-none h-full',
                     'justify-start'
                 )}>
                     {subject}
-                </div>
+                </h1>
                 <div className="col-span-3 grid grid-cols-4">
                     {quarters.map((quarter) =>  (
-                            <div key={quarter} className='col-span-1 border-b border-black border-r h-full flex justify-center items-center min-h-[1.5rem]'>
-                             
-                            </div>
+                        <div key={quarter} className='col-span-1  border-black border-r h-full flex justify-center items-center min-h-[1rem]'>
+                        </div>
                     ))}
                 </div>
-                <div className='col-span-2 border-b border-black border-r h-full flex justify-center items-center min-h-[1.5rem]'>
+                <div className='col-span-2 border-black border-r h-full flex justify-center items-center min-h-[1rem]'>
                  
                 </div>
-                <div className='col-span-2 border-b border-black border-r h-full flex justify-center items-center min-h-[1.5rem]'>
+                <div className='col-span-2 border-black border-r h-full flex justify-center items-center min-h-[1rem]'>
                     { }
                 </div>
                     
             </div>
         ))}
         {mapehSubjects.map((subject)=> (
-            <div key={subject} className="grid grid-cols-12 w-full items-center text-center font-semibold  text-[0.55rem] leading-3">
-                <div className={cn(
-                    'col-span-5 h-full flex items-center border-x border-x-black border-b-black border-b pl-5 ',
-                    'justify-start'
+            <div key={subject} className="grid grid-cols-12 w-full  items-center text-center font-semibold  text-[0.55rem] leading-3 border-b-black border-b h-4">
+                <h1 className={cn(
+                    'col-span-5 flex items-center border-x  border-x-black  px-2 leading-none h-full justify-start pl-5'
                 )}>
                     {subject}
-                </div>
+                </h1>
                 <div className="col-span-3 grid grid-cols-4">
                     {quarters.map((quarter) =>  (
-                            <div key={quarter} className='col-span-1 border-b border-black border-r h-full flex justify-center items-center min-h-[1.5rem]'>
-                             
-                            </div>
+                        <div key={quarter} className='col-span-1   border-black border-r h-full flex justify-center items-center min-h-[1rem]'>
+                        </div>
                     ))}
                 </div>
-                <div className='col-span-2 border-b border-black border-r h-full flex justify-center items-center min-h-[1.5rem]'>
+                <div className='col-span-2 border-b border-black border-r h-full flex justify-center items-center '>
                  
                 </div>
-                <div className='col-span-2 border-b border-black border-r h-full flex justify-center items-center min-h-[1.5rem]'>
+                <div className='col-span-2 border-b border-black border-r h-full flex justify-center items-center'>
                     { }
                 </div>
                     

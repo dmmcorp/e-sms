@@ -716,27 +716,39 @@ export const getStudentSubjectsByEnrollment = query({
             "Grade 8",
             "Grade 9",
             "Grade 10",
-            "Grade 11",
-            "Grade 12"
+            "Grade 11 - 1st semester",
+            "Grade 11 - 2nd semester",
+            "Grade 12 - 1st semester",
+            "Grade 12 - 2nd semester"
         ];
-
-   
 
         // Create a map for quick lookup by gradeLevel
         const gradeLevelMap: Record<string, StudentEnrollmentSection> = {};
         filteredStudentGrades.forEach(e => {
             if (e && e.gradeLevel) {
-            gradeLevelMap[e.gradeLevel] = e;
+                gradeLevelMap[e.gradeLevel] = e;
             }
         });
 
         // Build the result array, ensuring all grade levels are present
         const organizedGrades: OrganizedGrade[] = gradeLevels.map(level => {
             if (gradeLevelMap[level]) {
-            return { gradeLevel: level, data: gradeLevelMap[level] };
+            const data = gradeLevelMap[level];
+            if ((level.includes("Grade 11") || level.includes("Grade 12")) && data.semester) {
+                const semester = level.includes("1st semester") ? "1st semester" : "2nd semester";
+                if (data.semester === semester) {
+                return {
+                    gradeLevel: level,
+                    data: data
+                };
+                }
+            } else if (!level.includes("semester")) {
+                return { gradeLevel: level, data: gradeLevelMap[level] };
+            }
             }
             return { gradeLevel: level, data: undefined };
         });
+
         // Return the current section and the filtered student grades
         return {
             currentSection: currentSection,

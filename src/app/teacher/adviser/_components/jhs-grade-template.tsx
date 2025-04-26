@@ -17,22 +17,12 @@ interface JrGradesTemplateProps {
     sf10?: boolean
 }
 function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
-
-    // Fetch remedial grades for the student
-    // const remedialGrades = useQuery(api.finalGrades.remedialGrades, {
-    //     studentId: student._id,
-    //     sectionId: student.sectionDoc?._id
-    // });
-
     // Fetch subjects for the student
     const subjects = useQuery(api.students.getSubjects, {
         sectionSubjects: student.sectionDoc.subjects,
         studentId: student._id
     });
 
-    // Calculate the quarterly average for a subject
-    // Function to calculate quarterly average
-    
 
 
     // Calculate the general average across all subjects
@@ -194,7 +184,7 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
 
             <h1 className={cn(sf10 && 'hidden', 'text-sm font-semibold text-center ')}>REPORT ON LEARNING PROGRESS AND ACHIEVEMENT</h1>
 
-                {/* Header row */}
+            {/* Header row */}
             <div className="grid grid-cols-12 w-full text-xs items-center text-center font-semibold  bg-gray-200">
                 <div className='col-span-5 text-xs h-full flex items-center justify-center pl-4 border-x border-x-black border-b-black border-b border-t-black border-t'>Learning Areas</div>
                 <div className="col-span-3 grid grid-cols-4 text-center items-center">
@@ -209,19 +199,39 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                 </div>
                 <div className='col-span-2 flex items-center border-y border-y-black border-r-black border-r justify-center h-full'>Final Rating</div>
                 <div className='col-span-2 flex items-center justify-center h-full border-y border-y-black border-r-black border-r'>Remarks</div>
-                {/* <h1 className={cn(
-                      sf10 && 'text-[0.55rem] leading-3',
-                      sf9 && 'text-xs leading-6',
-                    'col-span-1 flex items-center border-y border-y-black border-r-black border-r justify-center h-full ')}>Final <br /> Rating</h1>
-                     */}
-                {/* <h1 className={cn(
-                      sf10 && 'text-[0.55rem] leading-3',
-                    'col-span-2 flex items-center justify-center h-full border-y border-y-black border-r-black border-r ')}>Remarks</h1> */}
             </div>
 
                {/* Render subjects */}
-               {organizedSubjects.map((subject: SubjectType) => (
-                <div key={subject._id} className={cn( sf10 ? 'text-[0.55rem] leading-3' : 'text-sm ' ,"grid grid-cols-12 w-full items-center text-center font-semibold ")}>
+            {Array.from({ length: 11 }).map((_, index) => {
+                const subject = organizedSubjects[index];
+                if (!subject) {
+
+                    return (
+                 
+                    <div key={index} className={cn(sf10 ? "text-[0.55rem] leading-3" :"text-sm","grid grid-cols-12 w-full items-center text-center font-semibold   border-b-black border-b ")}>
+                        <h1 className={cn(
+                            'col-span-5 flex items-center border-x border-x-black  px-2 leading-none h-full',
+                            'justify-start'
+                        )}>
+                            {}
+                        </h1>
+                        <div className="col-span-3 grid grid-cols-4">
+                            {quarters.map((quarter) =>  (
+                                <div key={quarter} className='col-span-1  border-black border-r h-full flex justify-center items-center min-h-[1rem]'>
+                                </div>
+                            ))}
+                        </div>
+                        <div className='col-span-2 border-black border-r h-full flex justify-center items-center min-h-[1rem]'>
+                            
+                        </div>
+                        <div className='col-span-2 border-black border-r h-full flex justify-center items-center min-h-[1rem]'>
+                            {}
+                        </div>  
+                    </div>
+                    )
+                }
+                return (
+                <div key={subject._id} className={cn( sf10 ? 'text-[0.55rem] leading-3 h4' : 'text-sm ' ,"grid grid-cols-12 w-full items-center text-center font-semibold ")}>
                     <div className={cn(
                         'col-span-5 h-full flex items-center border-x border-x-black border-b-black border-b',
                         'isMapehComponent' in subject && subject.isMapehComponent ? 'pl-5' : 'pl-2',
@@ -235,9 +245,9 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                         {quarters.map((quarter) => {
                             if ('isMapehMain' in subject && subject.isMapehMain) {
                                 const grade = subject.grades[quarter];
-                              
+                                
                         return (
-                                <div key={quarter} className={cn(sf10 ? 'min-h-[1.5rem] text-0.55rem': 'min-h-[2rem] text-sm','col-span-1 border-b border-black border-r h-full flex justify-center items-center ')}>
+                                <div key={quarter} className={cn(sf10 ? 'min-h-[1rem] text-0.55rem': 'min-h-[2rem] text-sm','col-span-1 border-b border-black border-r h-full flex justify-center items-center ')}>
                                         {grade !== undefined ? Math.round(grade) : ""}
                                     </div>
                                 );
@@ -246,7 +256,7 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                             const intervention = 'interventions' in subject ? subject.interventions?.[quarter] : undefined;
                             const grade = subject.grades?.[quarter];
                             return (
-                                <div key={quarter} className={cn(sf10 ? ' min-h-[1.5rem] text-[0.55rem]' : 'min-h-[2rem] text-sm','col-span-1 border-b border-black border-r h-full flex justify-center items-center ')}>
+                                <div key={quarter} className={cn(sf10 ? ' min-h-[1rem] text-[0.55rem]' : 'min-h-[2rem] text-sm','col-span-1 border-b border-black border-r h-full flex justify-center items-center ')}>
                                     {intervention?.grade ? (
                                         <CustomTooltip
                                             trigger={<span>{Math.round(intervention.grade)}</span>}
@@ -260,7 +270,7 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                         })}
                     </div>
                     
-                    <div className={cn(sf10 ? ' min-h-[1.5rem] text-[0.55rem]' : 'min-h-[2rem] text-sm','col-span-2 border-b border-black border-r h-full flex justify-center items-center ')}>
+                    <div className={cn(sf10 ? ' min-h-[1rem] text-[0.55rem]' : 'min-h-[2rem] text-sm','col-span-2 border-b border-black border-r h-full flex justify-center items-center ')}>
                         {calculateQuarterlyAverage('isMapehMain' in subject && subject.isMapehMain ?
                             subject.grades :
                             {
@@ -271,36 +281,39 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                             }
                         )}
                     </div>
-                    <div className={cn(sf10 ? ' min-h-[1.5rem] text-[0.55rem]' : "min-h-[2rem] text-sm", 'col-span-2 border-b border-black border-r h-full flex justify-center items-center')}>
+                    <div className={cn(sf10 ? ' min-h-[1rem] text-[0.55rem]' : "min-h-[2rem] text-sm", 'col-span-2 border-b border-black border-r h-full flex justify-center items-center')}>
                         { getPassFailStatus(subject) }
                     </div>
 
                 </div>
-            ))}
+            )})}
 
             {/* General average row */}
-            <div className={cn(
-                sf10 && 'text-[0.55rem] leading-3',
-                "grid grid-cols-12 w-full items-center text-center border-b border-b-black border-l border-l-black font-medium text-sm")}
-            >
+            <div className="grid grid-cols-12 w-full items-center text-center font-semibold  text-[0.55rem] leading-3">
                 {sf10 && (
-                    <div className={cn('col-span-5 h-full border-r border-r-black pl-5 ')}>
-                        {}
-                    </div>
+
+                    <div className={cn(
+                        'col-span-5 h-full flex items-center border-x border-x-black border-b-black border-b pl-5 ',
+                        'justify-start'
+                    )}>
+                    {}
+                </div>
                 )}
-                <div className={cn(
-                    sf9 ? "text-sm p-1" : "text-lg", 
-                    sf10 ? "col-span-3 text-xs font-semibold italic" : "col-span-8", 
-                    ' border-r border-r-black font-semibold tracking-widest font-serif')}>General Average</div>
-                <div className={cn(
-                    sf9 ? "text-sm p-1" : "text-lg", 
-                    sf10 ? "col-span-2 text-xs" : "col-span-2", 
-                    ' h-full border-r-black border-r font-semibold')}>{generalAverage?.toFixed(0)}</div>
-                <div className={cn(
-                    sf9 ? "text-sm p-1" : "text-lg", 
-                    sf10 ? "col-span-2 text-xs" : "col-span-2", 
-                    ' h-full border-r-black border-r font-semibold')}>{generalAverage ? generalAverage <= 74 ? "Failed" : "Passed" : null}</div>
+               
+                  
+                <div className={cn(sf9 ? "col-span-8 border-l-black border-l text-sm" : "col-span-3 text-xs",' border-b border-black border-r h-full  font-semibold italic flex justify-center items-center min-h-[1rem]')}>
+                    General Average
+                </div>
+                  
+                <div className={cn(sf9? "text-sm": "",'col-span-2 border-b border-black border-r h-full flex justify-center items-center min-h-[1.5rem]')}>
+                {generalAverage?.toFixed(0)}
+                </div>
+                <div className={cn(sf9 ? "text-sm" : "",'col-span-2 border-b border-black border-r h-full flex justify-center items-center min-h-[1.5rem]')}>
+                {generalAverage ? generalAverage <= 74 ? "Failed" : "Passed" : null}
+                </div>
+                    
             </div>
+         
 
             {/* SF9-specific descriptors */}
             {sf9 && (

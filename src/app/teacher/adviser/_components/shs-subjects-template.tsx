@@ -1,56 +1,44 @@
 'use client'
-import { GradeLevelsTypes, SemesterType, ShsSubject, StudentWithSectionStudent } from '@/lib/types'
+import { OrganizedGrade } from '@/lib/types'
 import { useQuery } from 'convex/react';
 import React, { useState } from 'react'
 import { api } from '../../../../../convex/_generated/api';
-import { calculateQuarterlyAverage, getPassFailStatus } from '@/lib/utils';
+import { Id } from '../../../../../convex/_generated/dataModel';
+import SrGradesTemplate from './shs-grade-template';
+import RemedialTemplate from './remedial-template';
 
 interface ShsSubjectsTemplateProps {
-    student: StudentWithSectionStudent;
-    level: GradeLevelsTypes;
-    sem: SemesterType;
+   record: OrganizedGrade
 }
-function ShsSubjectsTemplate({ student, level, sem }: ShsSubjectsTemplateProps) {
+function ShsSubjectsTemplate({ record }: ShsSubjectsTemplateProps) {
+    const sectionStudentId = record.data?.sectionStudentId
+    const student = useQuery(api.students.getStudentSection, {
+        sectionStudentId: sectionStudentId as Id<'sectionStudents'>
+    })
+    const noRecord = !student || student == null
+    const schoolYear = record.data?.schoolYear
+    const section =  record.data?.name
+    const adviser = record.data?.adviser?.fullName
+    const gradeLevel = record.data?.gradeLevel
+    const semester = record.data?.semester
+    const isSHS = record.gradeLevel === "Grade 11 - 1st semester" || 
+                record.gradeLevel === "Grade 11 - 2nd semester" ||
+                record.gradeLevel === "Grade 12 - 1st semester" ||
+                record.gradeLevel === "Grade 12 - 2nd semester"
 
-    const subjects = useQuery(api.students.getSubjects, {
-        sectionSubjects: student.sectionDoc.subjects,
-        studentId: student._id
-    }) as ShsSubject[] | undefined;
-
-    const schoolYear = student.sectionDoc.schoolYear
-    const semester = student.sectionDoc.semester
-    const section = student.sectionDoc.name
-    const trackStrand = "STEM"
-
-    // Filter core subjects based on category and semester
-    const coreSubjects = subjects?.filter(s => s.category === "core" && s.semester.includes(sem));
-
-    // Filter applied and specialized subjects based on category and semester
-    const appliedAndSpecialized = subjects?.filter(s => s.category === "specialized" && s.semester.includes(sem));
-
-    // Combine all subjects into a single array
-    const allSubjects = [...(coreSubjects || []), ...(appliedAndSpecialized || [])];
-
-    const generalAverage = allSubjects?.reduce((acc, subject) => {
-        const average = calculateQuarterlyAverage(subject.grades);
-        if (average !== null) {
-            return acc + average;
-        }
-        return acc;
-    }, 0);
   return (
     <div>
         <div className="">
           
             <div className="grid grid-cols-12 gap-x-2 text-[0.6rem] font-semibold">
-                <div className='flex col-span-5 uppercase'>School: <input type="text" value={"TANJAY NATIONAL HIGH SCHOOL (OPAO)"} className='border-b border-b-black flex-1 px-3 h-5 p-0 uppercase' /></div>
-                <div className='flex col-span-2 uppercase'>School Id: <input type="text" value={"303280"} className='border-b w-10 border-b-black flex-1 uppercase h-5' /></div>
-                <div className='flex col-span-2 uppercase'>Grade Level: <span className='border-b border-b-black flex-1 px-3'>{level}</span></div>
-                <div className='flex col-span-2 uppercase'>SY: {schoolYear} </div>
+                <div className='flex col-span-5 uppercase'>School: <span className='border-b border-b-black flex-1 px-3 h-5 p-0 uppercase'>{noRecord ? "" : "TANJAY NATIONAL HIGH SCHOOL (OPAO)"}</span></div>
+                <div className='flex col-span-2 uppercase'>School Id: <span className='border-b w-10 border-b-black flex-1 uppercase h-5'>{noRecord ? "" : "303280"}</span></div>
+                <div className='flex col-span-2 uppercase'>Grade Level: <span className='border-b border-b-black flex-1 px-3'>{gradeLevel}</span></div>
+                <div className='flex col-span-2 uppercase'>SY: <span className='border-b border-b-black flex-1 px-3'>{schoolYear}</span> </div>
                 <div className='flex col-span-1 uppercase'>SEM: {<span className='border-b border-b-black flex-1 px-3'>{semester}</span>}</div>
             </div>
             <div className="grid grid-cols-12 gap-x-2 text-[0.6rem] pt-1 font-semibold mt-[-4px]">
-                <div className='flex col-span-7 uppercase'>TRACK/STRAND: {<span className='border-b border-b-black flex-1 px-3'>{trackStrand}</span>} </div>
+                <div className='flex col-span-7 uppercase'>TRACK/STRAND: {<span className='border-b border-b-black flex-1 px-3'>{}</span>} </div>
                 <div className='flex col-span-5 uppercase'>SECTION: {<span className='border-b border-b-black flex-1 px-3'>{section}</span>}</div>
             </div>
         </div>
@@ -60,8 +48,8 @@ function ShsSubjectsTemplate({ student, level, sem }: ShsSubjectsTemplateProps) 
             <div className="col-span-2 text-center">
                 <h1 className='text-center border-b-black border-b h-1/2'>Quarter</h1>
                 <div className="grid grid-cols-2">
-                    <div className='col-span-1 h-full'>{sem === "1st semester" ? "1st" : "3rd"}</div>
-                    <div className='col-span-1 border-l-black border-l h-full flex-1'>{sem === "1st semester" ? "2nd" : "4th"}</div>
+                    <div className='col-span-1 h-full'>{semester === "1st semester" ? "1st" : "3rd"}</div>
+                    <div className='col-span-1 border-l-black border-l h-full flex-1'>{semester === "1st semester" ? "2nd" : "4th"}</div>
                 </div>
             </div>
             <div className="col-span-1 text-center  border-l-black border-l  flex items-center justify-center">
@@ -72,55 +60,29 @@ function ShsSubjectsTemplate({ student, level, sem }: ShsSubjectsTemplateProps) 
             </div>
         </div>
         
-        {allSubjects ? allSubjects?.map((subject: ShsSubject, index: number) => (
-            <div key={subject?._id + index} className="grid grid-cols-12 border-b-black border-b  text-[0.6rem] h-[0.95rem]">
-                <div className="col-span-2 text-center border-l-black border-l h-full uppercase"><p>{subject?.category}</p></div>
-                <div className="col-span-6 flex items-center justify-start px-2 border-x-black border-x h-full"><h1 className='uppercase text-center my-auto'>{subject?.subjectName}</h1></div>
-                <div className="col-span-2 tex-center h-full"> 
-                    <div className="grid grid-cols-2 h-full text-center">
-                        <div className='col-span-1 h-full'> {sem === "1st semester" ? subject?.grades["1st"] : subject?.grades["3rd"]}</div>
-                        <div className='col-span-1 border-l-black border-l h-full flex-1'>{sem === "1st semester" ? subject?.grades["2nd"] : subject?.grades["4th"]}</div>
-                    </div>
-                </div>
-                <div className="col-span-1 text-center border-l-black border-l h-full">
-                    <p className=''>{subject?.grades ? calculateQuarterlyAverage(subject.grades) : null}</p>
-                </div>
-                <div className="col-span-1 text-center border-l-black border-l border-r border-r-black h-full">
-                    <p>{getPassFailStatus(calculateQuarterlyAverage(subject.grades))}</p>
-                </div>
-            </div>
-        )) : Array.from({ length: 12 }).map((_, index) => (
+        {!student || student === null?  Array.from({ length: 12 }).map((_, index) => (
            <GradesInputsTemplate key={index}/>
-        ))}
-        <div className="grid grid-cols-12 border-b-black border-b  text-[0.6rem]">
-            <div className="col-span-10 text-right pt-1 px-1 border-l border-l-black border-b-black border-b font-semibold bg-gray-300">
-                <span>Gen Ave. for the Semester:</span>
-            </div>
-            
-            <div className="border-l-black border-l border-b-black border-b flex items-center justify-center">
-                {generalAverage}
-            </div>
-               
-            <div className="border-x-black border-x border-b-black border-b flex items-center justify-center">
-                {getPassFailStatus(generalAverage)}
-            </div>
-        </div>
+        )) : semester && (
+            <SrGradesTemplate student={student} sem={semester}/>
+        )}
         <div className="">
-            <h1 className='flex items-baseline text-[0.6rem] mt-1'>REMARKS: <input type="text" className='border-b border-b-black flex-1 h-3 px-1' /></h1>
+            <h1 className='flex items-baseline text-[0.6rem] mt-1'>REMARKS: <span className='border-b border-b-black flex-1 h-3 px-1'></span></h1>
             <div className="grid grid-cols-12 text-[0.55rem] gap-x-10 mt-1">
-                <h3 className='col-span-4 mt-[-5px]'>Prepared by</h3>
-                <h3 className='col-span-5 mt-[-5px]'>Certified True and Correct:</h3>
-                <h3 className='col-span-3 mt-[-5px]'>Date Checked (MM/DD/YYYY):</h3>
-                <input type="text" className='border-b-black border-b col-span-4 mt-2 text-center uppercase h-4' />
-                <input type="text" className='border-b-black border-b col-span-5 mt-2 text-center uppercase h-4' />
-                <input type="text" className='border-b-black border-b col-span-3 mt-2 text-center uppercase h-4' />
-                <h3 className='text-center col-span-4'>Signature of Adviser over Printed Name</h3>
-                <h3 className='text-center col-span-5'>Signature of Authorized Person over Printed Name, Designation</h3>
-                <h3 className='text-center col-span-3'></h3>
+            <h3 className='col-span-4 mt-[-5px]'>Prepared by</h3>
+            <h3 className='col-span-5 mt-[-5px]'>Certified True and Correct:</h3>
+            <h3 className='col-span-3 mt-[-5px]'>Date Checked (MM/DD/YYYY):</h3>
+            <span className='border-b-black border-b col-span-4 mt-2 text-center uppercase h-4'></span>
+            <span className='border-b-black border-b col-span-5 mt-2 text-center uppercase h-4'></span>
+            <span className='border-b-black border-b col-span-3 mt-2 text-center uppercase h-4'></span>
+            <h3 className='text-center col-span-4'>Signature of Adviser over Printed Name</h3>
+            <h3 className='text-center col-span-5'>Signature of Authorized Person over Printed Name, Designation</h3>
+            <h3 className='text-center col-span-3'></h3>
             </div>
         </div>
         <div className="">
-            {/* <RemedialTemplate forRemedial={forRemedial} filteredFinalGrade={filteredFinalGrade} isSHS={level ? Number(level) > 10 ? true : false : false}/> */}
+           
+                <RemedialTemplate isSHS={isSHS}/>
+          
         </div>
     </div>
   )
