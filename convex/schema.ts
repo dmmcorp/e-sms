@@ -229,6 +229,14 @@ const schema = defineSchema({
     .searchIndex("search_name", {
       searchField: "firstName",
       filterFields: ["isArchived"]
+    })
+    .searchIndex("search_full_name", {
+      searchField: "lastName",
+      filterFields: ["isArchived"]
+    })
+    .searchIndex("search_middle_name", {
+      searchField: "middleName",
+      filterFields: ["isArchived"]
     }),
 
   interventions: defineTable({
@@ -385,7 +393,7 @@ const schema = defineSchema({
     }),
   }),
 
-   finalGrades: defineTable({
+  finalGrades: defineTable({
     studentId: v.id('students'),
     sectionId: v.id('sections'),
     subjectTaughtId: v.id('subjectTaught'),
@@ -402,7 +410,7 @@ const schema = defineSchema({
     //   remedialGrade: v.optional(v.number()),
     //   status: v.optional(v.string())
     // })),
- 
+
     // semester: v.optional(v.string()),
     // isPassed: v.optional(v.boolean()),
     // dateSubmitted: v.optional(v.string()),
