@@ -130,7 +130,7 @@ function UserPage() {
     }
 
     // Subject Teacher validations
-    if (formData.role === "subject-teacher") {
+    if (formData.role === "subject-teacher" || formData.role === "adviser/subject-teacher") {
       if (!formData.subjectsTaught || formData.subjectsTaught.length === 0) {
         fieldErrors.subjectsTaught = "At least one subject is required";
       } else {
@@ -157,6 +157,18 @@ function UserPage() {
           ) {
             fieldErrors[`subject${index}Period`] =
               "Select either quarters or semesters";
+          }
+
+          if (
+            subject.gradeLevel === "Grade 11" ||
+            subject.gradeLevel === "Grade 12"
+          ) {
+            if (!subject.quarter || subject.quarter.length === 0) {
+              fieldErrors[`subject${index}Quarter`] = "Quarter is required";
+            }
+            if (!subject.semester || subject.semester.length === 0) {
+              fieldErrors[`subject${index}Semester`] = "Semester is required";
+            }
           }
 
           // Validate grade weights
