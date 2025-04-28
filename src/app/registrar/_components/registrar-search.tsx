@@ -47,7 +47,6 @@ export function RegistrarSearch() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Doc<"students"> | null>(null);
-  const [showSF9, setShowSF9] = useState(false);
   const [activeTab, setActiveTab] = useState("front");
   const componentRef = useRef(null);
 
@@ -60,14 +59,7 @@ export function RegistrarSearch() {
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
     documentTitle: `Form 137 - ${selectedStudent?.lastName}, ${selectedStudent?.firstName} - ${activeTab === 'front' ? 'Front' : 'Back'}`,
-    // onAfterPrint: () => {
-    //   toast.success(`Form 137 ${activeTab === 'front' ? 'Front' : 'Back'} printed successfully`);
-    // },
-    // onPrintError: () => {
-    //   toast.error(`Failed to print Form 137 ${activeTab === 'front' ? 'Front' : 'Back'}`);
-    // }
   });
-
 
   // 1. Define form.
   const form = useForm<z.infer<typeof formSchema>>({
@@ -111,12 +103,10 @@ export function RegistrarSearch() {
 
   const handleViewForm137 = (student: Doc<"students">) => {
     setSelectedStudent(student);
-    setShowSF9(true);
-
   };
 
   return (
-    <div className="min-h-dvh max-w-2xl w-full flex flex-col items-center mx-auto pt-10 space-y-8">
+    <div className="min-h-dvh max-w-7xl w-full flex flex-col items-center mx-auto pt-10 space-y-8">
       <Card className="w-full">
         <CardHeader>
           <CardTitle>Student Search</CardTitle>
@@ -176,7 +166,7 @@ export function RegistrarSearch() {
                   </FormItem>
                 )}
               />
-              {form.formState.errors.root && ( // Display general form error if refine fails
+              {form.formState.errors.root && (
                 <p className="text-sm font-medium text-destructive">
                   {form.formState.errors.root.message}
                 </p>
@@ -224,33 +214,34 @@ export function RegistrarSearch() {
           </CardContent>
         </Card>
       )}
-      
-      {/* SF9 Dialog */}
-      <Dialog open={showSF9} onOpenChange={setShowSF9}>
-        <DialogContent className="max-w-[98vw] w-[1400px] max-h-[98vh] overflow-y-auto p-0">
-          <DialogHeader className="p-6 pb-0 flex flex-row items-center justify-between">
-            <DialogTitle>Form 137 (SF9)</DialogTitle>
-            <Button
+
+      {/* SF9 Section */}
+      {selectedStudent && sectionStudentId && (
+        <Card className="w-full">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Form 137 (SF9)</CardTitle>
+            {/* <Button
               variant="outline"
               size="icon"
               onClick={() => handlePrint()}
             >
               <PrinterIcon className="h-4 w-4" />
-            </Button>
-          </DialogHeader>
-          {selectedStudent && sectionStudentId && (
-            <div className="p-6 w-full flex justify-center">
-              <div className="w-[1300px]">
+            </Button> */}
+          </CardHeader>
+          <CardContent>
+            <div className="w-full flex justify-center">
+              <div className="w-full max-w-[1300px]">
                 <SF9
                   sectionStudentId={sectionStudentId}
                   componentRef={componentRef}
                   onTabChange={setActiveTab}
+                  readOnly
                 />
               </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

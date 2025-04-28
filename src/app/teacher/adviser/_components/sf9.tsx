@@ -27,7 +27,7 @@ interface SF9Props {
 
 export default function SF9({
   sectionStudentId,
-  readOnly = false,
+  readOnly,
   componentRef,
   onTabChange,
 }: SF9Props) {
@@ -41,12 +41,12 @@ export default function SF9({
     onTabChange?.(value);
   };
 
-    const gradeLevel = student?.sectionDoc?.gradeLevel
-    const isSHS = gradeLevel === "Grade 11" || gradeLevel === "Grade 12" 
+  const gradeLevel = student?.sectionDoc?.gradeLevel
+  const isSHS = gradeLevel === "Grade 11" || gradeLevel === "Grade 12"
 
-    const reactToPrintContent = () => {
-      return (componentRef || localComponentRef).current;
-    };
+  const reactToPrintContent = () => {
+    return (componentRef || localComponentRef).current;
+  };
 
   const handlePrint = useReactToPrint({
     documentTitle: `School form 9 - ${activeTab === 'front' ? 'Front' : 'Back'}`,
@@ -59,7 +59,7 @@ export default function SF9({
 
   return (
     <div className="w-full mx-auto p-4 flex ">
-       <Tabs defaultValue="front" className="w-full mx-auto container overflow-auto" onValueChange={handleTabChange}>
+      <Tabs defaultValue="front" className="w-full mx-auto container overflow-auto" onValueChange={handleTabChange}>
         <div className="grid grid-cols-12">
 
           <TabsList className="col-span-9 grid w-[200px] grid-cols-2 mb-6">
@@ -68,69 +68,71 @@ export default function SF9({
           </TabsList>
           <div className="flex justify-end col-span-3">
 
-            <Button size={'icon'} onClick={()=> {handlePrint(reactToPrintContent)}}><Printer/></Button>
+            <Button size={'icon'} onClick={() => { handlePrint(reactToPrintContent) }}><Printer /></Button>
           </div>
         </div>
 
         <TabsContent value='front' className=" overflow-auto  min-w-[1100px] ">
           <div ref={componentRef || localComponentRef} className="">
-            <SF9FrontTemplate student={student} />
+            <SF9FrontTemplate student={student} readOnly={readOnly} />
           </div>
         </TabsContent>
 
         <TabsContent value="back" className="mt-0  overflow-auto  min-w-[1100px]">
           <div ref={componentRef || localComponentRef}>
-          {isSHS ? (
-            <Card className="border-2 p-6 grid grid-cols-2 gap-4">
-              <div>
-                <div className="mb-3">
-                  <h1 className='text-center text-xs'>REPORT ON LEARNING PROGRESS AND ACHIEVEMENT</h1>
-                  <SrGradesTemplate student={student} sem='1st semester' sf9={true} />
+            {isSHS ? (
+              <Card className="border-2 p-6 grid grid-cols-2 gap-4">
+                <div>
+                  <div className="mb-3">
+                    <h1 className='text-center text-xs'>REPORT ON LEARNING PROGRESS AND ACHIEVEMENT</h1>
+                    <SrGradesTemplate student={student} sem='1st semester' sf9={true} />
+                  </div>
+                  <div className="">
+                    <SrGradesTemplate student={student} sem='2nd semester' sf9={true} />
+                  </div>
                 </div>
-                <div className="">
-                  <SrGradesTemplate student={student} sem='2nd semester' sf9={true} />
+                <div onClick={() => setValuesDialog(true)} className="">
+                  <Values
+                    studentId={student._id}
+                    sectionStudentId={sectionStudentId}
+                    sf9
+                    isSHS={isSHS}
+                    setValuesDialog={setValuesDialog}
+                  />
                 </div>
-              </div>
-              <div onClick={() => setValuesDialog(true)} className="">
-                <Values
+                <InputValues
                   studentId={student._id}
                   sectionStudentId={sectionStudentId}
                   sf9
                   isSHS={isSHS}
+                  valuesDialog={valuesDialog}
                   setValuesDialog={setValuesDialog}
                 />
-              </div>
-              <InputValues
-                studentId={student._id}
-                sectionStudentId={sectionStudentId}
-                sf9
-                isSHS={isSHS}
-                valuesDialog={valuesDialog}
-                setValuesDialog={setValuesDialog}
-              />
-            </Card>
-          ) : (
-            <Card className="border-2 p-6 grid grid-cols-2 gap-6 ">
-              <JrGradesTemplate student={student} sf9 />
-              <div onClick={() => setValuesDialog(true)}>
-                <Values
-                  studentId={student._id}
-                  sectionStudentId={sectionStudentId}
-                  sf9
-                  isSHS={isSHS}
-                  setValuesDialog={setValuesDialog}
-                />
-              </div>
-              <InputValues
-                studentId={student._id}
-                sectionStudentId={sectionStudentId}
-                sf9
-                isSHS={isSHS}
-                valuesDialog={valuesDialog}
-                setValuesDialog={setValuesDialog}
-              />
-            </Card>
-          )}
+              </Card>
+            ) : (
+              <Card className="border-2 p-6 grid grid-cols-2 gap-6 ">
+                <JrGradesTemplate student={student} sf9 />
+                <div onClick={() => setValuesDialog(true)}>
+                  <Values
+                    studentId={student._id}
+                    sectionStudentId={sectionStudentId}
+                    sf9
+                    isSHS={isSHS}
+                    setValuesDialog={setValuesDialog}
+                  />
+                </div>
+                {!readOnly && (
+                  <InputValues
+                    studentId={student._id}
+                    sectionStudentId={sectionStudentId}
+                    sf9
+                    isSHS={isSHS}
+                    valuesDialog={valuesDialog}
+                    setValuesDialog={setValuesDialog}
+                  />
+                )}
+              </Card>
+            )}
           </div>
         </TabsContent>
       </Tabs>

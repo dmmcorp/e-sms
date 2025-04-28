@@ -316,11 +316,6 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
         <Card className="p-4 w-full">
           <div className="flex justify-between items-center mb-2">
             <Label className="font-semibold">Quarters</Label>
-            {errors[`subject${index}Quarter`] && (
-              <p className="text-xs text-red-600">
-                {errors[`subject${index}Quarter`]}
-              </p>
-            )}
             {/* Select All/Deselect All for Quarters */}
             <Button
               type="button"
@@ -392,6 +387,11 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
               );
             })}
           </div>
+          {errors[`subject${index}Quarter`] && (
+            <p className="text-xs text-red-600">
+              {errors[`subject${index}Quarter`]}
+            </p>
+          )}
         </Card>
 
         {/* SEMESTERS */}
@@ -400,11 +400,6 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
         >
           <div className="flex justify-between items-center mb-2">
             <Label className="font-semibold">Semesters (SHS Only)</Label>
-            {errors[`subject${index}Semester`] && (
-              <p className="text-xs text-red-600">
-                {errors[`subject${index}Semester`]}
-              </p>
-            )}
             {/* Select All/Deselect All for Semesters */}
             <Button
               type="button"
@@ -448,6 +443,11 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
               </label>
             ))}
           </div>
+          {errors[`subject${index}Semester`] && (
+            <p className="text-xs text-red-600">
+              {errors[`subject${index}Semester`]}
+            </p>
+          )}
         </Card>
       </div>
 

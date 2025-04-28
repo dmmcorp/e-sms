@@ -29,7 +29,7 @@ function MainNav() {
   return (
     <nav
       className={cn(
-        (pathName === "/admin" ||  pathName === "/teacher") ? "hidden" : "flex",
+        (pathName === "/admin" || pathName === "/teacher") ? "hidden" : "flex",
         "px-3 md:px-10 w-full h-18 z-50 shadow-md py-5 justify-between items-center pr-3 sm:pr-5 md:pr-10 lg:pr-10"
       )}
       style={{
@@ -38,7 +38,7 @@ function MainNav() {
       }}
     >
       <Link
-        href="/admin"
+        href={user?.role === "admin" ? "/admin" : user?.role === "principal" ? "/principal" : user?.role === "registrar" ? "/registrar" : "/teacher"}
         className="flex items-center gap-x-1 px-3 md:w-[20%] "
       >
         {school?.schoolImage ? (
