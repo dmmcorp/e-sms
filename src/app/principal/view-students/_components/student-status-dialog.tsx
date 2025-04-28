@@ -57,9 +57,9 @@ export function StudentStatusdDialog({
                 <span className="font-medium">Overall Enrollment Status:</span>
                 <Badge
                   variant={
-                    statusDetails.overallStatus === "Passed"
+                    statusDetails.overallStatus === "promoted" || statusDetails.overallStatus === "conditionally-promoted"
                       ? "default"
-                      : statusDetails.overallStatus === "Failed"
+                      : statusDetails.overallStatus === "retained"
                         ? "destructive"
                         : statusDetails.overallStatus === "enrolled"
                           ? "default"

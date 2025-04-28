@@ -44,7 +44,7 @@ function EditStudent({
             dateOfBirth: student?.dateOfBirth ? new Date(student.dateOfBirth) : undefined,
             sex: student?.sex || "",
         
-            elemGenAve: student?.elementary?.school || "",
+            elemGenAve: Number(student?.elementary?.genAve) || undefined,
             elemPrevSchoolName: student?.elementary?.school || "",
             elemPrevSchoolAddress: student?.elementary?.address || "",
         
@@ -70,7 +70,7 @@ function EditStudent({
             lrn:  values.lrn,
             dateOfBirth: values.dateOfBirth.toDateString(),
             elementary: {
-                genAve: values.elemGenAve,
+                genAve: values.elemGenAve.toString(),
                 school: values.elemPrevSchoolName,
                 address: values.elemPrevSchoolAddress,
             },
@@ -339,7 +339,7 @@ function EditStudent({
                                         General Average <span className="text-red-500">*</span>
                                     </FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Enter general average" {...field} />
+                                        <Input type='number' placeholder="Enter general average" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                     </FormItem>
