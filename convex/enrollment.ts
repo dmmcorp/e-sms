@@ -101,6 +101,24 @@ export const getBySectionId = query({
     },
 });
 
+export const dropStudent = mutation({
+    args:{
+        enrollmentId: v.id('enrollment')
+    },
+    handler: async(ctx,args) => {
+        const enrollment = await ctx.db.get(args.enrollmentId)
+        if(!enrollment) throw new ConvexError('No Enrollment Found.')
+
+        await ctx.db.patch(enrollment._id, {
+            status: "dropped"
+        })
+
+        await ctx.db.patch(enrollment.studentId, {
+            status: "not-enrolled"
+        })
+    }
+})
+
 export const isEnrolled = query({
     args:{
         enrollmentId: v.optional(v.id('enrollment')),

@@ -136,7 +136,8 @@ export const enrollmentSchema = z.object({
   sex: z.string()
     .nonempty({ message: "Sex is required." }),
 
-  elemGenAve: z.string().nonempty({ message: "Elementary general average is required." }),
+  elemGenAve: z.coerce.number().refine(value => value !== null && value !== undefined, { message: "Elementary general average is required." }),
+  elemSchoolId: z.string().nonempty({ message: "Elementary school ID is required." }),
   elemPrevSchoolName: z.string().nonempty({ message: "Previous elementary school name is required." }),
   elemPrevSchoolAddress: z.string().nonempty({ message: "Previous elementary school address is required." }),
 

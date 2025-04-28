@@ -200,7 +200,7 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
             </div>
 
             {/* Render subjects */}
-            {Array.from({ length: 11 }).map((_, index) => {
+            {Array.from({ length: 12 }).map((_, index) => {
                 const subject = organizedSubjects[index];
                 if (!subject) {
                     return (

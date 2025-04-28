@@ -253,7 +253,7 @@ const schema = defineSchema({
       v.literal('promoted'),
       v.literal('conditionally-promoted'),
       v.literal('retained'),
-    ), // once promoted it needs to update
+    ),
     subjects: v.array(v.id('subjectTaught')),
     isReturning: v.boolean(),
     sectionId: v.id('sections'),

@@ -280,7 +280,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
         <h1 className="w-[22%] uppercase  border-b-black border-b  text-[0.6rem] flex justify-end items-center font-semibold text-right">
           Highest possible score
         </h1>
-        <div onClick={() => handleDialogOpen("Written Works", "highest scores")} className="w-[27%] uppercase border border-x-0 border-black  text-sm flex justify-center items-center font-semibold text-center">
+        <button onClick={() => handleDialogOpen("Written Works", "highest scores")} className="w-[27%] uppercase border border-x-0 border-black  text-sm flex justify-center items-center font-semibold text-center">
           {Array.from({ length: 10 }).map((_, index) => (
             <h1
               key={index}
@@ -307,8 +307,8 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
               wwGradeWeights ?? 0
             )}
           </h1>
-        </div>
-        <div onClick={() => handleDialogOpen("Performance Tasks", "highest scores")} className="w-[28%] hover:bg-gray-200  uppercase border border-black border-x-0  text-sm flex justify-center items-center font-semibold text-center">
+        </button>
+        <button onClick={() => handleDialogOpen("Performance Tasks", "highest scores")} className="w-[28%] hover:bg-gray-200  uppercase border border-black border-x-0  text-sm flex justify-center items-center font-semibold text-center">
           {Array.from({ length: 10 }).map((_, index) => (
             <h1
               key={index}
@@ -336,9 +336,9 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
             )}
             %
           </h1>
-        </div>
+        </button>
         {learningMode?.toLowerCase() === "face to face" && (
-          <div onClick={() => handleDialogOpen("Major Exam", "highest scores")} className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
+          <button onClick={() => handleDialogOpen("Major Exam", "highest scores")} className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
             <h1 className="h-full uppercase border  border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">
               {mehighestScores
                 ? mehighestScores.find((me) => me.assessmentNo === 1)?.score ===
@@ -356,7 +356,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
                 meGradeWeights ?? 0
               )}
             </h1>
-          </div>
+          </button>
         )}
         <h1
           className={cn(
@@ -447,6 +447,8 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
 
         const initialGrade = calculateInitialGrade(wwWeightedScore, ptWeightedScore, meWeightedScore)
         const transmutedGrade = convertToTransmutedGrade(initialGrade, section.gradeLevel, learningMode, subjectThought.category)
+
+        const isNotEnrolled = student.enrollment.status !== "enrolled"
         return (
           <div
             key={student._id}
@@ -460,7 +462,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
             </h1>
 
             {/* Written works scores  */}
-            <div onClick={() => { handleDialogOpen("Written Works", fullName, student, transmutedGrade, student.isSubmitted) }} className="w-[27%] uppercase border-b-black border-b  border-l-black text-sm flex justify-center items-center font-semibold text-center">
+            <button disabled={isNotEnrolled}  onClick={() => { handleDialogOpen("Written Works", fullName, student, transmutedGrade, student.isSubmitted) }} className="w-[27%] uppercase border-b-black border-b  border-l-black text-sm flex justify-center items-center font-semibold text-center">
               {Array.from({ length: 10 }).map((_, wwindex) => (
                 <h1
                   key={"ww-m" + wwindex}
@@ -479,8 +481,8 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
               <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
                 {wwWeightedScore === 0 ? "" : wwWeightedScore.toFixed(1)}
               </h1>
-            </div>
-            <div onClick={() => { handleDialogOpen("Performance Tasks", fullName, student, transmutedGrade, student.isSubmitted) }} className="w-[28%] uppercase border-b-black border-b text-sm flex justify-center items-center font-semibold text-center">
+            </button>
+            <button  disabled={isNotEnrolled} onClick={() => { handleDialogOpen("Performance Tasks", fullName, student, transmutedGrade, student.isSubmitted) }} className="w-[28%] uppercase border-b-black border-b text-sm flex justify-center items-center font-semibold text-center">
               {Array.from({ length: 10 }).map((_, ptindex) => (
                 <h1
                   key={"pt-m" + ptindex}
@@ -498,9 +500,9 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
               <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
                 {ptPercentageScore === 0 ? "" : ptPercentageScore.toFixed(1)}
               </h1>
-            </div>
+            </button>
             {learningMode?.toLowerCase() === "face to face" && (
-              <div onClick={() => { handleDialogOpen("Major Exam", fullName, student, transmutedGrade, student.isSubmitted) }} className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
+              <button disabled={isNotEnrolled} onClick={() => { handleDialogOpen("Major Exam", fullName, student, transmutedGrade, student.isSubmitted) }} className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
                 <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
                   {meTotalScore === 0 ? "" : meTotalScore}
                 </h1>
@@ -510,7 +512,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
                 <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
                   {mePercentageScore === 0 ? "" : mePercentageScore.toFixed(1)}
                 </h1>
-              </div>
+              </button>
             )}
             <div
               className={cn(
@@ -519,7 +521,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
               )}
             >
               <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "" : initialGrade.toFixed(1)}</h1>
-              <h1 className={cn(transmutedGrade <= 74 && "text-red-500", "h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{transmutedGrade === 60 ? "" : transmutedGrade.toFixed(0)}</h1>
+              <h1 className={cn(transmutedGrade <= 74 && "text-red-500", "h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{ transmutedGrade === 60 ? "" : transmutedGrade.toFixed(0)}</h1>
             </div>
           </div>
         )
@@ -591,6 +593,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
 
         const initialGrade = calculateInitialGrade(wwWeightedScore, ptWeightedScore, meWeightedScore)
         const transmutedGrade = convertToTransmutedGrade(initialGrade, section.gradeLevel, learningMode, subjectThought.category)
+        const isEnrolled = student.enrollment.status !== "enrolled"
         return (
           <div
             key={student._id}
@@ -605,7 +608,8 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
             </h1>
 
             {/* Written works scores  */}
-            <div
+            <button
+              disabled={isEnrolled} 
               onClick={() => { handleDialogOpen("Written Works", fullName, student, transmutedGrade, student.isSubmitted) }}
               className="w-[27%] uppercase border-b-black border-b  border-l-black text-sm flex justify-center items-center font-semibold text-center">
               {Array.from({ length: 10 }).map((_, index) => (
@@ -626,8 +630,8 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
               <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
                 {wwWeightedScore === 0 ? "" : wwWeightedScore.toFixed(1)}
               </h1>
-            </div>
-            <div onClick={() => { handleDialogOpen("Performance Tasks", fullName, student, transmutedGrade, student.isSubmitted) }} className="w-[28%] uppercase border-b-black border-b text-sm flex justify-center items-center font-semibold text-center">
+            </button>
+            <button disabled={isEnrolled}  onClick={() => { handleDialogOpen("Performance Tasks", fullName, student, transmutedGrade, student.isSubmitted) }} className="w-[28%] uppercase border-b-black border-b text-sm flex justify-center items-center font-semibold text-center">
               {Array.from({ length: 10 }).map((_, aindex) => (
                 <h1
                   key={"pt-f" + aindex}
@@ -645,9 +649,9 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
               <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
                 {ptPercentageScore === 0 ? "" : ptPercentageScore.toFixed(1)}
               </h1>
-            </div>
+            </button>
             {learningMode?.toLowerCase() === "face to face" && (
-              <div onClick={() => { handleDialogOpen("Major Exam", fullName, student, transmutedGrade, student.isSubmitted) }} className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
+              <button disabled={isEnrolled} onClick={() => { handleDialogOpen("Major Exam", fullName, student, transmutedGrade, student.isSubmitted) }} className="w-[8%] uppercase border border-x-0 border-black  text-sm leading-relaxed grid grid-cols-3 justify-center items-center font-semibold text-center">
                 <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
                   {meTotalScore === 0 ? "" : meTotalScore}
                 </h1>
@@ -657,7 +661,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
                 <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
                   {mePercentageScore === 0 ? "" : mePercentageScore.toFixed(1)}
                 </h1>
-              </div>
+              </button>
             )}
             <div
               className={cn(

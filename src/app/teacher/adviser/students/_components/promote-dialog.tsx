@@ -185,8 +185,7 @@ function PromoteDialog({
     const generalAverage = calculateGeneralAverage()
     const subjectGrades =  getSubjectsBelowPassing()
     const failedSubjects = getSubjectsBelowPassing().filter(({ average }) => average !== null && average < 75); // Exclude subjects with average >= 75
-    
-
+ 
     const handlePromote = () =>{
         setIsLoading(true)
         const noOfFailedSub = failedSubjects.length
@@ -254,7 +253,7 @@ function PromoteDialog({
                         <p className='text-sm text-justify'>* Must pass remedial classes for failed competencies in the subjects or learning areas to be allowed to enroll in the next semester. Otherwise, the learner must retake the subjects failed.</p>
                     </div>
                     <DialogFooter>
-                        <Button variant={'default'} onClick={handlePromote} className=" text-white">Conditionally Promote</Button>
+                        <Button disabled={isLoading || generalAverage === null} variant={'default'} onClick={handlePromote} className=" text-white">Conditionally Promote</Button>
                     </DialogFooter>
                 </>
             ) : (
@@ -271,7 +270,7 @@ function PromoteDialog({
                             <p className='text-sm text-justify'>* Did not meet expectations in three or more learning areas. Retained in the same grade level.</p>
                         </div>
                         <DialogFooter>
-                            <Button variant={'destructive'} onClick={handlePromote} className=" text-white">Retain</Button>
+                            <Button disabled={isLoading || generalAverage === null} variant={'destructive'} onClick={handlePromote} className=" text-white">Retain</Button>
                         </DialogFooter>
                     </>
                 ) : (
@@ -287,7 +286,7 @@ function PromoteDialog({
                             <p className='text-sm text-justify'>*Must enroll in remedial classes for that subject(s) to improve their grade</p>
                         </div>
                         <DialogFooter>
-                            <Button variant={'default'} onClick={handlePromote} className=" text-white">Conditionally Promote</Button>
+                            <Button disabled={isLoading || generalAverage === null} variant={'default'} onClick={handlePromote} className=" text-white">Conditionally Promote</Button>
                         </DialogFooter>
                     </>
                 )
@@ -297,7 +296,7 @@ function PromoteDialog({
                 <p className='capitalize'>{fullName} has passed all his subjects.</p>
                 <DialogFooter>
                     <Button variant={'secondary'} className='' onClick={()=> setPromoteDialog(false)}>Cancel</Button>
-                    <Button variant={'default'} onClick={handlePromote} className=" text-white">Promote</Button>
+                    <Button disabled={isLoading || generalAverage === null} variant={'default'} onClick={handlePromote} className=" text-white">Promote</Button>
                 </DialogFooter>
             </>
         )}

@@ -7,6 +7,7 @@ import { FaLevelDownAlt, FaLevelUpAlt } from 'react-icons/fa'
 import PromoteDialog from './promote-dialog';
 import { useQuery } from 'convex/react';
 import { api } from '../../../../../../convex/_generated/api';
+import DropDialog from './drop-dialog';
 
 interface ActionCeilProps {
     student: SectionStudentsType
@@ -43,13 +44,20 @@ function ActionCell({
                 </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-            {promoteDialog && (
-                <PromoteDialog
-                    student={student}
-                    promoteDialog={promoteDialog}
-                    setPromoteDialog={setPromoteDialog}
-                />
-            )}
+        
+            <PromoteDialog
+                student={student}
+                promoteDialog={promoteDialog}
+                setPromoteDialog={setPromoteDialog}
+            />
+
+            <DropDialog
+                student={student}
+                dropDialog={dropDialog}
+                setDropDialog={setDropDialog}
+            />
+            
+
         </div>
     );
 }

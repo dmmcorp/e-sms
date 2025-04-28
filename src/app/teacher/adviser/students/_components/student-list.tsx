@@ -93,8 +93,9 @@ const studentColumns: ColumnDef<SectionStudentsType>[] = [
             <Badge className={cn(
               status === "enrolled" && "bg-primary" ,
               status === "promoted" && "bg-green-500" ,
-              status === "conditionally-promoted" && "bg-green-200" ,
+              status === "conditionally-promoted" && "bg-blue-500" ,
               status === "retained" && "bg-red-500" ,
+              status === "dropped" && "bg-orange-500" ,
               'capitalize'
 
             )}>{status}</Badge>

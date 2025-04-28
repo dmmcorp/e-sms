@@ -81,7 +81,7 @@ function ShsSubjectsTemplate({ record }: ShsSubjectsTemplateProps) {
         </div>
         <div className="">
            
-                <RemedialTemplate isSHS={isSHS}/>
+            <RemedialTemplate isSHS={isSHS}/>
           
         </div>
     </div>

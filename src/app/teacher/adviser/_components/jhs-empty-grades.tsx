@@ -11,6 +11,7 @@ export default function JhsEmptyGrades() {
     "Araling Panlipunan (AP)",
     "Edukasyon sa Pagpapakatao (EsP)",
     "Technology and Livelihood Education (TLE)",
+    "MAPEH",
   ]
 
   // MAPEH sub-subjects

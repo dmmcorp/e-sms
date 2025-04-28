@@ -119,6 +119,7 @@ export const add = mutation({
             genAve: v.string(),
             school: v.string(),
             address: v.string(),
+            schoolId: v.string()
         }),
         juniorHigh: v.optional(v.object({
             genAve: v.string(),
@@ -302,7 +303,7 @@ export const sectionStudents = query({
             .filter(q=> q.eq(q.field('studentId'), student._id ))
             .filter(q=> q.eq(q.field('sectionId'), data.sectionId ))
             .unique()
-            console.log(enrollment)
+            
             if(enrollment === null) return null;
           
             return {

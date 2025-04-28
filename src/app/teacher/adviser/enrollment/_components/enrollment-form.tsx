@@ -52,9 +52,10 @@ function EnrollmentForm() {
           dateOfBirth: undefined,
           sex: "",
       
-          elemGenAve: "",
+          elemGenAve: undefined,
           elemPrevSchoolName: "",
           elemPrevSchoolAddress: "",
+          elemSchoolId: "",
       
           jnrGenAve: "",
           jnrPrevSchoolName: "",
@@ -67,6 +68,7 @@ function EnrollmentForm() {
 
     //this fuction is used the user click the save button
     function onSubmit(values: z.infer<typeof enrollmentSchema>) {
+
         setIsSubmitting(true)
         toast.promise(addStudent({
           lastName: values.lastName,
@@ -76,9 +78,10 @@ function EnrollmentForm() {
           lrn:  values.lrn,
           dateOfBirth: values.dateOfBirth.toDateString(),
           elementary: {
-              genAve: values.elemGenAve,
+              genAve: values.elemGenAve.toString(),
               school: values.elemPrevSchoolName,
               address: values.elemPrevSchoolAddress,
+              schoolId: values.elemSchoolId,
           },
           juniorHigh: {
             genAve: values.jnrGenAve || "",
@@ -92,7 +95,7 @@ function EnrollmentForm() {
           loading: "Adding student...",
           success: () =>{ 
             form.reset()
-            router.replace(`/teacher/adviser/enrollment?id=${sectionId}`)
+            router.back()
             return "Successfully Added a new student"
           },
           error: (error) => {
@@ -104,6 +107,12 @@ function EnrollmentForm() {
         setIsSubmitting(false)
     }
 
+    useEffect(() => {
+      const subscription = form.watch((value, { name, type }) => {
+        console.log("Form Errors:", form.formState.errors);
+      });
+      return () => subscription.unsubscribe();
+    }, [form]);
 
 
     if (isComplete) {
@@ -395,6 +404,21 @@ function EnrollmentForm() {
                   />
                   <FormField
                     control={form.control}
+                    name="elemSchoolId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          School Id <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter previous school Id" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
                     name="elemGenAve"
                     render={({ field }) => (
                       <FormItem>
@@ -402,7 +426,7 @@ function EnrollmentForm() {
                           General Average <span className="text-red-500">*</span>
                         </FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter general average" {...field} />
+                          <Input type='number' placeholder="Enter general average" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
