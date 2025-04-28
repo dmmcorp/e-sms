@@ -89,7 +89,6 @@ function ClassrecordTabs({ teachingLoad }: ClassrecordTabsProps) {
             <TabsList className='w-fit md:block'>
               <TabsTrigger value="class-record" className='font-medium text-[0.5rem] md:text-sm shadow-md border-b-2 data-[state=active]:border-b-primary data-[state=active]:text-primary'>Class Record</TabsTrigger>
               <TabsTrigger value="intervention" className='font-medium text-[0.5rem] md:text-sm shadow-md border-b-2 data-[state=active]:border-b-primary data-[state=active]:text-primary'>Needs Intervention</TabsTrigger>
-              <TabsTrigger value="remedial-class" className='font-medium text-[0.5rem] md:text-sm shadow-md border-b-2 data-[state=active]:border-b-primary data-[state=active]:text-primary'>For Summer Class</TabsTrigger>
             </TabsList>
             {isMapeh && (
               <div className="flex items-center gap-2">
