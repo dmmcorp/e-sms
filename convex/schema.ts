@@ -242,8 +242,9 @@ const schema = defineSchema({
     status: v.union(
       v.literal('enrolled'),
       v.literal('dropped'),
-      v.literal('Passed'),
-      v.literal('Failed'),
+      v.literal('promoted'),
+      v.literal('conditionally-promoted'),
+      v.literal('retained'),
     ), // once promoted it needs to update
     subjects: v.array(v.id('subjectTaught')),
     isReturning: v.boolean(),
@@ -385,7 +386,7 @@ const schema = defineSchema({
     }),
   }),
 
-   finalGrades: defineTable({
+  finalGrades: defineTable({
     studentId: v.id('students'),
     sectionId: v.id('sections'),
     subjectTaughtId: v.id('subjectTaught'),
@@ -393,26 +394,16 @@ const schema = defineSchema({
     forRemedial: v.optional(v.boolean()),
     remedialGrade: v.optional(v.number()),
     status: v.optional(v.string()),
-
-    // subjects: v.array(v.object({
-    //   subjectTaughtId: v.id('subjectTaught'),
-    //   subjectName: v.string(),
-    //   finalGrade: v.number(),
-    //   forRemedial: v.boolean(),
-    //   remedialGrade: v.optional(v.number()),
-    //   status: v.optional(v.string())
-    // })),
- 
-    // semester: v.optional(v.string()),
-    // isPassed: v.optional(v.boolean()),
-    // dateSubmitted: v.optional(v.string()),
-    // promotionType: v.optional(v.string())
-  }),
+  }).index('sectionId', ['sectionId']),
 
   promotion: defineTable({
-    finalGradeId: v.id('finalGrades'),
     studentId: v.id('students'),
-    type: v.string()
+    sectionId: v.id('sections'),
+    type: v.union(
+      v.literal('promoted'),
+      v.literal('conditionally-promoted'),
+      v.literal('retained'),
+    ),
   }),
 
 });

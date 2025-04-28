@@ -57,10 +57,19 @@ export const getSectionStudents = query({
             sectionStudents.map(async (sectionStudent) => {
                 const student = await ctx.db.get(sectionStudent.studentId);
                 if (!student) return null;
+                const section = await ctx.db.get(sectionStudent.sectionId)
+                if(!section) return null
+
+                const enrollment = await ctx.db.query('enrollment')
+                    .withIndex('by_studentId', q => q.eq('studentId', student._id))
+                    .filter(q => q.eq(q.field('sectionId'), sectionStudent.sectionId))
+                    .unique()
 
                 return {
                     ...student,
-                    sectionStudentId: sectionStudent._id
+                    sectionStudentId: sectionStudent._id,
+                    enrollment: enrollment,
+                    section: section
                     // grades: gradesWithTeachingLoad
                 };
             })
@@ -504,7 +513,6 @@ const getStudentSubjects = async (
                             }
                         }
                     }
-
                     return {
                         _id: `${subjectId}-${component}`,
                         subjectName: component,

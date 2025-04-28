@@ -35,90 +35,54 @@ export const getFinalGradesForSF10 = query({
     }
 })
 
-// export const create = mutation({
-//     args:{
-//         advisorId: v.id('users'),
-//         studentId: v.id('students'),
-//         sectionId: v.id('sections'),
-//         schoolYearId: v.optional(v.id('schoolYears')),
-//         subjects: v.array(v.object({
-//             subjectName: v.string(),
-//             finalGrade: v.number(),
-//             forRemedial: v.boolean(),
-//             subjectTaughtId: v.id('subjectTaught'),
-//         })),
-//         generalAverage: v.number(),
-//         semester: v.optional(v.string()),
-//         isPassed: v.optional(v.boolean()),
-//         dateSubmitted: v.optional(v.string())
-//     },
-//     handler: async(ctx, args) =>{
-     
-//         const failedSubjects = args.subjects.filter(subject => subject.finalGrade <= 74)
-//         const student = await ctx.db.get(args.studentId)
-//         const isShs = args.semester ? true : false
-//         if(!isShs && failedSubjects.length >= 3) { // if Junior high and has more than or equal to 3 failed subejcts
-//             const id =  await ctx.db.insert('finalGrades',{
-//                 ...args,
-//                 promotionType: "Retained"
-//             })
-//             await ctx.db.patch(args.studentId,{
-//                 status: 'not-enrolled',
-//             })
-//             return id
-//         }
+export const create = mutation({
+    args:{
+        studentId: v.id('students'),
+        sectionId: v.id('sections'),
+        subjectTaughtId: v.id('subjectTaught'),
+        generalAverage: v.number(),
+        forRemedial: v.optional(v.boolean()),
+        remedialGrade: v.optional(v.number()),
+        status: v.optional(v.string()),
+    },
+    handler: async(ctx, args) =>{
+        const student = await ctx.db.get(args.studentId)
+        const section = await ctx.db.get(args.sectionId)
+        if(!section) return null
 
-//         //To recorrd the grades of the student
-//         const id = await ctx.db.insert('finalGrades',{
-//             ...args,
-//             promotionType: failedSubjects.length >= 1 ? "Conditionally Promoted": "Promoted" 
-//         })
-//         //To promote the student
-      
-//         const nextGradeLevel = (Number(student?.enrollingIn?.replace("Grade ", "")) ?? 0) + 1
-//         if(args.semester) {
-//             if(args.semester === "1st semester") {
-//                 await ctx.db.patch(args.studentId,{
-//                     status: 'not-enrolled',
-//                     semesterEnrollingIn: "2nd semester",
-//                 })
-//                 return id
-//             } else {
-              
-//                 const isGraduated = nextGradeLevel === 13
-//                 if(isGraduated){
-//                     await ctx.db.patch(args.studentId,{
-//                         status: 'not-enrolled',
-//                         enrollingIn: undefined,
-//                         semesterEnrollingIn: undefined,
-//                     })
-//                 }
-//                 await ctx.db.patch(args.studentId,{
-//                     status: 'not-enrolled',
-//                     enrollingIn: `Grade ${nextGradeLevel}` as GradeLevelsTypes,
-//                     semesterEnrollingIn: "1st semester",
-//                 })
-//                 return id
-//             }
-//         } else {
-//             if(nextGradeLevel === 11) {
-//                 await ctx.db.patch(args.studentId,{
-//                     status: 'not-enrolled',
-//                     enrollingIn: `Grade ${nextGradeLevel}` as GradeLevelsTypes,
-//                     semesterEnrollingIn: "1st semester",
-//                 })
-//             }
-//             await ctx.db.patch(args.studentId,{
-//                 status: 'not-enrolled',
-//                 enrollingIn: `Grade ${nextGradeLevel}` as GradeLevelsTypes,
-//             })
+        await ctx.db.insert('finalGrades',{
+            ...args
+        })
+    }
+})
 
-//             return id
-//         }
-    
-   
-//     }
-// })
+export const forRemedial = query({
+    args: {
+        sectionId: v.optional(v.id('sections'))
+    },
+    handler: async(ctx, args) =>{
+
+        const finalGrades = await ctx.db.query('finalGrades')
+            .withIndex('sectionId', q => args.sectionId ? q.eq('sectionId', args.sectionId) : q)
+            .filter(q => q.eq(q.field('forRemedial'), true))
+            .collect()
+        
+        const studentFinalGrades = await asyncMap(finalGrades, async(grades) =>{
+            const student = await ctx.db.get(grades.studentId)
+            if(!student) return null
+
+            return {
+                ...student,
+                finalGrades: grades
+            }
+        })
+
+        const filtered = studentFinalGrades.filter(s => s !== null)
+        
+
+        return filtered
+    }
+})
 
 // export const isStudentPromoted = query({
 //     args:{

@@ -23,8 +23,6 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
         studentId: student._id
     });
 
-
-
     // Calculate the general average across all subjects
     function calculateGeneralAverage(): number | null {
         if (!subjects || subjects.length === 0) return null;
@@ -201,11 +199,10 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                 <div className='col-span-2 flex items-center justify-center h-full border-y border-y-black border-r-black border-r'>Remarks</div>
             </div>
 
-               {/* Render subjects */}
+            {/* Render subjects */}
             {Array.from({ length: 11 }).map((_, index) => {
                 const subject = organizedSubjects[index];
                 if (!subject) {
-
                     return (
                  
                     <div key={index} className={cn(sf10 ? "text-[0.55rem] leading-3" :"text-sm","grid grid-cols-12 w-full items-center text-center font-semibold   border-b-black border-b ")}>
@@ -240,7 +237,6 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                         {subject.subjectName}
                     </div>
 
-
                     <div className="col-span-3 grid grid-cols-4">
                         {quarters.map((quarter) => {
                             if ('isMapehMain' in subject && subject.isMapehMain) {
@@ -252,14 +248,13 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                                     </div>
                                 );
                             }
-
                             const intervention = 'interventions' in subject ? subject.interventions?.[quarter] : undefined;
                             const grade = subject.grades?.[quarter];
                             return (
                                 <div key={quarter} className={cn(sf10 ? ' min-h-[1rem] text-[0.55rem]' : 'min-h-[2rem] text-sm','col-span-1 border-b border-black border-r h-full flex justify-center items-center ')}>
                                     {intervention?.grade ? (
                                         <CustomTooltip
-                                            trigger={<span>{Math.round(intervention.grade)}</span>}
+                                            trigger={<span className='text-red-500'>{Math.round(intervention.grade)}</span>}
                                             interventionRemarks={intervention.remarks || ""}
                                             interventionUsed={intervention.used || []}
                                             initialGrade={grade?.toString() ?? ""}
@@ -274,17 +269,16 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                         {calculateQuarterlyAverage('isMapehMain' in subject && subject.isMapehMain ?
                             subject.grades :
                             {
-                                "1st": 'interventions' in subject ? subject.interventions?.["1st"]?.grade ?? subject.grades?.["1st"] : subject.grades?.["1st"],
-                                "2nd": 'interventions' in subject ? subject.interventions?.["2nd"]?.grade ?? subject.grades?.["2nd"] : subject.grades?.["2nd"],
-                                "3rd": 'interventions' in subject ? subject.interventions?.["3rd"]?.grade ?? subject.grades?.["3rd"] : subject.grades?.["3rd"],
-                                "4th": 'interventions' in subject ? subject.interventions?.["4th"]?.grade ?? subject.grades?.["4th"] : subject.grades?.["4th"],
+                                "1st": 'interventions' in subject ? subject.interventions?.["1st"]?.grade !== 0 ?subject.interventions?.["1st"]?.grade : subject.grades?.["1st"] : subject.grades?.["1st"],
+                                "2nd": 'interventions' in subject ? subject.interventions?.["2nd"]?.grade !== 0 ? subject.interventions?.["2nd"]?.grade : subject.grades?.["2nd"] : subject.grades?.["2nd"],
+                                "3rd": 'interventions' in subject ? subject.interventions?.["3rd"]?.grade !== 0 ? subject.interventions?.["3rd"]?.grade : subject.grades?.["3rd"] : subject.grades?.["3rd"],
+                                "4th": 'interventions' in subject ? subject.interventions?.["4th"]?.grade !== 0 ? subject.interventions?.["4th"]?.grade : subject.grades?.["4th"] : subject.grades?.["4th"],
                             }
                         )}
                     </div>
                     <div className={cn(sf10 ? ' min-h-[1rem] text-[0.55rem]' : "min-h-[2rem] text-sm", 'col-span-2 border-b border-black border-r h-full flex justify-center items-center')}>
-                        { getPassFailStatus(subject) }
+                        {getPassFailStatus(subject) }
                     </div>
-
                 </div>
             )})}
 
@@ -299,8 +293,7 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                     {}
                 </div>
                 )}
-               
-                  
+
                 <div className={cn(sf9 ? "col-span-8 border-l-black border-l text-sm" : "col-span-3 text-xs",' border-b border-black border-r h-full  font-semibold italic flex justify-center items-center min-h-[1rem]')}>
                     General Average
                 </div>

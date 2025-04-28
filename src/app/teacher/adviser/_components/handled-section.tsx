@@ -14,6 +14,8 @@ import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
 import SchoolForm from './school-form'
 import { Label } from '@/components/ui/label'
+import { BiCaretRight } from 'react-icons/bi'
+import { ArrowRight, ArrowRightFromLine } from 'lucide-react'
 
 function HandledSection() {
   const [selectedSY, setSelectedSY] = useState<SchoolYearTypes>("2024-2025");
@@ -56,8 +58,8 @@ function HandledSection() {
             <CardHeader className='pt-5 '>
               <CardTitle  className='flex items-center justify-between'>
                 <h1 className='text-xl font-medium'>Section: {section.name}</h1> 
-                <Link href={`/teacher/adviser/enrollment?id=${section._id}`} className="">
-                  <Button variant={'default'} className=''>Enroll student</Button>
+                <Link href={`/teacher/adviser/students?id=${section._id}`} className="">
+                  <Button variant={'link'} className=''>Students <ArrowRight/></Button>
                 </Link>
               </CardTitle>
               

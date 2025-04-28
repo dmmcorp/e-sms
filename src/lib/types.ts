@@ -87,6 +87,12 @@ export interface StudentWithEnrollment extends Doc<'students'> {
   currentSection: EnrollmentWithSection | undefined
 }
 
+export interface SectionStudentsType extends Doc<'students'>{
+  sectionStudentId: Id<'sectionStudents'>
+  enrollment: Doc<'enrollment'> | null;
+  section: Doc<'sections'>;
+}
+
 export interface ClassRecordsWithTeachingLoad extends Doc<'classRecords'> {
   teachingLoad: Doc<'teachingLoad'> | null
 }

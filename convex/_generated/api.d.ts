@@ -25,6 +25,7 @@ import type * as highestScores from "../highestScores.js";
 import type * as http from "../http.js";
 import type * as interventions from "../interventions.js";
 import type * as principal from "../principal.js";
+import type * as promotion from "../promotion.js";
 import type * as registrar from "../registrar.js";
 import type * as sections from "../sections.js";
 import type * as students from "../students.js";
@@ -55,6 +56,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   interventions: typeof interventions;
   principal: typeof principal;
+  promotion: typeof promotion;
   registrar: typeof registrar;
   sections: typeof sections;
   students: typeof students;

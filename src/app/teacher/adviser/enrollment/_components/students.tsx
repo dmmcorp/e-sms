@@ -25,19 +25,17 @@ export default function Students() {
   return (
     <div className='pt-5'>
 
+      
         <div className="flex items-start gap-x-2">
             <Button variant="ghost" size="icon" onClick={() => router.back()}>
                 <ArrowLeft className="h-4 w-4" />
             </Button>
             <div className="space-y-2 ">
 
-                <h1 className="text-3xl font-bold tracking-tighter">Student Management</h1>
+                <h1 className="text-3xl font-bold tracking-tighter">Assign Student to Section</h1>
                 
             </div>
         </div>
-        <p className="text-gray-500 dark:text-gray-400">
-            View and manage student information and their section assignments.
-        </p>
         <DataTable
             columns={studentColumns}
             data={students}

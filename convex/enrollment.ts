@@ -13,9 +13,10 @@ export const addToSection = mutation({
         status: v.union(
             v.literal('enrolled'),
             v.literal('dropped'),
-            v.literal('Passed'),
-            v.literal('Failed'),
-        ),
+            v.literal('promoted'),
+            v.literal('conditionally-promoted'),
+            v.literal('retained'),
+        ), 
         subjects: v.array(v.id('subjectTaught')),
         isReturning: v.boolean(),
         sectionId: v.id('sections'),
@@ -99,3 +100,18 @@ export const getBySectionId = query({
         return enrollments;
     },
 });
+
+export const isEnrolled = query({
+    args:{
+        enrollmentId: v.optional(v.id('enrollment')),
+    },
+    handler: async(ctx, args) =>{
+        if(!args.enrollmentId) throw new ConvexError("No enrollment ID.")
+        
+        const enrollment = await ctx.db.get(args.enrollmentId)
+        if(!enrollment) throw new ConvexError("No enrollment found in database.")
+
+        return enrollment.status === 'enrolled' ? true : false
+
+    }
+})
