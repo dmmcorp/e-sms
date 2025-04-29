@@ -37,7 +37,14 @@ export const SectionForm = ({
     if (!formData.sections || formData.sections.length === 0) {
       setFormData((prev) => ({
         ...prev,
-        sections: [{ name: "", gradeLevel: undefined, schoolYear: undefined }],
+        sections: [
+          {
+            name: "",
+            gradeLevel: "Grade 7",
+            schoolYear: "2024-2025",
+            sectionId: undefined,
+          },
+        ],
       }));
     }
   }, []);
@@ -47,7 +54,12 @@ export const SectionForm = ({
       ...prev,
       sections: [
         ...(prev.sections || []),
-        { name: "", gradeLevel: undefined, schoolYear: undefined },
+        {
+          name: "",
+          gradeLevel: "Grade 7",
+          schoolYear: "2024-2025",
+          sectionId: undefined,
+        },
       ],
     }));
   };

@@ -76,9 +76,11 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
   useEffect(() => {
     if (user && sections && !formData) {
       const mappedSections = (user.sections || []).map((section) => ({
+        sectionId: section._id,
         name: section.name,
         gradeLevel: section.gradeLevel,
-        schoolYear: section.schoolYear as SchoolYearTypes | undefined,
+        schoolYear: section.schoolYear as SchoolYearTypes,
+        adviserId: section.adviserId,
       }));
 
       const mappedSubjects = (user.subjectsTaught || []).map((subject) => {
@@ -131,6 +133,7 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
       });
     }
     // Dependency array: run when user data changes, but only set initial formData once
+    console.log("FormData: ", JSON.stringify(formData, null, 2));
   }, [user, sections, formData]);
 
   const handleChange = (
@@ -323,15 +326,15 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
         })
       );
 
-      const cleanedSections = formData.sections
-        ?.filter(
-          (section) => section.name && section.gradeLevel && section.schoolYear
-        )
-        .map(({ adviserId, ...section }) => ({
-          name: section.name,
-          gradeLevel: section.gradeLevel!,
-          schoolYear: section.schoolYear!,
-        }));
+      // const cleanedSections = formData.sections
+      //   ?.filter(
+      //     (section) => section.name && section.gradeLevel && section.schoolYear
+      //   )
+      //   .map(({ adviserId, ...section }) => ({
+      //     name: section.name,
+      //     gradeLevel: section.gradeLevel!,
+      //     schoolYear: section.schoolYear!,
+      //   }));
 
       // Update user
       updateUser(
@@ -350,7 +353,7 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
           sections:
             formData.role === "adviser" ||
             formData.role === "adviser/subject-teacher"
-              ? cleanedSections
+              ? formData.sections
               : undefined,
         },
         {
@@ -371,7 +374,7 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
     }
   };
 
-  console.log(`FormData: ${JSON.stringify(formData)}`);
+  console.log(`FormData: ${JSON.stringify(formData, null, 2)}`);
 
   return (
     <div className="container mx-auto">
