@@ -163,7 +163,7 @@ function PromoteDialog({
 
     // Only include MAPEH main entry if all components are present
     const mapehEntry: MapehMainSubject | null =
-      sortedMapehComponents.length === orderedComponents.length
+      mapehId && sortedMapehComponents.length === orderedComponents.length
         ? {
             _id: mapehId,
             subjectName: "MAPEH",
