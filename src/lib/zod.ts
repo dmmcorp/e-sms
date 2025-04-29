@@ -123,9 +123,9 @@ export const enrollmentSchema = z.object({
     .max(50, { message: "Middle name must be at most 50 characters." })
     .nonempty({ message: "Middle name is required." }),
 
-  lrn: z.string()
-    .length(11, { message: "LRN must be exactly 11 digits." })
-    .nonempty({ message: "LRN is required." }),
+  lrn: z.coerce.number()
+    .refine(value => value.toString().length === 11, { message: "LRN must be exactly 11 digits." })
+    .refine(value => value !== null && value !== undefined, { message: "LRN is required." }),
 
   enrollingTo: z.string().nonempty({ message: "Select the grade level you are enrolling in" }),
 
