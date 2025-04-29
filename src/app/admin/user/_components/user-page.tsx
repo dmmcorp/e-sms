@@ -130,7 +130,10 @@ function UserPage() {
     }
 
     // Subject Teacher validations
-    if (formData.role === "subject-teacher" || formData.role === "adviser/subject-teacher") {
+    if (
+      formData.role === "subject-teacher" ||
+      formData.role === "adviser/subject-teacher"
+    ) {
       if (!formData.subjectsTaught || formData.subjectsTaught.length === 0) {
         fieldErrors.subjectsTaught = "At least one subject is required";
       } else {
@@ -148,7 +151,8 @@ function UserPage() {
 
           // MAPEH validation
           if (subject.isMapeh && !subject.mapehComponent) {
-            fieldErrors[`subject${index}MapehComponent`] = "MAPEH component is required";
+            fieldErrors[`subject${index}MapehComponent`] =
+              "MAPEH component is required";
           }
 
           if (
@@ -188,9 +192,9 @@ function UserPage() {
               total =
                 weights.other && weights.other.length > 0
                   ? weights.other.reduce(
-                    (sum, item) => sum + item.percentage,
-                    0
-                  )
+                      (sum, item) => sum + item.percentage,
+                      0
+                    )
                   : 0;
             }
 
@@ -267,12 +271,12 @@ function UserPage() {
           principalType: formData.principalType,
           subjectsTaught:
             formData.role === "subject-teacher" ||
-              formData.role === "adviser/subject-teacher"
+            formData.role === "adviser/subject-teacher"
               ? cleanedSubjects
               : undefined,
           sections:
             formData.role === "adviser" ||
-              formData.role === "adviser/subject-teacher"
+            formData.role === "adviser/subject-teacher"
               ? cleanedSections
               : undefined,
         },
@@ -321,7 +325,8 @@ function UserPage() {
           <CardContent>
             <div className="bg-blue-50 p-3 rounded border border-blue-200 text-sm mb-4">
               <p className="text-blue-700">
-                Note: If you are creating a MAPEH subject, please name it exactly as "MAPEH" (case insensitive).
+                Note: If you are creating a MAPEH subject, please name it
+                exactly as "MAPEH" (case insensitive).
               </p>
             </div>
             <form onSubmit={handleSubmit} className="space-y-2">
@@ -464,30 +469,30 @@ function UserPage() {
 
               {(formData.role === "adviser" ||
                 formData.role === "adviser/subject-teacher") && (
-                  <>
-                    <SectionForm
-                      formData={formData}
-                      setFormData={setFormData}
-                      errors={errors}
-                      handleChange={handleChange}
-                      isPending={isPending}
-                    />
-                    {formData.role === "adviser/subject-teacher" && (
-                      <Separator className="my-3" />
-                    )}
-                  </>
-                )}
+                <>
+                  <SectionForm
+                    formData={formData}
+                    setFormData={setFormData}
+                    errors={errors}
+                    handleChange={handleChange}
+                    isPending={isPending}
+                  />
+                  {formData.role === "adviser/subject-teacher" && (
+                    <Separator className="my-3" />
+                  )}
+                </>
+              )}
 
               {(formData.role === "subject-teacher" ||
                 formData.role === "adviser/subject-teacher") && (
-                  <SubjectTaughtForm
-                    errors={errors}
-                    formData={formData}
-                    isPending={isPending}
-                    setFormData={setFormData}
-                    sections={sections}
-                  />
-                )}
+                <SubjectTaughtForm
+                  errors={errors}
+                  formData={formData}
+                  isPending={isPending}
+                  setFormData={setFormData}
+                  sections={sections}
+                />
+              )}
 
               <div className="flex justify-center mt-5">
                 <Button

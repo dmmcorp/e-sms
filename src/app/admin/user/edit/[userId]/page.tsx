@@ -210,8 +210,73 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
       if (!formData.subjectsTaught || formData.subjectsTaught.length === 0) {
         fieldErrors.subjectsTaught = "At least one subject is required";
       } else {
-        // Other validation logic from user-page.tsx
-        // ...
+        // Validate each subject
+        formData.subjectsTaught.forEach((subject, index) => {
+          if (!subject.subjectName) {
+            fieldErrors[`subject${index}Name`] = "Subject name is required";
+          }
+          if (!subject.gradeLevel) {
+            fieldErrors[`subject${index}Grade`] = "Grade level is required";
+          }
+          if (!subject.sectionId) {
+            fieldErrors[`subject${index}Section`] = "Section is required";
+          }
+
+          // MAPEH validation
+          if (subject.isMapeh && !subject.mapehComponent) {
+            fieldErrors[`subject${index}MapehComponent`] =
+              "MAPEH component is required";
+          }
+
+          if (
+            (!subject.quarter || subject.quarter.length === 0) &&
+            (!subject.semester || subject.semester.length === 0)
+          ) {
+            fieldErrors[`subject${index}Period`] =
+              "Select either quarters or semesters";
+          }
+
+          if (
+            subject.gradeLevel === "Grade 11" ||
+            subject.gradeLevel === "Grade 12"
+          ) {
+            if (!subject.quarter || subject.quarter.length === 0) {
+              fieldErrors[`subject${index}Quarter`] = "Quarter is required";
+            }
+            if (!subject.semester || subject.semester.length === 0) {
+              fieldErrors[`subject${index}Semester`] = "Semester is required";
+            }
+          }
+
+          // Validate grade weights
+          if (subject.gradeWeights) {
+            const weights = subject.gradeWeights;
+            let total = 0;
+
+            if (weights.type === "Face to face" && weights.faceToFace) {
+              total =
+                weights.faceToFace.ww +
+                weights.faceToFace.pt +
+                weights.faceToFace.majorExam;
+            } else if (weights.type === "Modular" && weights.modular) {
+              total = weights.modular.ww + weights.modular.pt;
+            } else if (weights.type === "Other" && weights.other) {
+              // Check if other array exists and has elements
+              total =
+                weights.other && weights.other.length > 0
+                  ? weights.other.reduce(
+                      (sum, item) => sum + item.percentage,
+                      0
+                    )
+                  : 0;
+            }
+
+            if (total !== 100) {
+              fieldErrors[`subject${index}Weights`] =
+                "Grade weights must total 100%";
+            }
+          }
+        });
       }
     }
 
@@ -279,12 +344,12 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
           principalType: formData.principalType,
           subjectsTaught:
             formData.role === "subject-teacher" ||
-              formData.role === "adviser/subject-teacher"
+            formData.role === "adviser/subject-teacher"
               ? cleanedSubjects
               : undefined,
           sections:
             formData.role === "adviser" ||
-              formData.role === "adviser/subject-teacher"
+            formData.role === "adviser/subject-teacher"
               ? cleanedSections
               : undefined,
         },
@@ -320,7 +385,8 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
           <Card className="lg:w-1/2">
             <div className="bg-blue-50 p-3 rounded border border-blue-200 text-sm mb-4">
               <p className="text-blue-700">
-                Note: If you are creating a MAPEH subject, please name it exactly as "MAPEH" (case insensitive).
+                Note: If you are creating a MAPEH subject, please name it
+                exactly as "MAPEH" (case insensitive).
               </p>
             </div>
             <CardContent>
@@ -342,9 +408,9 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
                           setFormData((prev) =>
                             prev
                               ? {
-                                ...prev,
-                                role: value as RoleType,
-                              }
+                                  ...prev,
+                                  role: value as RoleType,
+                                }
                               : null
                           )
                         }
@@ -379,10 +445,10 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
                             setFormData((prev) =>
                               prev
                                 ? {
-                                  ...prev,
-                                  principalType:
-                                    value as PrincipalDepartmentType,
-                                }
+                                    ...prev,
+                                    principalType:
+                                      value as PrincipalDepartmentType,
+                                  }
                                 : null
                             )
                           }
@@ -477,34 +543,34 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
                   {/* Role-specific forms */}
                   {(formData.role === "adviser" ||
                     formData.role === "adviser/subject-teacher") && (
-                      <>
-                        <SectionForm
-                          formData={formData}
-                          setFormData={
-                            setFormData as Dispatch<SetStateAction<UserFormData>>
-                          }
-                          errors={errors}
-                          handleChange={handleChange}
-                          isPending={isPending}
-                        />
-                        {formData.role === "adviser/subject-teacher" && (
-                          <Separator className="my-3" />
-                        )}
-                      </>
-                    )}
-
-                  {(formData.role === "subject-teacher" ||
-                    formData.role === "adviser/subject-teacher") && (
-                      <SubjectTaughtForm
-                        errors={errors}
+                    <>
+                      <SectionForm
                         formData={formData}
-                        isPending={isPending}
                         setFormData={
                           setFormData as Dispatch<SetStateAction<UserFormData>>
                         }
-                        sections={sections}
+                        errors={errors}
+                        handleChange={handleChange}
+                        isPending={isPending}
                       />
-                    )}
+                      {formData.role === "adviser/subject-teacher" && (
+                        <Separator className="my-3" />
+                      )}
+                    </>
+                  )}
+
+                  {(formData.role === "subject-teacher" ||
+                    formData.role === "adviser/subject-teacher") && (
+                    <SubjectTaughtForm
+                      errors={errors}
+                      formData={formData}
+                      isPending={isPending}
+                      setFormData={
+                        setFormData as Dispatch<SetStateAction<UserFormData>>
+                      }
+                      sections={sections}
+                    />
+                  )}
 
                   <div className="flex justify-end gap-2 mt-6">
                     <Button
