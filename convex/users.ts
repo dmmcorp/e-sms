@@ -752,17 +752,17 @@ export const updateUser = mutation({
     const existingLoadDocs =
       existingSubjectIds.length > 0
         ? (
-            await Promise.all(
-              existingSubjectIds.map((subjectId) =>
-                ctx.db
-                  .query("teachingLoad")
-                  .withIndex("subjectTaughtId", (q) =>
-                    q.eq("subjectTaughtId", subjectId)
-                  )
-                  .collect()
-              )
+          await Promise.all(
+            existingSubjectIds.map((subjectId) =>
+              ctx.db
+                .query("teachingLoad")
+                .withIndex("subjectTaughtId", (q) =>
+                  q.eq("subjectTaughtId", subjectId)
+                )
+                .collect()
             )
-          ).flat()
+          )
+        ).flat()
         : [];
 
     const existingSubjectsMap = new Map<string, Doc<"subjectTaught">>(
@@ -825,7 +825,6 @@ export const updateUser = mutation({
         } else {
           try {
             resolvedSectionId = submittedSubject.sectionId as Id<"sections">;
-            // Optional: Verify section exists
           } catch (e) {
             throw new ConvexError(
               `Invalid section ID format: ${submittedSubject.sectionId}`
@@ -850,10 +849,10 @@ export const updateUser = mutation({
           // Patch if gradeWeights, category, or semester list changed
           const needsPatch =
             JSON.stringify(existingSubjectDoc.gradeWeights) !==
-              JSON.stringify(submittedSubject.gradeWeights) ||
+            JSON.stringify(submittedSubject.gradeWeights) ||
             existingSubjectDoc.category !== submittedSubject.category ||
             JSON.stringify(existingSubjectDoc.semester) !==
-              JSON.stringify(submittedSemesters); // Compare semesters
+            JSON.stringify(submittedSemesters); // Compare semesters
 
           if (needsPatch) {
             await ctx.db.patch(subjectTaughtId, {
@@ -1016,12 +1015,12 @@ export const updateUser = mutation({
         console.warn(
           `Deleting teaching load ${load._id}. Implement cleanup for class records, scores etc.`
         );
-        // Add cleanup for classRecords, scores etc. before deleting load
+        // TODO: Add cleanup for classRecords, scores etc. before deleting load
         await ctx.db.delete(load._id);
       }
     }
 
-    // Delete subjectTaught documents that are no longer associated with any kept teaching load
+    // Delete subjectTaught documents that are no longer kept
     for (const subjectDoc of existingSubjectDocs) {
       if (!keptSubjectTaughtIds.has(subjectDoc._id)) {
         // Double-check if any loads associated with this subject were somehow kept
@@ -1032,14 +1031,35 @@ export const updateUser = mutation({
 
         if (associatedKeptLoads.length === 0) {
           console.warn(
-            `Deleting subjectTaught ${subjectDoc._id}. Implement cleanup in sections.subjects array.`
+            `Deleting subjectTaught ${subjectDoc._id} (${subjectDoc.subjectName}, ${subjectDoc.gradeLevel}). Removing from sections.`
           );
+
+          // Find all sections that currently include this subjectTaughtId
+          const sectionsToUpdate = await ctx.db
+            .query("sections")
+            // Consider adding an index on `subjects` if performance becomes an issue
+            .filter((q) =>
+              q.neq(q.field("subjects"), undefined) // Ensure subjects array exists
+            )
+            .collect(); // Collect all sections first (or filter more specifically if possible)
+
+          for (const section of sectionsToUpdate) {
+            if (section.subjects?.includes(subjectDoc._id)) {
+              // Filter out the subjectTaughtId to be deleted
+              const updatedSubjects = section.subjects.filter(
+                (id) => id !== subjectDoc._id
+              );
+              // Patch the section document with the updated subjects array
+              await ctx.db.patch(section._id, { subjects: updatedSubjects });
+              console.log(`Removed subject ${subjectDoc._id} from section ${section._id}`);
+            }
+          }
+
           await ctx.db.delete(subjectDoc._id);
-          // Also remove this subject from any section.subjects arrays
-          // await ctx.runMutation(internal.sections.removeSubjectTaughtFromAll, { subjectTaughtId: subjectDoc._id }); // Example internal mutation
+
         } else {
           console.error(
-            `Subject ${subjectDoc._id} was marked for deletion but still has kept loads: ${associatedKeptLoads.map((l) => l._id).join(", ")}`
+            `Logic Error: Subject ${subjectDoc._id} marked for deletion but still has kept loads: ${associatedKeptLoads.map((l) => l._id).join(", ")}`
           );
         }
       }
@@ -1050,13 +1070,17 @@ export const updateUser = mutation({
       !(
         args.role === "subject-teacher" ||
         args.role === "adviser/subject-teacher"
-      )
+      ) &&
+      existingSubjectDocs.length > 0
     ) {
+      console.warn(`User ${userId} role changed away from teacher. Cleaning up subjects and loads.`);
       const finalSubjects = await ctx.db
         .query("subjectTaught")
         .withIndex("teacherId", (q) => q.eq("teacherId", userId))
         .collect();
+
       for (const subjectDoc of finalSubjects) {
+        // Delete associated teaching loads first
         const loads = await ctx.db
           .query("teachingLoad")
           .withIndex("subjectTaughtId", (q) =>
@@ -1067,13 +1091,35 @@ export const updateUser = mutation({
           console.warn(
             `Deleting teaching load ${load._id} due to role change. Implement cleanup.`
           );
+          // TODO: Add cleanup for related classRecords, scores etc.
           await ctx.db.delete(load._id);
         }
+
         console.warn(
-          `Deleting subjectTaught ${subjectDoc._id} due to role change. Implement cleanup.`
+          `Deleting subjectTaught ${subjectDoc._id} due to role change. Removing from sections.`
         );
+
+        // --- START: Remove subjectTaughtId from sections (Role Change) ---
+        const sectionsToUpdate = await ctx.db
+          .query("sections")
+          .filter((q) =>
+            q.neq(q.field("subjects"), undefined)
+          )
+          .collect();
+
+        for (const section of sectionsToUpdate) {
+          if (section.subjects?.includes(subjectDoc._id)) {
+            const updatedSubjects = section.subjects.filter(
+              (id) => id !== subjectDoc._id
+            );
+            await ctx.db.patch(section._id, { subjects: updatedSubjects });
+            console.log(`Removed subject ${subjectDoc._id} from section ${section._id} due to role change.`);
+          }
+        }
+        // --- END: Remove subjectTaughtId from sections (Role Change) ---
+
+        // Delete the subjectTaught document
         await ctx.db.delete(subjectDoc._id);
-        // Also remove from section.subjects arrays
       }
     }
     // --- End Deletion Phase ---
