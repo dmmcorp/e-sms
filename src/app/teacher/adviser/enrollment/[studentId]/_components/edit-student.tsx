@@ -40,14 +40,15 @@ function EditStudent({
             lastName: student?.lastName || "",
             firstName:student?.firstName || "",
             middleName:student?.middleName || "",
-            lrn:student?.lrn || "",
+            lrn: Number(student.lrn) || undefined,
             dateOfBirth: student?.dateOfBirth ? new Date(student.dateOfBirth) : undefined,
             sex: student?.sex || "",
         
             elemGenAve: Number(student?.elementary?.genAve) || undefined,
             elemPrevSchoolName: student?.elementary?.school || "",
             elemPrevSchoolAddress: student?.elementary?.address || "",
-        
+            elemSchoolId: student?.elementary.schoolId || "",
+
             jnrGenAve: student?.juniorHigh?.genAve || "",
             jnrPrevSchoolName: student?.juniorHigh?.school || "",
             jnrPrevSchoolAddress:  student?.juniorHigh?.address || "",
@@ -67,7 +68,7 @@ function EditStudent({
             firstName: values.firstName,
             middleName: values.middleName,
             sex: values.sex as "male" | "female",
-            lrn:  values.lrn,
+            lrn:  values.lrn.toString(),
             dateOfBirth: values.dateOfBirth.toDateString(),
             elementary: {
                 genAve: values.elemGenAve.toString(),
@@ -325,6 +326,21 @@ function EditStudent({
                                     </FormLabel>
                                     <FormControl>
                                         <Input placeholder="Enter previous school address" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="elemSchoolId"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>
+                                        School Id <span className="text-red-500">*</span>
+                                    </FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Enter previous school Id" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                     </FormItem>

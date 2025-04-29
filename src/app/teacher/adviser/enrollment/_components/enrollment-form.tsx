@@ -48,7 +48,7 @@ function EnrollmentForm() {
           lastName: "",
           firstName: "",
           middleName: "",
-          lrn: "",
+          lrn: undefined,
           dateOfBirth: undefined,
           sex: "",
       
@@ -75,7 +75,7 @@ function EnrollmentForm() {
           firstName: values.firstName,
           middleName: values.middleName,
           sex: values.sex as "male" | "female",
-          lrn:  values.lrn,
+          lrn:  values.lrn.toString(),
           dateOfBirth: values.dateOfBirth.toDateString(),
           elementary: {
               genAve: values.elemGenAve.toString(),
@@ -292,7 +292,7 @@ function EnrollmentForm() {
                             Learning Reference Number <span className="text-red-500">*</span>
                           </FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter learning reference number" {...field} />
+                            <Input type='number' placeholder="Enter learning reference number" {...field} />
                           </FormControl>
                           <FormDescription>Your unique student identifier</FormDescription>
                           <FormMessage />
