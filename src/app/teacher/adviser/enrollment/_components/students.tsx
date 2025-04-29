@@ -32,7 +32,8 @@ export default function Students() {
             </Button>
             <div className="space-y-2 ">
 
-                <h1 className="text-3xl font-bold tracking-tighter">Assign Student to Section</h1>
+                <h1 className="text-3xl font-bold tracking-tighter">Assign student to your section</h1>
+                <p></p>
                 
             </div>
         </div>

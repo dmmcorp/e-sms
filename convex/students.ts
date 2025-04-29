@@ -223,10 +223,12 @@ export const getStudentById = query({
         if (!args.studentId) return undefined
         const student = await ctx.db.get(args.studentId)
         if (student === null) return undefined
-        const enrollments = await ctx.db.query('enrollment').filter(q => q.eq(q.field('studentId'), args.studentId)).order('desc').collect()
+        const enrollments = await ctx.db.query('enrollment').filter(q => q.eq(q.field('studentId'), args.studentId)).order('desc').collect();
+        
         const enrollmentWithSection = await asyncMap(enrollments, async (enrollment) => {
             const section = await ctx.db.get(enrollment.sectionId)
             if (section === null) return undefined
+            
             const selectedSubjects = await asyncMap(enrollment.subjects, async (id) => {
                 const subjectTaught = await ctx.db.get(id)
                 return {

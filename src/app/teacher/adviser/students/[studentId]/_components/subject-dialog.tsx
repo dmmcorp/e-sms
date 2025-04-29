@@ -16,41 +16,47 @@ interface SubjectDialogProps {
   onOpenChange: (open: boolean) => void,
   currentSection: EnrollmentWithSection | undefined
   enrollmentId: Id<'enrollment'> | undefined
+  studentId: Id<'students'> 
 }
 function SubjectDialog({
     open,
     onOpenChange,
     currentSection,
     enrollmentId,
+    studentId
 }: SubjectDialogProps) {
     const currentSubjects = currentSection?.subjectsWithDetails.map(subject => subject.subject?._id).filter(s => s !== undefined) || [] as Id<'subjectTaught'>[]
     const [subjects, setSubjects] = useState<Id<'subjectTaught'>[]>(currentSubjects);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const editSubjects = useMutation(api.enrollment.editSubjects)
 
-   const handleSubmit =()=>{
-    setIsLoading(true)
-    toast.promise(
-        editSubjects({
-         enrollmentId: enrollmentId,
-         subjects: subjects,
-        }),
-        {
-          loading: 'Updating subjects for the student...',
-          success: ()=>{ 
-            setIsLoading(false)
-           
-            return 'Subjects have been successfully updated!'},
-          error:(error)=>{
-            setIsLoading(false)
-            const errorMes = error.message ? error.message : 'An unexpected error occurred while updating subjects. Please try again later.'
-            return errorMes},
-        }
-      
-    )
-    onOpenChange(false)
-    setIsLoading(false)
-   }
+   function handleSubmit(): void {
+        setIsLoading(true)
+        toast.promise(
+            editSubjects({
+                enrollmentId: enrollmentId,
+                subjects: subjects,
+                studentId: studentId
+            }),
+            {
+                loading: 'Updating subjects for the student...',
+                success: () => {
+                    setIsLoading(false)
+
+                    return 'Subjects have been successfully updated!'
+                },
+                error: (error) => {
+                    setIsLoading(false)
+                    const errorMes = error.data ? error.data : 'An unexpected error occurred while updating subjects. Please try again later.'
+                    return errorMes
+                },
+            }
+
+        )
+        onOpenChange(false)
+        setSubjects(currentSubjects)
+        setIsLoading(false)
+    }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
