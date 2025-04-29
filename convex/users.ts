@@ -1015,7 +1015,7 @@ export const updateUser = mutation({
         console.warn(
           `Deleting teaching load ${load._id}. Implement cleanup for class records, scores etc.`
         );
-        // TODO: Add cleanup for classRecords, scores etc. before deleting load
+
         await ctx.db.delete(load._id);
       }
     }
@@ -1091,7 +1091,7 @@ export const updateUser = mutation({
           console.warn(
             `Deleting teaching load ${load._id} due to role change. Implement cleanup.`
           );
-          // TODO: Add cleanup for related classRecords, scores etc.
+
           await ctx.db.delete(load._id);
         }
 
