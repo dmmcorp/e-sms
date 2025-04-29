@@ -9,8 +9,21 @@ function RemedialTemplate({student, isSHS}:{
     isSHS?: boolean
 }) {
     const forRemedialSubjects = useQuery(api.finalGrades.getFinalGradesForSF10, {studentId: student?._id, sectionId:student?.sectionDoc._id})
-    console.log("isSHS:", isSHS)
-   
+    
+    const formatDateString = (dateString?: string) => {
+        if (!dateString || isNaN(new Date(dateString).getTime())) {
+            return '';
+        }
+        const date = new Date(dateString);
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const year = date.getFullYear();
+        return `${month < 10 ? '0' : ''}${month}/${day < 10 ? '0' : ''}${day}/${year}`;
+    };
+
+    const remedialConductedFrom = forRemedialSubjects?.[0]?.remedialConductedFrom || '';
+    const remedialConductedTo = forRemedialSubjects?.[0]?.remedialConductedTo || '';
+
   return (
     <div>
         {isSHS ? (
@@ -56,7 +69,7 @@ function RemedialTemplate({student, isSHS}:{
             <InputGrades key={index}/>
             ))}
             <div className="grid grid-cols-12 gap-x-10 mt-1 text-[0.6rem]">
-                <h1 className='col-span-8 flex items-baseline gap-x-2'>Name of Teacher/Adviser: <span className='border-b-black border-b flex-1 px-3 h-5'></span></h1>
+                <h1 className='col-span-8 flex items-baseline gap-x-2'>Name of Teacher/Adviser: <span className='border-b-black border-b flex-1 px-3 h-5 capitalize'>{student?.adviser.fullName}</span></h1>
                 <h1 className='col-span-4 flex  gap-x-2'>Signature: <span className='border-b-black border-b flex-1 h-5'></span></h1>
             </div>
         </>
@@ -65,8 +78,8 @@ function RemedialTemplate({student, isSHS}:{
                 <div className="grid grid-cols-12 font-semibold text-[0.6rem]">
                     <h1 className='col-span-4 text-center flex items-center justify-center'>Remedial Classes</h1>
                     <div className="col-span-8 flex border-l border-l-black px-2 py-1">
-                        <h1 className='flex items-baseline flex-1'>Conducted from (mm/dd/yyyy) <span className='border-b border-b-black px-2 flex-1'></span></h1>
-                        <h1 className='flex items-baseline flex-1'>to (mm/dd/yyyy) <span className='border-b border-b-black flex-1 px-2'></span></h1>
+                        <h1 className='flex items-baseline flex-1'>Conducted from (mm/dd/yyyy) <span className='border-b border-b-black px-2 flex-1'>{formatDateString(remedialConductedFrom)}</span></h1>
+                        <h1 className='flex items-baseline flex-1'>to (mm/dd/yyyy) <span className='border-b border-b-black flex-1 px-2'>{formatDateString(remedialConductedTo)}</span></h1>
                     </div>
                 </div>
                 <div className="grid grid-cols-12 border-y-black border-y font-semibold text-[0.6rem]">
@@ -78,7 +91,15 @@ function RemedialTemplate({student, isSHS}:{
 
                 </div>
                 
-                {Array.from({ length: 2 }).map((_, index) => (
+                {forRemedialSubjects ? Array.from({ length: 2 }).map((_, index) => (
+                    <div key={index} className="grid grid-cols-12 items-center border-b-black border-b text-[0.6rem]">
+                        <h1 className='text-center col-span-4 flex items-center justify-center h-3'>{forRemedialSubjects[index]?.subject.subjectName || ''}</h1>
+                        <h1 className='text-center col-span-2 border-l border-l-black flex items-center justify-center  h-3'>{forRemedialSubjects[index]?.generalAverage || ''}</h1>
+                        <h1 className='text-center col-span-2 border-l border-l-black flex items-center justify-center  h-3'>{forRemedialSubjects[index]?.remedialGrade ?? ''}</h1>
+                        <h1 className='text-center col-span-2 border-l border-l-black flex items-center justify-center  h-3'>{forRemedialSubjects[index] && typeof forRemedialSubjects[index].remedialGrade === 'number' ? Math.round((forRemedialSubjects[index].generalAverage + forRemedialSubjects[index].remedialGrade) / 2) : ''}</h1>
+                        <h1 className='text-center col-span-2 border-l border-l-black flex items-center justify-center  h-3'>{forRemedialSubjects[index] ? Math.round((forRemedialSubjects[index].generalAverage + (forRemedialSubjects[index].remedialGrade ?? 0)) / 2) <= 74 ? "Failed" : "Passed" : ''}</h1>
+                    </div>
+                )) : Array.from({ length: 2 }).map((_, index) => (
                     <div key={index} className="grid grid-cols-12 items-center border-b-black border-b text-[0.6rem]">
                         <h1 className='text-center col-span-4 flex items-center justify-center h-3'></h1>
                         <h1 className='text-center col-span-2 border-l border-l-black flex items-center justify-center  h-3'></h1>

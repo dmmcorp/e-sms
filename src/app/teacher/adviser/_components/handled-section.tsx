@@ -15,7 +15,7 @@ import { Separator } from '@/components/ui/separator'
 import SchoolForm from './school-form'
 import { Label } from '@/components/ui/label'
 import { BiCaretRight } from 'react-icons/bi'
-import { ArrowRight, ArrowRightFromLine } from 'lucide-react'
+import { ArrowRight, ArrowRightFromLine, UsersRoundIcon } from 'lucide-react'
 
 function HandledSection() {
   const [selectedSY, setSelectedSY] = useState<SchoolYearTypes>("2024-2025");
@@ -55,16 +55,15 @@ function HandledSection() {
         )}
         {sections?.map((section)=> (
           <Card key={section._id} className=" pt-0">
-            <CardHeader className='pt-5 '>
-              <CardTitle  className='flex items-center justify-between'>
+            <CardHeader className='pt-5 bg-gray-100'>
+              <CardTitle  className='flex items-center justify-between '>
                 <h1 className='text-xl font-medium'>Section: {section.name}</h1> 
                 <Link href={`/teacher/adviser/students?id=${section._id}`} className="">
-                  <Button variant={'link'} className=''>Students <ArrowRight/></Button>
+                    <Button variant={'default'} className='text-sm'> <UsersRoundIcon  className='size-6'/> Manage students</Button>
                 </Link>
               </CardTitle>
               
             </CardHeader>
-            <Separator/>
             <CardContent>
               <SelectSemAndQtr
                 selectedSem={selectedSem}

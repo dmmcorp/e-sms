@@ -223,19 +223,22 @@ function Page() {
       </div>
     </div>
     {student && (
-    <EditStudent 
-        student={student}
-        editDialog={editDialog}
-        setEditDialog={setEditDialog}
-    />
-    )}
+      <>
+        <EditStudent 
+          student={student}
+          editDialog={editDialog}
+          setEditDialog={setEditDialog}
+        />
 
-    <SubjectDialog 
-        open={subjectDialog}
-        onOpenChange={setSubjectDialog}
-        currentSection={student?.currentSection}
-        enrollmentId={student?.enrollment.find(e => e.status === 'enrolled')?._id}
-    />
+        <SubjectDialog 
+          open={subjectDialog}
+          onOpenChange={setSubjectDialog}
+          currentSection={student?.currentSection}
+          enrollmentId={student?.enrollment.find(e => e.status === 'enrolled')?._id}
+          studentId={student._id}
+        />
+      </>
+    )}
   </div>
   )
 }

@@ -23,22 +23,15 @@ export default function StudentList() {
     if(sectionId === null) return <Loading/>
     const {students, isLoading}  = useStudents({sectionId: sectionId})
     if(isLoading === null) return <Loading/>
-
+    const noOfStudents = students?.length
   return (
-    <div className='container py-10'>
-        <div className="flex items-start gap-x-2">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div className="space-y-2 ">
-
-                <h1 className="text-3xl font-bold tracking-tighter">Student Management</h1>
-                
-            </div>
+    <div className='container '>
+      <h4 className="my-4 text-sm text-center text-gray-600">
+        View the students assigned to your section. You can promote, drop, and view student details.
+      </h4>
+        <div className="">
+          <h1 className='text-xs text-muted-foreground'>Total students: {noOfStudents}</h1>
         </div>
-        <p className="text-gray-500 dark:text-gray-400">
-            Manage student promotions, drop requests, and enrollment statuses within their assigned sections.
-        </p>
        
        <DataTable
             columns={studentColumns}

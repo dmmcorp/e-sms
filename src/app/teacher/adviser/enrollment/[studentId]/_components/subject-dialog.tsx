@@ -16,12 +16,14 @@ interface SubjectDialogProps {
   onOpenChange: (open: boolean) => void,
   currentSection: EnrollmentWithSection | undefined
   enrollmentId: Id<'enrollment'> | undefined
+  studentId:  Id<'students'>
 }
 function SubjectDialog({
     open,
     onOpenChange,
     currentSection,
     enrollmentId,
+    studentId
 }: SubjectDialogProps) {
     const currentSubjects = currentSection?.subjectsWithDetails.map(subject => subject.subject?._id).filter(s => s !== undefined) || [] as Id<'subjectTaught'>[]
     const [subjects, setSubjects] = useState<Id<'subjectTaught'>[]>(currentSubjects);
@@ -34,6 +36,7 @@ function SubjectDialog({
         editSubjects({
          enrollmentId: enrollmentId,
          subjects: subjects,
+         studentId: studentId
         }),
         {
           loading: 'Updating subjects for the student...',
