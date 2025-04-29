@@ -255,6 +255,7 @@ function InputDialog({
                             disabled={isSubmitted}
                             placeholder={`Enter exam score`}
                             value={scoresInput["1"] ?? ''}
+                            min={0}
                             max={highestScores.find(hs => hs.componentType === component)?.scores.find(s => s.assessmentNo === 1)?.score ?? Infinity}
                             onChange={(e) => {
                                 const rawValue = parseFloat(e.target.value);
@@ -323,6 +324,7 @@ function InputDialog({
                             disabled={isSubmitted}
                             placeholder={`Score`}
                             type="number"
+                            min={0}
                             max={title === "highest scores" ? 100 : highestScores.find(s => s.componentType === component)?.scores[index]?.score ?? 100}
                             value={scoresInput[index + 1] ?? ''}
                             onChange={(e) => handleOnChange(e,index)}
