@@ -14,8 +14,7 @@ import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
 import SchoolForm from './school-form'
 import { Label } from '@/components/ui/label'
-import { BiCaretRight } from 'react-icons/bi'
-import { ArrowRight, ArrowRightFromLine, UsersRoundIcon } from 'lucide-react'
+import { UsersRoundIcon } from 'lucide-react'
 
 function HandledSection() {
   const [selectedSY, setSelectedSY] = useState<SchoolYearTypes>("2024-2025");

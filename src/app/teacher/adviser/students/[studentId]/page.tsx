@@ -162,9 +162,11 @@ function Page() {
                   </div>
                   <div className="">
                     <p className="text-sm text-muted-foreground">Subjects</p>
-                    <div className="space-y-1 space-x-2">
+                    <div className="space-y-1 grid grid-cols-1 px-1 items-start justify-start ">
                       {student?.enrollment.find(e => e.status === 'enrolled')?.subjectsWithDetails.map(s => (
-                      <Badge key={s.subject?.subjectName} className="font-medium">{s.subject?.subjectName}</Badge>
+                      
+                          <Badge key={s.subject?.subjectName} className="font-medium">{s.subject?.subjectName}</Badge>
+                      
                       )) || <p className="font-medium">No subjects assigned</p>}
                     </div>
                   </div>

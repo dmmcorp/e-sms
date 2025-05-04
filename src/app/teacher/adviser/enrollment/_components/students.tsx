@@ -13,6 +13,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import ActionCeil from './action-ceil'
 import { Id } from '../../../../../../convex/_generated/dataModel'
 import Loading from '@/app/teacher/loading'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function Students() {
     const router = useRouter();
@@ -23,20 +24,23 @@ export default function Students() {
     });
     if(!students) return <Loading/>
   return (
-    <div className='pt-5'>
+    <div className='container pt-10'>
 
-      
-        <div className="flex items-start gap-x-2">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div className="space-y-2 ">
+       <Card>
+        <CardHeader>
+            <CardTitle className="flex items-start gap-x-2">
+                <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                    <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div className="space-y-2 ">
 
-                <h1 className="text-3xl font-bold tracking-tighter">Assign student to your section</h1>
-                <p></p>
-                
-            </div>
-        </div>
+                    <h1 className="text-3xl font-bold tracking-tighter">Assign student to your section</h1>
+                    <p></p>
+                    
+                </div>
+            </CardTitle>
+        </CardHeader>
+           <CardContent>
         <DataTable
             columns={studentColumns}
             data={students}
@@ -49,6 +53,8 @@ export default function Students() {
             </Button>
             }
         />
+        </CardContent>
+        </Card>
      
 
     </div>

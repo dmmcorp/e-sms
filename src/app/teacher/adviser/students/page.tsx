@@ -8,7 +8,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import RemedialStudentList from './_components/remedial-student-list'
 
-function Page() {
+function Page() { 
   const router = useRouter()
   return (
     <div className='container pt-10'>

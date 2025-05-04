@@ -51,21 +51,26 @@ function SeniorHigh({
             </Card>
           }
           content={
-            <div className="flex items-center justify-center min-h-56 min-w-56">
-              {load.needsInterventions.length !== 0 ? (
-                load.needsInterventions.map((student, index) => (
-                  <h3 key={"intervention" + student.student?._id}>
-                    {index + 1}.{student.student?.lastName},{" "}
-                    {student.student?.firstName}{" "}
-                    {student.student?.middleName?.charAt(0)}{" "}
-                  </h3>
-                ))
-              ) : (
-                <div className="flex items-center justify-center text-center w-full h-full">
-                  No students need intervention for this quarter.
-                </div>
-              )}
-            </div>
+            <div className="flex flex-col items-start justify-start min-h-56 min-w-56 p-2">
+            <h1 className="text-sm font-semibold text-center w-full mb-2">Needs Intervention</h1>
+            {load.needsInterventions.length !== 0 ? (
+              
+              load.needsInterventions.map((student, index) => (
+              <div key={"intervention" + student.student?._id}  className="flex justify-between w-full">
+                <h3 className="capitalize">
+                  {index + 1}.{student.student?.lastName},{" "}
+                  {student.student?.firstName}{" "}
+                  {student.student?.middleName?.charAt(0)}{" "}
+                </h3>
+                <h3>{student.interventionGrade}</h3>
+              </div>
+              ))
+            ) : (
+              <div className="flex items-center justify-center text-center w-full h-full">
+                No students need intervention for this quarter.
+              </div>
+            )}
+          </div>
           }
         />
       ))}
