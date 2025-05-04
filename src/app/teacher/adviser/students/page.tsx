@@ -29,8 +29,8 @@ function Page() {
 
       <Tabs defaultValue='students' className='w-full'>
         <TabsList className='bg-transparent w-full  shadow-sm'>
-            <TabsTrigger value='students' className='data-[state=active]:text-primary text-xs md:text-sm'>Students</TabsTrigger>
-            <TabsTrigger value='summerClass' className='data-[state=active]:bg-primary text-xs md:text-sm'>Summer/Remedial Class</TabsTrigger>
+            <TabsTrigger value='students' className=' text-xs md:text-sm'>Students</TabsTrigger>
+            <TabsTrigger value='summerClass' className=' text-xs md:text-sm'>Summer/Remedial Class</TabsTrigger>
         </TabsList>
         <TabsContent value='students'>  
           <StudentList/>

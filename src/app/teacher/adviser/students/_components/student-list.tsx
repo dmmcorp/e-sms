@@ -39,7 +39,7 @@ export default function StudentList() {
             filter="fullName"
             placeholder="student name"
             customUI={
-            <Button className='w-10' onClick={()=> router.push(`/teacher/adviser/enrollment?id=${sectionId}`)}>
+            <Button className='w-10 md:w-fit' onClick={()=> router.push(`/teacher/adviser/enrollment?id=${sectionId}`)}>
                 <Plus className='md:mr-2'/> <span className='hidden md:block'>Assign new student</span> 
             </Button>
             }
