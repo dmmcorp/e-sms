@@ -20,15 +20,15 @@ function Page() {
 
   if (!teachingLoad) return <Loading />
   return (
-    <Card className='my-5 md:my-10 flex-1 mx-auto container '>
-      <CardHeader>
+    <Card className=' md:my-10 flex-1 mx-auto md:container overflow-auto w-full'>
+      <CardHeader className='px-2'>
         <Button variant="ghost" size="icon" onClick={() => router.push('/teacher/subject-teacher')}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
 
         <SectionInfo teachingLoad={teachingLoad} />
       </CardHeader>
-      <CardContent className='p-0 md:px-5'>
+      <CardContent className='p-0 md:px-5 w-full overflow-auto'>
         <ClassrecordTabs teachingLoad={teachingLoad} />
       </CardContent>
     </Card>

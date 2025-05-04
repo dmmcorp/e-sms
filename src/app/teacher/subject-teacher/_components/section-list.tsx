@@ -30,10 +30,10 @@ function SectionList({
         <div className='space-y-10'>
             {/* UI for Senior High School (SHS) */}
             {isShs && (
-                <div className="grid grid-cols-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="space-y-3">
                         {/* Semester selection */}
-                        <Label>Select a Semester</Label>
+                        <Label className='font-semibold'>Select a Semester</Label>
                         <RadioGroup
                             defaultValue={selectedSem}
                             onValueChange={(value) => {
@@ -57,7 +57,7 @@ function SectionList({
                     </div>
                     <div className="space-y-3">
                         {/* Quarter selection */}
-                        <Label className=''>Select a Quarter</Label>
+                        <Label className='font-semibold'>Select a Quarter</Label>
                         <RadioGroup
                             value={selectedQtr}
                             onValueChange={(value) => {
@@ -90,7 +90,7 @@ function SectionList({
             {!isShs && (
                 <div className="space-y-3">
                     {/* Quarter selection */}
-                    <Label className=''>Select a Quarter</Label>
+                    <Label className='font-semibold'>Select a Quarter</Label>
                     <RadioGroup
                         value={selectedQtr}
                         onValueChange={(value) => {
