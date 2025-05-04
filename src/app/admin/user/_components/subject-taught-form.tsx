@@ -103,9 +103,26 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
       .map((s) => s.name)
   );
 
-  const availableDbSections = sections
-    ?.filter((section) => section.gradeLevel === subject.gradeLevel)
-    .map((section) => ({ id: section._id, name: section.name }));
+  // const availableDbSections = sections
+  //   ?.filter((section) => section.gradeLevel === subject.gradeLevel)
+  //   .map((section) => ({ id: section._id, name: section.name, semesters }));
+
+  const availableDbSections = useMemo(() => {
+    return sections
+      ?.filter((section) => section.gradeLevel === subject.gradeLevel)
+      .map((section) => {
+        const isShsSection = seniorHighGrades.includes(section.gradeLevel);
+        const displayName =
+          isShsSection && section.semester
+            ? `${section.name} (${section.semester})` // Append semester for SHS
+            : section.name; // Just use name for JHS
+
+        return {
+          id: section._id,
+          name: displayName, // Use the potentially modified name for display
+        };
+      });
+  }, [sections, subject.gradeLevel]);
 
   const availablePendingSections =
     formData.role === "adviser" || formData.role === "adviser/subject-teacher"
@@ -271,7 +288,7 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
             onValueChange={(value) => updateSubject(index, "sectionId", value)}
             disabled={isPending || !subject.gradeLevel}
           >
-            <SelectTrigger id={`section-${index}`} className="w-full">
+            <SelectTrigger id={`section-${index}`} className="w-fit">
               <SelectValue placeholder="Select section" />
             </SelectTrigger>
             <SelectContent>
@@ -282,20 +299,26 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
                 </SelectItem>
               ))}
 
-              {/* Pending Sections */}
               {availablePendingSections?.map((formSection) => (
                 <SelectItem
-                  // @ts-expect-error value might be null
+                  key={formSection?.value}
+                  value={formSection?.value as string}
+                  className="bg-blue-50"
+                >
+                  {formSection?.name} (Pending)
+                </SelectItem>
+              ))}
+
+              {/* Pending Sections */}
+              {/* {availablePendingSections?.map((formSection) => (
+                <SelectItem
                   key={formSection.value}
-                  // @ts-expect-error value might be null
                   value={formSection.value}
                   className="bg-blue-50"
                 >
-                  {/* @ts-expect-error name might be null */}
                   {formSection.name}
-                  {/* (Pending) Add (Pending) back */}
                 </SelectItem>
-              ))}
+              ))} */}
             </SelectContent>
           </Select>
           {errors[`subject${index}Section`] && (

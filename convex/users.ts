@@ -224,26 +224,55 @@ export const createUser = mutation({
     }
     const newUserId = accountResponse.user?._id;
 
-    // Array to store created section IDs
+    // ! Array to store created section IDs
     const createdSectionsMap = new Map<number, Id<"sections">>();
     if (
       (args.role === "adviser" || args.role === "adviser/subject-teacher") &&
       sections
     ) {
       for (const [index, section] of sections.entries()) {
-        const newSectionId = await ctx.db.insert("sections", {
-          adviserId: newUserId,
-          name: section.name,
-          gradeLevel: section.gradeLevel,
-          schoolYear: section.schoolYear,
-          semester: section.semester, // Store semester if provided
-          subjects: [],
-        });
-        createdSectionsMap.set(index, newSectionId);
+        const isSHS = ["Grade 11", "Grade 12"].includes(
+          section.gradeLevel
+        );
+
+        if (isSHS) {
+          // Create two sections for SHS, one for each semester
+          const sectionBase = {
+            adviserId: newUserId,
+            name: section.name,
+            gradeLevel: section.gradeLevel,
+            schoolYear: section.schoolYear,
+            subjects: [], // Initialize subjects array
+          };
+
+          // 1st Semester Section
+          await ctx.db.insert("sections", {
+            ...sectionBase,
+            semester: "1st semester",
+          });
+
+          // 2nd Semester Section
+          await ctx.db.insert("sections", {
+            ...sectionBase,
+            semester: "2nd semester",
+          });
+        } else {
+          // Create one section for JHS
+          const newSectionId = await ctx.db.insert("sections", {
+            adviserId: newUserId,
+            name: section.name,
+            gradeLevel: section.gradeLevel,
+            schoolYear: section.schoolYear,
+            semester: undefined,
+            subjects: [],
+          });
+
+          createdSectionsMap.set(index, newSectionId);
+        }
       }
     }
 
-    // Handle subjects (Teacher roles)
+    // Handle subjects (Teacher roles) - Focus on CREATION
     const subjectTaughtMap = new Map<string, Id<"subjectTaught">>();
     if (
       (args.role === "subject-teacher" ||
@@ -252,33 +281,11 @@ export const createUser = mutation({
     ) {
       for (const subject of subjectsTaught) {
         let subjectTaughtId: Id<"subjectTaught">;
-        let resolvedSectionId: Id<"sections">;
+        const isSenior = seniorHighGrades.includes(
+          subject.gradeLevel as GradeLevelsTypes
+        );
 
-        // Resolve section ID
-        if (subject.sectionId.startsWith("pending-section-")) {
-          const pendingIndex = parseInt(
-            subject.sectionId.replace("pending-section-", "")
-          );
-          const actualId = createdSectionsMap.get(pendingIndex);
-          if (!actualId)
-            throw new ConvexError(
-              `Could not resolve pending section: ${subject.sectionId}`
-            );
-          resolvedSectionId = actualId;
-        } else {
-          try {
-            resolvedSectionId = subject.sectionId as Id<"sections">;
-            // Optional: Verify section exists
-            // const sectionDoc = await ctx.db.get(resolvedSectionId);
-            // if (!sectionDoc) throw new ConvexError(`Section ${resolvedSectionId} not found.`);
-          } catch (e) {
-            throw new ConvexError(
-              `Invalid section ID format: ${subject.sectionId}`
-            );
-          }
-        }
-
-        // Find or Create subjectTaught record
+        // --- Find or Create subjectTaught record ---
         const subjectKey = `${subject.subjectName}_${subject.gradeLevel}`;
         const existingSubjectTaughtId = subjectTaughtMap.get(subjectKey);
 
@@ -294,124 +301,343 @@ export const createUser = mutation({
 
           if (dbSubject) {
             subjectTaughtId = dbSubject._id;
-            // Optionally patch semester/category/gradeWeights if needed on existing
-            // await ctx.db.patch(dbSubject._id, { semester: subject.semester, category: subject.category, gradeWeights: subject.gradeWeights });
           } else {
+            // Create new subjectTaught record
             subjectTaughtId = await ctx.db.insert("subjectTaught", {
               teacherId: newUserId,
               subjectName: subject.subjectName,
               gradeLevel: subject.gradeLevel,
               category: subject.category,
-              semester: seniorHighGrades.includes(
-                subject.gradeLevel as GradeLevelsTypes
-              )
-                ? subject.semester
-                : undefined,
+              semester: isSenior ? subject.semester : undefined,
               gradeWeights: subject.gradeWeights,
               quarter: subject.quarter,
             });
           }
           subjectTaughtMap.set(subjectKey, subjectTaughtId);
         }
+        // --- End Find or Create subjectTaught record ---
 
-        // Link subjectTaught to section
-        try {
-          await ctx.runMutation(internal.sections.addSubjectTaught, {
-            sectionId: resolvedSectionId,
-            id: subjectTaughtId,
-          });
-        } catch (error) {
-          console.error(
-            `Failed to add subject ${subjectTaughtId} to section ${resolvedSectionId}:`,
-            error
+
+        // --- Determine Target Section(s) ---
+        let targetSectionIds: Id<"sections">[] = [];
+        // sectionDetailsForLoadCreation is used later for load creation, initialize it
+        let sectionDetailsForLoadCreation: { id: Id<"sections">, semester?: SemesterType } | null = null;
+
+        if (subject.sectionId.startsWith("pending-section-")) {
+          const pendingIndex = parseInt(
+            subject.sectionId.replace("pending-section-", "")
           );
-        }
 
-        // Create TeachingLoad records based on selected quarters
-        const isSenior = seniorHighGrades.includes(
-          subject.gradeLevel as GradeLevelsTypes
-        );
-        const quartersToLoad = subject.quarter || []; // Use quarters sent from frontend
+          if (isSenior) {
+            // For pending SHS sections, query based on properties
+            const originalSectionInput = sections?.[pendingIndex];
+            if (!originalSectionInput) {
+              throw new ConvexError(`Could not find original section input for pending index ${pendingIndex}`);
+            }
+            const shsSections = await ctx.db.query("sections")
+              .withIndex("adviserId", q => q.eq("adviserId", newUserId))
+              .filter(q => q.eq(q.field("name"), originalSectionInput.name))
+              .filter(q => q.eq(q.field("gradeLevel"), originalSectionInput.gradeLevel))
+              .filter(q => q.eq(q.field("schoolYear"), originalSectionInput.schoolYear))
+              .collect();
 
-        // Special handling for MAPEH subjects
-        if (subject.subjectName.toLowerCase() === "mapeh") {
-          const mapehComponents = [
-            "Music",
-            "Arts",
-            "Physical Education",
-            "Health",
-          ] as const;
+            if (shsSections.length === 0) {
+              throw new ConvexError(`Could not resolve pending SHS sections for index ${pendingIndex}`);
+            }
+            // Allow proceeding even if only 1 is found initially, warn if not 2
+            if (shsSections.length !== 2) {
+              console.warn(`Expected 2 sections for pending SHS index ${pendingIndex}, found ${shsSections.length}. Name: ${originalSectionInput.name}, Grade: ${originalSectionInput.gradeLevel}`);
+            }
 
-          // Create teaching loads for each MAPEH component and quarter
-          for (const component of mapehComponents) {
-            for (const quarter of quartersToLoad) {
-              let loadSemester: SemesterType | undefined = undefined;
-              if (isSenior) {
-                if (["1st quarter", "2nd quarter"].includes(quarter)) {
-                  loadSemester = "1st semester";
-                } else if (["3rd quarter", "4th quarter"].includes(quarter)) {
-                  loadSemester = "2nd semester";
-                }
-                // Ensure the semester is actually selected in the input if SHS
-                if (!subject.semester?.includes(loadSemester!)) {
-                  console.warn(
-                    `Quarter ${quarter} selected for SHS subject ${subject.subjectName} but semester ${loadSemester} was not.`
-                  );
-                  continue; // Skip creating load if semester doesn't match quarter
-                }
+            const firstSemSection = shsSections.find(s => s.semester === "1st semester");
+            const secondSemSection = shsSections.find(s => s.semester === "2nd semester");
+
+            // Add section IDs to target list based on the subject's intended semesters
+            if (subject.semester?.includes("1st semester") && firstSemSection) {
+              targetSectionIds.push(firstSemSection._id);
+              // Set details for load creation (prioritize 1st sem if available)
+              sectionDetailsForLoadCreation = { id: firstSemSection._id, semester: "1st semester" };
+            }
+            if (subject.semester?.includes("2nd semester") && secondSemSection) {
+              targetSectionIds.push(secondSemSection._id);
+              // If 1st sem wasn't selected/found, use 2nd sem details for load creation
+              if (!sectionDetailsForLoadCreation) {
+                sectionDetailsForLoadCreation = { id: secondSemSection._id, semester: "2nd semester" };
+              }
+            }
+            if (targetSectionIds.length === 0) {
+              throw new ConvexError(`Could not find matching semester sections for pending SHS index ${pendingIndex} and selected semesters ${subject.semester?.join(', ')}`);
+            }
+
+          } else {
+            // JHS pending section - use the map
+            const actualId = createdSectionsMap.get(pendingIndex);
+            if (!actualId) {
+              throw new ConvexError(`Could not resolve pending JHS section: ${subject.sectionId}`);
+            }
+            targetSectionIds.push(actualId);
+            sectionDetailsForLoadCreation = { id: actualId, semester: undefined };
+          }
+        } else {
+          try {
+            const directSectionId = subject.sectionId as Id<"sections">;
+            const sectionDoc = await ctx.db.get(directSectionId);
+            if (!sectionDoc) {
+              throw new ConvexError(`Section ${directSectionId} not found.`);
+            }
+
+            if (isSenior) {
+              // SHS: Find the direct section and potentially its sibling
+              const requiredSemesters = new Set(subject.semester ?? []);
+              if (requiredSemesters.size === 0) {
+                throw new ConvexError(`SHS Subject ${subject.subjectName} must specify at least one semester.`);
               }
 
-              // Check if a teaching load already exists for this combination
+              let firstSemSectionId: Id<"sections"> | undefined;
+              let secondSemSectionId: Id<"sections"> | undefined;
+
+              // Find the pair based on the provided directSectionId
+              if (sectionDoc.semester === "1st semester") {
+                firstSemSectionId = sectionDoc._id;
+                const sibling = await ctx.db.query("sections")
+                  .withIndex("adviserId", q => q.eq("adviserId", sectionDoc.adviserId)) // Assuming same adviser
+                  .filter(q => q.eq(q.field("name"), sectionDoc.name))
+                  .filter(q => q.eq(q.field("gradeLevel"), sectionDoc.gradeLevel))
+                  .filter(q => q.eq(q.field("schoolYear"), sectionDoc.schoolYear))
+                  .filter(q => q.eq(q.field("semester"), "2nd semester"))
+                  .first();
+                secondSemSectionId = sibling?._id;
+              } else { // sectionDoc.semester === "2nd semester"
+                secondSemSectionId = sectionDoc._id;
+                const sibling = await ctx.db.query("sections")
+                  .withIndex("adviserId", q => q.eq("adviserId", sectionDoc.adviserId)) // Assuming same adviser
+                  .filter(q => q.eq(q.field("name"), sectionDoc.name))
+                  .filter(q => q.eq(q.field("gradeLevel"), sectionDoc.gradeLevel))
+                  .filter(q => q.eq(q.field("schoolYear"), sectionDoc.schoolYear))
+                  .filter(q => q.eq(q.field("semester"), "1st semester"))
+                  .first();
+                firstSemSectionId = sibling?._id;
+              }
+
+              // Add target IDs based on required semesters
+              if (requiredSemesters.has("1st semester")) {
+                if (!firstSemSectionId) throw new ConvexError(`Could not find 1st semester section for ${sectionDoc.name} ${sectionDoc.gradeLevel}`);
+                targetSectionIds.push(firstSemSectionId);
+                sectionDetailsForLoadCreation = { id: firstSemSectionId, semester: "1st semester" };
+              }
+              if (requiredSemesters.has("2nd semester")) {
+                if (!secondSemSectionId) throw new ConvexError(`Could not find 2nd semester section for ${sectionDoc.name} ${sectionDoc.gradeLevel}`);
+                targetSectionIds.push(secondSemSectionId);
+                if (!sectionDetailsForLoadCreation) { // If only 2nd sem was required
+                  sectionDetailsForLoadCreation = { id: secondSemSectionId, semester: "2nd semester" };
+                }
+              }
+              if (targetSectionIds.length === 0) {
+                throw new ConvexError(`Could not find matching semester sections for direct ID ${directSectionId} and selected semesters ${subject.semester?.join(', ')}`);
+              }
+
+            } else {
+              targetSectionIds.push(directSectionId);
+              sectionDetailsForLoadCreation = { id: directSectionId, semester: undefined };
+            }
+
+          } catch (e: any) {
+            throw new ConvexError(`Invalid section ID format or lookup failed: ${subject.sectionId}. Error: ${e.message}`);
+          }
+        }
+        if (!sectionDetailsForLoadCreation) {
+          throw new ConvexError(`Failed to determine section details for load creation for subject ${subject.subjectName} and section ID ${subject.sectionId}`);
+        }
+
+
+
+        // --- Link subjectTaught to Section(s) ---
+        // Add the subjectTaught ID to the `subjects` array on the target section document(s).
+        for (const sectionId of targetSectionIds) {
+          try {
+            // Use internal mutation to handle potential concurrent updates safely
+            await ctx.runMutation(internal.sections.addSubjectTaught, {
+              sectionId: sectionId,
+              id: subjectTaughtId,
+            });
+          } catch (error) {
+            console.error(
+              `Failed to add subject ${subjectTaughtId} to section ${sectionId}:`,
+              error
+            );
+          }
+        }
+
+
+        // --- Create TeachingLoad records ---
+        // One record per quarter the subject is taught in a specific section.
+        const quartersToLoad = subject.quarter || [];
+        const intendedSemesters = new Set(subject.semester ?? []); // Semesters this subject applies to
+
+        for (const quarter of quartersToLoad) {
+          let loadSemester: SemesterType | undefined = undefined;
+          let targetSectionIdForLoad: Id<"sections">;
+
+          if (isSenior) {
+            // Determine the semester this quarter belongs to
+            if (["1st quarter", "2nd quarter"].includes(quarter)) {
+              loadSemester = "1st semester";
+            } else if (["3rd quarter", "4th quarter"].includes(quarter)) {
+              loadSemester = "2nd semester";
+            } else {
+              console.warn(`Invalid quarter value encountered: ${quarter}. Skipping load creation.`);
+              continue;
+            }
+
+            // Ensure the subject is *intended* to be taught in this semester
+            if (!intendedSemesters.has(loadSemester)) {
+              console.warn(
+                `Quarter ${quarter} selected, but subject ${subject.subjectName} is not assigned to semester ${loadSemester}. Skipping teaching load creation.`
+              );
+              continue;
+            }
+
+            const sectionDocs = await Promise.all(targetSectionIds.map(id => ctx.db.get(id)));
+            const sectionForThisSemester = sectionDocs.find(sec => sec?.semester === loadSemester);
+
+            if (!sectionForThisSemester) {
+              throw new ConvexError(`Could not find the target SHS section document for semester ${loadSemester} among resolved IDs: ${targetSectionIds.join(', ')}`);
+            }
+            targetSectionIdForLoad = sectionForThisSemester._id;
+
+          } else {
+            // JHS: semester is undefined, use the single target section ID determined earlier
+            targetSectionIdForLoad = sectionDetailsForLoadCreation.id;
+            loadSemester = undefined;
+          }
+
+          // Handle MAPEH components separately
+          if (subject.subjectName.toLowerCase() === "mapeh") {
+            const mapehComponents = [
+              "Music", "Arts", "Physical Education", "Health",
+            ] as const;
+
+            for (const component of mapehComponents) {
               const existingLoad = await ctx.db
                 .query("teachingLoad")
-                .withIndex("subjectTaughtId", (q) =>
-                  q.eq("subjectTaughtId", subjectTaughtId)
-                )
-                .filter((q) => q.eq(q.field("sectionId"), resolvedSectionId))
+                .withIndex("subjectTaughtId", (q) => q.eq("subjectTaughtId", subjectTaughtId))
+                .filter((q) => q.eq(q.field("sectionId"), targetSectionIdForLoad))
                 .filter((q) => q.eq(q.field("quarter"), quarter))
                 .filter((q) => q.eq(q.field("subComponent"), component))
+                .filter((q) => q.eq(q.field("semester"), loadSemester))
                 .first();
 
               if (!existingLoad) {
                 await ctx.db.insert("teachingLoad", {
                   subjectTaughtId: subjectTaughtId,
-                  sectionId: resolvedSectionId,
+                  sectionId: targetSectionIdForLoad,
                   quarter: quarter,
-                  semester: loadSemester, // Set semester if SHS
-                  subComponent: component, // Set the MAPEH component
+                  semester: loadSemester,
+                  subComponent: component,
                 });
               }
+              else { console.log(`Load exists for MAPEH ${component}, Q${quarter}, Sec ${targetSectionIdForLoad}`); }
             }
-          }
-        } else {
-          // Regular subject handling (non-MAPEH)
-          for (const q of quartersToLoad) {
-            let loadSemester: SemesterType | undefined = undefined;
-            if (isSenior) {
-              if (["1st quarter", "2nd quarter"].includes(q)) {
-                loadSemester = "1st semester";
-              } else if (["3rd quarter", "4th quarter"].includes(q)) {
-                loadSemester = "2nd semester";
-              }
-              // Ensure the semester is actually selected in the input if SHS
-              if (!subject.semester?.includes(loadSemester!)) {
-                console.warn(
-                  `Quarter ${q} selected for SHS subject ${subject.subjectName} but semester ${loadSemester} was not.`
-                );
-                continue; // Skip creating load if semester doesn't match quarter
-              }
-            }
+          } else {
+            const existingLoad = await ctx.db
+              .query("teachingLoad")
+              .withIndex("subjectTaughtId", (q) => q.eq("subjectTaughtId", subjectTaughtId))
+              .filter((q) => q.eq(q.field("sectionId"), targetSectionIdForLoad))
+              .filter((q) => q.eq(q.field("quarter"), quarter))
+              .filter((q) => q.eq(q.field("semester"), loadSemester))
+              .filter((q) => q.eq(q.field("subComponent"), undefined))
+              .first();
 
-            await ctx.db.insert("teachingLoad", {
-              subjectTaughtId: subjectTaughtId,
-              sectionId: resolvedSectionId,
-              quarter: q,
-              semester: loadSemester, // Set semester if SHS
-            });
+            if (!existingLoad) {
+              await ctx.db.insert("teachingLoad", {
+                subjectTaughtId: subjectTaughtId,
+                sectionId: targetSectionIdForLoad,
+                quarter: quarter,
+                semester: loadSemester,
+              });
+            }
+            else { console.log(`Load exists for ${subject.subjectName}, Q${quarter}, Sec ${targetSectionIdForLoad}`); }
           }
         }
       }
     }
+    // Special handling for MAPEH subjects
+    // if (subject.subjectName.toLowerCase() === "mapeh") {
+    //   const mapehComponents = [
+    //     "Music",
+    //     "Arts",
+    //     "Physical Education",
+    //     "Health",
+    //   ] as const;
+
+    //   // Create teaching loads for each MAPEH component and quarter
+    //   for (const component of mapehComponents) {
+    //     for (const quarter of quartersToLoad) {
+    //       let loadSemester: SemesterType | undefined = undefined;
+    //       if (isSenior) {
+    //         if (["1st quarter", "2nd quarter"].includes(quarter)) {
+    //           loadSemester = "1st semester";
+    //         } else if (["3rd quarter", "4th quarter"].includes(quarter)) {
+    //           loadSemester = "2nd semester";
+    //         }
+    //         // Ensure the semester is actually selected in the input if SHS
+    //         if (!subject.semester?.includes(loadSemester!)) {
+    //           console.warn(
+    //             `Quarter ${quarter} selected for SHS subject ${subject.subjectName} but semester ${loadSemester} was not.`
+    //           );
+    //           continue; // Skip creating load if semester doesn't match quarter
+    //         }
+    //       }
+
+    //       // Check if a teaching load already exists for this combination
+    //       const existingLoad = await ctx.db
+    //         .query("teachingLoad")
+    //         .withIndex("subjectTaughtId", (q) =>
+    //           q.eq("subjectTaughtId", subjectTaughtId)
+    //         )
+    //         .filter((q) => q.eq(q.field("sectionId"), resolvedSectionId))
+    //         .filter((q) => q.eq(q.field("quarter"), quarter))
+    //         .filter((q) => q.eq(q.field("subComponent"), component))
+    //         .first();
+
+    //       if (!existingLoad) {
+    //         await ctx.db.insert("teachingLoad", {
+    //           subjectTaughtId: subjectTaughtId,
+    //           sectionId: resolvedSectionId,
+    //           quarter: quarter,
+    //           semester: loadSemester, // Set semester if SHS
+    //           subComponent: component, // Set the MAPEH component
+    //         });
+    //       }
+    //     }
+    //   }
+    // } else {
+    //   // Regular subject handling (non-MAPEH)
+    //   for (const q of quartersToLoad) {
+    //     let loadSemester: SemesterType | undefined = undefined;
+    //     if (isSenior) {
+    //       if (["1st quarter", "2nd quarter"].includes(q)) {
+    //         loadSemester = "1st semester";
+    //       } else if (["3rd quarter", "4th quarter"].includes(q)) {
+    //         loadSemester = "2nd semester";
+    //       }
+    //       // Ensure the semester is actually selected in the input if SHS
+    //       if (!subject.semester?.includes(loadSemester!)) {
+    //         console.warn(
+    //           `Quarter ${q} selected for SHS subject ${subject.subjectName} but semester ${loadSemester} was not.`
+    //         );
+    //         continue; // Skip creating load if semester doesn't match quarter
+    //       }
+    //     }
+
+    //     await ctx.db.insert("teachingLoad", {
+    //       subjectTaughtId: subjectTaughtId,
+    //       sectionId: resolvedSectionId,
+    //       quarter: q,
+    //       semester: loadSemester, // Set semester if SHS
+    //     });
+    //   }
+    // }
     return accountResponse.user;
   },
 });
