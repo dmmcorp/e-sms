@@ -225,6 +225,14 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
             fieldErrors[`subject${index}Section`] = "Section is required";
           }
 
+          if (
+            (subject.gradeLevel === "Grade 11" ||
+              subject.gradeLevel === "Grade 12") &&
+            !subject.category
+          ) {
+            fieldErrors[`subject${index}Category`] = "Category is required";
+          }
+
           // MAPEH validation
           if (subject.isMapeh && !subject.mapehComponent) {
             fieldErrors[`subject${index}MapehComponent`] =
@@ -389,7 +397,7 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
             <div className="bg-blue-50 p-3 rounded border border-blue-200 text-sm mb-4">
               <p className="text-blue-700">
                 Note: If you are creating a MAPEH subject, please name it
-                exactly as "MAPEH" (case insensitive).
+                exactly as "MAPEH" (case sensitive).
               </p>
             </div>
             <CardContent>
