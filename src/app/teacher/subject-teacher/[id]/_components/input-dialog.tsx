@@ -207,7 +207,7 @@ function InputDialog({
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen} >
-        <DialogContent className=''>
+        <DialogContent className='md:max-w-4xl'>
             <div className="flex items-center justify-between w-full ">
                 <DialogTitle className='w-full capitalize flex items-center justify-between'>
                     <div className="">
