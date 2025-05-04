@@ -69,7 +69,7 @@ function getFullName(student: StudentTypes) {
           <div>
             <div className="flex w-full justify-center">
             <Select onValueChange={(value) => setSelectedStudent(value)}>
-                <SelectTrigger className="w-[180px] capitalize">
+                <SelectTrigger className="min-w-fit capitalize">
                     <SelectValue placeholder="Select a student" />
                 </SelectTrigger>
                 <SelectContent className='max-h-64'>
@@ -77,7 +77,7 @@ function getFullName(student: StudentTypes) {
                     <SelectLabel>Students</SelectLabel>
                     {students?.map((student) => (
                         <SelectItem key={student._id} value={student.sectionStudentId} className='capitalize'>
-                        {getFullName(student)}
+                          {getFullName(student)}
                         </SelectItem>
                     ))}
                     </SelectGroup>
