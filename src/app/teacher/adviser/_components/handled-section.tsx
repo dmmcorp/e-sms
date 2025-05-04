@@ -28,9 +28,9 @@ function HandledSection() {
     setSelectedQtr("1st quarter")
   }, [selectedSY])
   return (
-    <div className='mt-5 md:pt-10 p-5 space-y-2'>
+    <div className='mt-2 md:mt-5 md:pt-10 md:p-5 space-y-2'>
       {/* Selection of section school year */}
-        <div className="w-full flex justify-end">
+        <div className="w-full flex justify-center md:justify-end">
           <Label htmlFor='school-year' className='font-semibold'>School year:</Label>
           <Select defaultValue={selectedSY}  onValueChange={(value)=> setSelectedSY(value as SchoolYearTypes)}> 
             <SelectTrigger className="w-[180px]">
@@ -56,9 +56,9 @@ function HandledSection() {
           <Card key={section._id} className=" pt-0">
             <CardHeader className='pt-5 bg-gray-100'>
               <CardTitle  className='flex items-center justify-between '>
-                <h1 className='text-xl font-medium'>Section: {section.name}</h1> 
+                <h1 className='text-lg md:text-xl font-medium'>Section: {section.name}</h1> 
                 <Link href={`/teacher/adviser/students?id=${section._id}`} className="">
-                    <Button variant={'default'} className='text-sm'> <UsersRoundIcon  className='size-6'/> Manage students</Button>
+                    <Button variant={'default'} className='text-sm'> <UsersRoundIcon  className='size-6'/> <span className='hidden md:block'>Manage students</span></Button>
                 </Link>
               </CardTitle>
               

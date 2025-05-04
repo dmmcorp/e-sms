@@ -24,18 +24,18 @@ export default function Students() {
     });
     if(!students) return <Loading/>
   return (
-    <div className='container pt-10'>
+    <div className='md:container md:pt-10'>
 
        <Card>
         <CardHeader>
-            <CardTitle className="flex items-start gap-x-2">
+            <CardTitle className="flex items-center gap-x-2">
                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
                     <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <div className="space-y-2 ">
 
-                    <h1 className="text-3xl font-bold tracking-tighter">Assign student to your section</h1>
-                    <p></p>
+                    <h1 className="text-lg md:text-3xl font-bold tracking-tighter">Assign student to your section</h1>
+               
                     
                 </div>
             </CardTitle>
@@ -48,8 +48,8 @@ export default function Students() {
             placeholder="student name"
             customUI={
             <Button onClick={()=> router.push("/teacher/adviser/enrollment/add")}>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Add Student
+                <UserPlus className="md:mr-2 h-4 w-4" />
+                <span className='hidden md:block'>Add Student</span>
             </Button>
             }
         />

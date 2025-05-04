@@ -11,17 +11,15 @@ import RemedialStudentList from './_components/remedial-student-list'
 function Page() { 
   const router = useRouter()
   return (
-    <div className='container pt-10'>
+    <div className='md:container md:pt-10'>
       <Card>
       <CardHeader>
-      <CardTitle className="flex items-start gap-x-2">
+      <CardTitle className="flex items-center gap-x-2">
             <Button variant="ghost" size="icon" onClick={() => router.back()}>
                 <ArrowLeft className="h-4 w-4" />
             </Button>
             <div className="space-y-2 ">
-
-                <h1 className="text-3xl font-bold tracking-tighter">Student Management</h1>
-                
+                <h1 className="text-lg md:text-3xl font-bold tracking-tighter">Student Management</h1>
             </div>
         
         </CardTitle>
@@ -31,8 +29,8 @@ function Page() {
 
       <Tabs defaultValue='students' className='w-full'>
         <TabsList className='bg-transparent w-full  shadow-sm'>
-            <TabsTrigger value='students' className='data-[state=active]:text-primary'>Students</TabsTrigger>
-            <TabsTrigger value='summerClass' className='data-[state=active]:bg-primary'>Summer/Remedial Class</TabsTrigger>
+            <TabsTrigger value='students' className='data-[state=active]:text-primary text-xs md:text-sm'>Students</TabsTrigger>
+            <TabsTrigger value='summerClass' className='data-[state=active]:bg-primary text-xs md:text-sm'>Summer/Remedial Class</TabsTrigger>
         </TabsList>
         <TabsContent value='students'>  
           <StudentList/>

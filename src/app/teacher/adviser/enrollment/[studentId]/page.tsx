@@ -22,8 +22,8 @@ function Page() {
     const fullName = `${student?.firstName} ${student?.middleName ?? ""} ${student?.lastName}`;
     
   return (
-    <div className="container mx-auto pt-10">
-    <div className="flex items-center gap-2">
+    <div className="md:container mx-auto pt-5 md:pt-10">
+    <div className="flex items-center gap-2 my-2">
       <Button variant="ghost" size="icon" onClick={() => router.back()}>
         <ArrowLeft className="h-4 w-4" />
       </Button>
@@ -162,7 +162,7 @@ function Page() {
                   </div>
                   <div className="">
                     <p className="text-sm text-muted-foreground">Subjects</p>
-                    <div className="space-y-1 space-x-2">
+                    <div className="space-y-1">
                       {student?.enrollment.find(e => e.status === 'enrolled')?.subjectsWithDetails.map(s => (
                       <Badge key={s.subject?.subjectName} className="font-medium">{s.subject?.subjectName}</Badge>
                       )) || <p className="font-medium">No subjects assigned</p>}

@@ -4,7 +4,7 @@ import Students from './_components/students'
 
 function Page() {
   return (
-    <div className="container mx-auto">
+    <div className="md:container mx-auto">
       <Students/>
     </div>
      

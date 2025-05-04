@@ -22,10 +22,10 @@ function SelectSemAndQtr({
   return (
     <div className='mb-5'>
         {isShs && (
-            <div className="grid grid-cols-2">
-                <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-3 col-span-2 md:col-span-1">
                     {/* Semester selection */}
-                    <Label>Select a Semester:</Label>
+                    <Label className='font-semibold'>Select a Semester:</Label>
                     <RadioGroup 
                         defaultValue={selectedSem}
                         onValueChange={(value) => {
@@ -49,25 +49,24 @@ function SelectSemAndQtr({
                         </div>
                     </RadioGroup>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-3 col-span-2 md:col-span-1">
                     {/* Quarter selection */}
-                    <Label className=''>Select a Quarter:</Label>
+                    <Label className='font-semibold'>Select a Quarter:</Label>
                     <RadioGroup 
                         value={selectedQtr}
                         onValueChange={(value) => {
                             setSelectedQtr(value as QuarterType)
                         }}
-                        className='grid grid-cols-2 px-10'>
+                        className='grid grid-cols-2 px-10 '>
                         {selectedSem === "1st semester" ? (
                             <div className="contents">
-
                                 <div className="flex items-center space-x-2">
-                                <RadioGroupItem value={"1st quarter"} id={"1st quarter"} />
-                                <Label htmlFor={"1st quarter"}>{"1st quarter"}</Label>
+                                    <RadioGroupItem value={"1st quarter"} id={"1st quarter"} />
+                                    <Label htmlFor={"1st quarter"}>{"1st quarter"}</Label>
                                 </div>
                                 <div className="flex items-center space-x-2">
-                                <RadioGroupItem value={"2nd quarter"} id={"2nd quarter"} />
-                                <Label htmlFor={"2nd quarter"}>{"2nd quarter"}</Label>
+                                    <RadioGroupItem value={"2nd quarter"} id={"2nd quarter"} />
+                                    <Label htmlFor={"2nd quarter"}>{"2nd quarter"}</Label>
                                 </div>
                             </div>
                             ): (

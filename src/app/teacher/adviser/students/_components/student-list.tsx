@@ -11,7 +11,7 @@ import { DataTable } from '@/components/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { SectionStudentsType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
 import ActionCeil from './action-cell';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -25,7 +25,7 @@ export default function StudentList() {
     if(isLoading === null) return <Loading/>
     const noOfStudents = students?.length
   return (
-    <div className='container '>
+    <div className='md:container '>
       <h4 className="my-4 text-sm text-center text-gray-600">
         View the students assigned to your section. You can promote, drop, and view student details.
       </h4>
@@ -39,8 +39,8 @@ export default function StudentList() {
             filter="fullName"
             placeholder="student name"
             customUI={
-            <Button onClick={()=> router.push(`/teacher/adviser/enrollment?id=${sectionId}`)}>
-                Assign new student
+            <Button className='w-10' onClick={()=> router.push(`/teacher/adviser/enrollment?id=${sectionId}`)}>
+                <Plus className='md:mr-2'/> <span className='hidden md:block'>Assign new student</span> 
             </Button>
             }
         />

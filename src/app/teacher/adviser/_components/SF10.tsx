@@ -65,7 +65,7 @@ function SF10({sectionStudentId}: SF10Types) {
     };
   return (
     <div className='max-w-5xl mx-auto p-4 bg-white'>
-        <Tabs  defaultValue="front" className="w-full" onValueChange={handleTabChange}>
+        <Tabs  defaultValue="front" className="w-full  overflow-auto" onValueChange={handleTabChange}>
         <div className="grid grid-cols-12">
 
             <TabsList className="col-span-9 grid w-[200px] grid-cols-2 mb-6">
@@ -77,7 +77,7 @@ function SF10({sectionStudentId}: SF10Types) {
             <Button size={'icon'} onClick={()=> {handlePrint(reactToPrintContent)}}><Printer/></Button>
             </div>
         </div>
-            <TabsContent value='front' className=''>
+            <TabsContent value='front' className='min-w-[1000px] md:min-w-full'>
             <div ref={componentRef} className='border-2 p-6 text-black text-sm'>
                 <div className="grid grid-cols-12 h-fit text-sm ">
                     <div className="col-span-2 flex justify-center">
