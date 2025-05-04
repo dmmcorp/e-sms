@@ -45,13 +45,13 @@ type SubjectData = NonNullable<UserFormData["subjectsTaught"]>[number];
 
 // Add MAPEH components constant
 const mapehComponents = [
-  'Music',
-  'Arts',
-  'Physical Education',
-  'Health',
+  "Music",
+  "Arts",
+  "Physical Education",
+  "Health",
 ] as const;
 
-type MapehComponent = typeof mapehComponents[number];
+type MapehComponent = (typeof mapehComponents)[number];
 
 // == Internal Component for Subject Card ==
 interface SubjectCardContentProps {
@@ -103,32 +103,49 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
       .map((s) => s.name)
   );
 
-  const availableDbSections = sections
-    ?.filter((section) => section.gradeLevel === subject.gradeLevel)
-    .map((section) => ({ id: section._id, name: section.name }));
+  // const availableDbSections = sections
+  //   ?.filter((section) => section.gradeLevel === subject.gradeLevel)
+  //   .map((section) => ({ id: section._id, name: section.name, semesters }));
+
+  const availableDbSections = useMemo(() => {
+    return sections
+      ?.filter((section) => section.gradeLevel === subject.gradeLevel)
+      .map((section) => {
+        const isShsSection = seniorHighGrades.includes(section.gradeLevel);
+        const displayName =
+          isShsSection && section.semester
+            ? `${section.name} (${section.semester})` // Append semester for SHS
+            : section.name; // Just use name for JHS
+
+        return {
+          id: section._id,
+          name: displayName, // Use the potentially modified name for display
+        };
+      });
+  }, [sections, subject.gradeLevel]);
 
   const availablePendingSections =
     formData.role === "adviser" || formData.role === "adviser/subject-teacher"
       ? formData.sections
-        ?.filter(
-          (formSection) =>
-            formSection.gradeLevel === subject.gradeLevel &&
-            formSection.name &&
-            !existingSectionNames.has(formSection.name)
-        )
-        .map((formSection) => {
-          const actualIndex = formData.sections?.findIndex(
-            (s) =>
-              s.name === formSection.name &&
-              s.gradeLevel === formSection.gradeLevel
-          );
-          if (actualIndex === undefined || actualIndex < 0) return null;
-          return {
-            value: `pending-section-${actualIndex}`,
-            name: formSection.name,
-          };
-        })
-        .filter(Boolean) // Remove nulls if findIndex fails
+          ?.filter(
+            (formSection) =>
+              formSection.gradeLevel === subject.gradeLevel &&
+              formSection.name &&
+              !existingSectionNames.has(formSection.name)
+          )
+          .map((formSection) => {
+            const actualIndex = formData.sections?.findIndex(
+              (s) =>
+                s.name === formSection.name &&
+                s.gradeLevel === formSection.gradeLevel
+            );
+            if (actualIndex === undefined || actualIndex < 0) return null;
+            return {
+              value: `pending-section-${actualIndex}`,
+              name: formSection.name,
+            };
+          })
+          .filter(Boolean) // Remove nulls if findIndex fails
       : [];
 
   const handleSemesterChange = (selectedSemesters: SemesterType[]) => {
@@ -256,7 +273,6 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
               ))}
             </SelectContent>
           </Select>
-          {/* Optional: Add error display if needed */}
           {errors[`subject${index}Category`] && (
             <p className="text-xs text-red-600">
               {errors[`subject${index}Category`]}
@@ -272,7 +288,7 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
             onValueChange={(value) => updateSubject(index, "sectionId", value)}
             disabled={isPending || !subject.gradeLevel}
           >
-            <SelectTrigger id={`section-${index}`} className="w-full">
+            <SelectTrigger id={`section-${index}`} className="w-fit">
               <SelectValue placeholder="Select section" />
             </SelectTrigger>
             <SelectContent>
@@ -283,20 +299,26 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
                 </SelectItem>
               ))}
 
-              {/* Pending Sections */}
               {availablePendingSections?.map((formSection) => (
                 <SelectItem
-                  // @ts-expect-error value might be null
+                  key={formSection?.value}
+                  value={formSection?.value as string}
+                  className="bg-blue-50"
+                >
+                  {formSection?.name} (Pending)
+                </SelectItem>
+              ))}
+
+              {/* Pending Sections */}
+              {/* {availablePendingSections?.map((formSection) => (
+                <SelectItem
                   key={formSection.value}
-                  // @ts-expect-error value might be null
                   value={formSection.value}
                   className="bg-blue-50"
                 >
-                  {/* @ts-expect-error name might be null */}
                   {formSection.name}
-                  {/* (Pending) Add (Pending) back */}
                 </SelectItem>
-              ))}
+              ))} */}
             </SelectContent>
           </Select>
           {errors[`subject${index}Section`] && (
@@ -347,7 +369,7 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
               {/* Adjust button text based on context */}
               {subject.quarter?.length ===
                 (isSeniorHigh ? shsAllowedQuarters.length : quarters.length) &&
-                (isSeniorHigh ? shsAllowedQuarters.length > 0 : true)
+              (isSeniorHigh ? shsAllowedQuarters.length > 0 : true)
                 ? "Deselect All"
                 : "Select All" + (isSeniorHigh ? " (Allowed)" : "")}
             </Button>
@@ -586,10 +608,10 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
                       (subject.gradeWeights.faceToFace.pt || 0) +
                       (subject.gradeWeights.faceToFace.majorExam || 0) !==
                       100 && (
-                        <span className="text-red-500 ml-2">
-                          (Must equal to 100%)
-                        </span>
-                      )}
+                      <span className="text-red-500 ml-2">
+                        (Must equal to 100%)
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
@@ -694,10 +716,10 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
                     {(subject.gradeWeights.modular.ww || 0) +
                       (subject.gradeWeights.modular.pt || 0) !==
                       100 && (
-                        <span className="text-red-500 ml-2">
-                          (Must equal to 100%)
-                        </span>
-                      )}
+                      <span className="text-red-500 ml-2">
+                        (Must equal to 100%)
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
@@ -778,10 +800,10 @@ const SubjectCardContent: React.FC<SubjectCardContentProps> = ({
                           (sum, item) => sum + item.percentage,
                           0
                         ) !== 100 && (
-                            <span className="text-red-500 ml-2">
-                              (Must equal to 100%)
-                            </span>
-                          )}
+                          <span className="text-red-500 ml-2">
+                            (Must equal to 100%)
+                          </span>
+                        )}
                       </div>
                     </div>
                   )}

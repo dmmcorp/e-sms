@@ -26,25 +26,25 @@ export const get = query({
     }
 })
 
-export const addSubjectTaught = internalMutation({
-    args: {
-        sectionId: v.id('sections'),
-        id: v.id('subjectTaught')
-    },
-    handler: async (ctx, args) => {
+// export const addSubjectTaught = internalMutation({
+//     args: {
+//         sectionId: v.id('sections'),
+//         id: v.id('subjectTaught')
+//     },
+//     handler: async (ctx, args) => {
 
-        const section = await ctx.db.get(args.sectionId)
-        if (section === null) return
+//         const section = await ctx.db.get(args.sectionId)
+//         if (section === null) return
 
-        // Check if subject already exists in the array
-        const existingSubjects = section.subjects || [];
-        if (!existingSubjects.includes(args.id)) {
-            await ctx.db.patch(section._id, {
-                subjects: [...existingSubjects, args.id]
-            });
-        }
-    }
-});
+//         // Check if subject already exists in the array
+//         const existingSubjects = section.subjects || [];
+//         if (!existingSubjects.includes(args.id)) {
+//             await ctx.db.patch(section._id, {
+//                 subjects: [...existingSubjects, args.id]
+//             });
+//         }
+//     }
+// });
 
 export const getSection = query({
     args: {
@@ -98,3 +98,63 @@ export const getSectionSubject = query({
         return subjects
     }
 })
+
+export const addSubjectTaught = internalMutation({
+    args: {
+        sectionId: v.id('sections'),
+        id: v.id('subjectTaught')
+    },
+    handler: async (ctx, args) => {
+        const section = await ctx.db.get(args.sectionId);
+        if (!section) {
+            console.warn(`Section ${args.sectionId} not found during addSubjectTaught.`);
+            return;
+        }
+
+        // Check if subject already exists in the array
+        const existingSubjects = section.subjects ?? [];
+        if (!existingSubjects.includes(args.id)) {
+            await ctx.db.patch(section._id, {
+                subjects: [...existingSubjects, args.id]
+            });
+        }
+    }
+});
+
+export const removeSubjectTaught = internalMutation({
+    args: {
+        sectionId: v.id("sections"),
+        id: v.id("subjectTaught") // The subjectTaught ID to remove
+    },
+    handler: async (ctx, args) => {
+        const section = await ctx.db.get(args.sectionId);
+        if (!section) {
+            console.warn(`Section ${args.sectionId} not found during removeSubjectTaught.`);
+            return;
+        }
+        const currentSubjects = section.subjects ?? [];
+        if (currentSubjects.includes(args.id)) {
+            const updatedSubjects = currentSubjects.filter(subId => subId !== args.id);
+            await ctx.db.patch(args.sectionId, { subjects: updatedSubjects });
+            console.log(`Removed subject ${args.id} from section ${args.sectionId}.`);
+        }
+    },
+});
+
+export const removeSubjectTaughtFromAll = internalMutation({
+    args: { subjectTaughtId: v.id("subjectTaught") },
+    handler: async (ctx, args) => {
+        const sections = await ctx.db.query("sections").collect();
+        let sectionsUpdated = 0;
+        for (const section of sections) {
+            const currentSubjects = section.subjects ?? [];
+            if (currentSubjects.includes(args.subjectTaughtId)) {
+                const updatedSubjects = currentSubjects.filter(id => id !== args.subjectTaughtId);
+                await ctx.db.patch(section._id, { subjects: updatedSubjects });
+                sectionsUpdated++;
+                console.log(`Removed subject ${args.subjectTaughtId} from section ${section._id} (cleanup).`);
+            }
+        }
+        console.log(`Finished removeSubjectTaughtFromAll for ${args.subjectTaughtId}. Updated ${sectionsUpdated} sections.`);
+    }
+});
