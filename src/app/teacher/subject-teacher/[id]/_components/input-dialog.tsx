@@ -207,23 +207,23 @@ function InputDialog({
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen} >
-        <DialogContent className=''>
+        <DialogContent className='md:max-w-4xl'>
             <div className="flex items-center justify-between w-full ">
                 <DialogTitle className='w-full capitalize flex items-center justify-between'>
                     <div className="">
                         {title}
                     </div>
-                    <div className="">
+                    <div className="text-center">
                         {component}
                     </div>
-                </DialogTitle>
+              
                 
                 {isSubmitted ? (
                     <div className="">
                       
                     </div>
                 ):(
-                    <div className="">
+                    <div className="text-center flex justify-center items-center">
                         <Button 
                             variant="default" 
                             onClick={() => {setOpen(true)}}
@@ -244,7 +244,7 @@ function InputDialog({
                         />
                     </div>
                 )}
-              
+                </DialogTitle>
             </div>
             {component === "Major Exam" ? (
                 <div className="space-y-2">
