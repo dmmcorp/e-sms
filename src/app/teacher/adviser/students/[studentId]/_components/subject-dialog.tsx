@@ -75,6 +75,7 @@ function SubjectDialog({
                         <Checkbox
                             checked={subject.subject?._id && subjects.includes(subject.subject._id) ? true : false}
                             onCheckedChange={(checked) => {
+                                console.log(checked)
                                 if(checked && subject.subject?._id){
                                     console.log(subject.subject?._id)
                                     setSubjects([...subjects, subject.subject._id])
@@ -84,7 +85,7 @@ function SubjectDialog({
                                 }
                             }}
                             className='hidden'
-                            disabled={subject.subject?.semester && subject.subject.semester.length > 0}
+                            
                         />
                         <span className='capitalize text-sm'>{subject.subject?.subjectName}</span>
                         </label>

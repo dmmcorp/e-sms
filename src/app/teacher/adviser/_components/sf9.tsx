@@ -84,7 +84,7 @@ export default function SF9({
               <Card className="border-2 p-6 grid grid-cols-2 gap-4">
                 <div>
                   <div className="mb-3">
-                    <h1 className='text-center text-xs'>REPORT ON LEARNING PROGRESS AND ACHIEVEMENT</h1>
+                    <h1 className='text-center text-[0.6rem] font-semibold'>REPORT ON LEARNING PROGRESS AND ACHIEVEMENT</h1>
                     <SrGradesTemplate student={student} sem='1st semester' sf9={true} />
                   </div>
                   <div className="">

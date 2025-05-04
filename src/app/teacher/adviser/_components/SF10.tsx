@@ -77,7 +77,7 @@ function SF10({sectionStudentId}: SF10Types) {
             <Button size={'icon'} onClick={()=> {handlePrint(reactToPrintContent)}}><Printer/></Button>
             </div>
         </div>
-            <TabsContent value='front'>
+            <TabsContent value='front' className=''>
             <div ref={componentRef} className='border-2 p-6 text-black text-sm'>
                 <div className="grid grid-cols-12 h-fit text-sm ">
                     <div className="col-span-2 flex justify-center">

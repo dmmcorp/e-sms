@@ -147,7 +147,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
   const componentName = isMapeh ? teachingLoad.subComponent : '';
 
   return (
-    <div className="min-w-6xl text-primary">
+    <div className="min-w-[1000px] text-primary">
       <div className="flex w-full ">
         <h1 className="border w-[25%] px-3 py-1 uppercase border-y-black border-l-black text-[0.6rem] font-semibold text-center">
           {teachingLoad.quarter}

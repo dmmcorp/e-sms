@@ -6,6 +6,7 @@ import { api } from '../../../../../convex/_generated/api';
 import { Id } from '../../../../../convex/_generated/dataModel';
 import SrGradesTemplate from './shs-grade-template';
 import RemedialTemplate from './remedial-template';
+import { convertSemesterToNumber } from '@/lib/utils';
 
 interface ShsSubjectsTemplateProps {
    record: OrganizedGrade
@@ -25,7 +26,7 @@ function ShsSubjectsTemplate({ record }: ShsSubjectsTemplateProps) {
                 record.gradeLevel === "Grade 11 - 2nd semester" ||
                 record.gradeLevel === "Grade 12 - 1st semester" ||
                 record.gradeLevel === "Grade 12 - 2nd semester"
-
+    console.log("semester:",semester)
   return (
     <div>
         <div className="">
@@ -35,7 +36,7 @@ function ShsSubjectsTemplate({ record }: ShsSubjectsTemplateProps) {
                 <div className='flex col-span-2 uppercase'>School Id: <span className='border-b w-10 border-b-black flex-1 uppercase h-5'>{noRecord ? "" : "303280"}</span></div>
                 <div className='flex col-span-2 uppercase'>Grade Level: <span className='border-b border-b-black flex-1 px-3'>{gradeLevel}</span></div>
                 <div className='flex col-span-2 uppercase'>SY: <span className='border-b border-b-black flex-1 px-3'>{schoolYear}</span> </div>
-                <div className='flex col-span-1 uppercase'>SEM: {<span className='border-b border-b-black flex-1 px-3'>{semester}</span>}</div>
+                <div className='flex col-span-1 uppercase'>SEM: {<span className='border-b border-b-black flex-1 px-3'>{convertSemesterToNumber(semester)}</span>}</div>
             </div>
             <div className="grid grid-cols-12 gap-x-2 text-[0.6rem] pt-1 font-semibold mt-[-4px]">
                 <div className='flex col-span-7 uppercase'>TRACK/STRAND: {<span className='border-b border-b-black flex-1 px-3'>{}</span>} </div>
@@ -43,14 +44,14 @@ function ShsSubjectsTemplate({ record }: ShsSubjectsTemplateProps) {
             </div>
         </div>
         <div className="grid grid-cols-12 border-y-black border-y  text-[0.5rem] leading-3 bg-gray-300 font-semibold mt-1">
-            <div className="col-span-2 text-center border-l-black border-l  flex items-center justify-center py-1"><p>Indicate if Subject is CORE, APPLIED, or Specialized</p></div>
+            <div className="col-span-2 text-center border-l-black border-l px-2  flex items-center justify-center py-1"><p>Indicate if Subject is CORE, APPLIED, or Specialized</p></div>
             <div className="col-span-6 flex items-center justify-center border-x-black border-x"><h1 className='uppercase text-center my-auto'>Subject</h1></div>
-            <div className="col-span-2 text-center">
-                <h1 className='text-center border-b-black border-b h-1/2'>Quarter</h1>
-                <div className="grid grid-cols-2">
-                    <div className='col-span-1 h-full'>{semester === "1st semester" ? "1st" : "3rd"}</div>
-                    <div className='col-span-1 border-l-black border-l h-full flex-1'>{semester === "1st semester" ? "2nd" : "4th"}</div>
-                </div>
+            <div className="col-span-2 text-center grid grid-cols-2">
+                <h1 className='col-span-2 text-center border-b-black border-b'>Quarter</h1>
+              
+                <div className='col-span-1 h-full '>{semester === "1st semester" ? "1st" : "3rd"}</div>
+                <div className='col-span-1 border-l border-l-black'>{semester === "1st semester" ? "2nd" : "4th"}</div>
+               
             </div>
             <div className="col-span-1 text-center  border-l-black border-l  flex items-center justify-center">
                 <p className=''>SEM FINAL GRADE</p>
@@ -63,7 +64,7 @@ function ShsSubjectsTemplate({ record }: ShsSubjectsTemplateProps) {
         {!student || student === null?  Array.from({ length: 12 }).map((_, index) => (
            <GradesInputsTemplate key={index}/>
         )) : semester && (
-            <SrGradesTemplate student={student} sem={semester}/>
+            <SrGradesTemplate student={student} sem={semester} sf10/>
         )}
         <div className="">
             <h1 className='flex items-baseline text-[0.6rem] mt-1'>REMARKS: <span className='border-b border-b-black flex-1 h-3 px-1'></span></h1>

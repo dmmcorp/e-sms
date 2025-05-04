@@ -1,40 +1,26 @@
 'use client'
 import React from 'react'
-import { SemesterType, StudentWithSectionStudent, ShsSubject } from '@/lib/types'
+import { SemesterType, StudentWithSectionStudent, ShsSubject, QuarterGrades } from '@/lib/types'
 import { useQuery } from 'convex/react'
 import { api } from '../../../../../convex/_generated/api'
-import { Doc } from '../../../../../convex/_generated/dataModel'
-import { calculateQuarterlyAverage } from '@/lib/utils'
+import CustomTooltip from './custom-tooltip'
 
 function SrGradesTemplate({
     student,
     sf9,
+    sf10,
     sem
 }:{
     student: StudentWithSectionStudent
-   
+    sf10?: boolean
     sem: SemesterType
     sf9?: boolean
 }) {
-    // Query to fetch remedial grades for the student in the current section
-    // const remedialGrades = useQuery(api.finalGrades.remedialGrades, {
-    //     studentId: student._id,
-    //     sectionId: student.sectionDoc?._id
-    // });
-
     // Query to fetch subjects for the student in the current section
     const subjects = useQuery(api.students.getSubjects, {
         sectionSubjects: student.sectionDoc.subjects,
         studentId: student._id
     }) as ShsSubject[] | undefined;
-
-
-
-    // Function to get the remedial grade for a specific subject
-    // function getRemedialGrade(remedialGrade: Doc<'finalGrades'>, subjectName: string): number | null {
-    //     const subject = remedialGrade?.subjects.find((s) => s.subjectName.toLowerCase() === subjectName.toLowerCase());
-    //     return subject?.remedialGrade ?? null;
-    // }
 
     // Filter core subjects based on category and semester
     const coreSubjects = subjects?.filter(s => s.category === "core" && s.semester.includes(sem));
@@ -46,7 +32,7 @@ function SrGradesTemplate({
     const allSubjects = [...(coreSubjects || []), ...(appliedAndSpecialized || [])];
 
     // Function to calculate the average of quarterly grades
-    function calculateQuarterlyAverage(grades: { "1st": number | undefined; "2nd": number | undefined; "3rd": number | undefined; "4th": number | undefined; } | undefined): number | null {
+    function calculateQuarterlyAverage(grades: { "1st": number | undefined; "2nd": number | undefined } | undefined): number | null {
         if (!grades) return null;
         const validGrades = Object.values(grades).filter((grade): grade is number => grade !== undefined);
         if (validGrades.length === 0) return null;
@@ -54,15 +40,108 @@ function SrGradesTemplate({
         return sum / validGrades.length;
     }
 
+if(sf10) {
+    return(
+        <>
+        {Array.from({ length: 12 }).map((_, index) => (
+
+        <div className="grid grid-cols-12 border-b-black border-b  text-[0.6rem] h-[0.95rem]">
+            <div className='col-span-2 bg-transparent text-center border-l-black border-l   uppercase'>
+                {allSubjects[index]?.category}
+            </div>
+            <div className='col-span-6 bg-transparent border-x-black border-x uppercase px-1'>
+                {allSubjects[index]?.subjectName}
+            </div>
+
+            <div className='col-span-1 h-[0.95rem] bg-transparent border-none text-center ' >
+            {sem === "1st semester" ? 
+            allSubjects[index]?.interventions?.['1st']?.grade ? (
+                <CustomTooltip
+                    trigger={<span className='text-red-500'>{Math.round(allSubjects[index]?.interventions?.['1st']?.grade)}</span>}
+                    interventionRemarks={allSubjects[index]?.interventions?.['1st']?.remarks || ""}
+                    interventionUsed={allSubjects[index]?.interventions?.['1st']?.used || []}
+                    initialGrade={allSubjects[index]?.grades['1st']?.toString() ?? ""}
+                />
+            ) : allSubjects[index]?.grades['1st'] !== undefined ? Math.round(allSubjects[index]?.grades['1st']) : "" : 
+            allSubjects[index]?.interventions?.['3rd']?.grade ? (
+                <CustomTooltip
+                    trigger={<span className='text-red-500'>{Math.round(allSubjects[index]?.interventions?.['3rd']?.grade)}</span>}
+                    interventionRemarks={allSubjects[index]?.interventions?.['3rd']?.remarks || ""}
+                    interventionUsed={allSubjects[index]?.interventions?.['3rd']?.used || []}
+                    initialGrade={allSubjects[index]?.grades['3rd']?.toString() ?? ""}
+                />
+            ) : allSubjects[index]?.grades['3rd'] !== undefined ? Math.round(allSubjects[index]?.grades['3rd']) : ""}
+            </div>
+            <div className='col-span-1 h-[0.95rem] bg-transparent border-l-black border-l text-center'>
+            {sem === "1st semester" ? 
+                allSubjects[index]?.interventions?.['2nd']?.grade ? (
+                    <CustomTooltip
+                        trigger={<span className='text-red-500'>{Math.round(allSubjects[index]?.interventions?.['2nd']?.grade)}</span>}
+                        interventionRemarks={allSubjects[index]?.interventions?.['2nd']?.remarks || ""}
+                        interventionUsed={allSubjects[index]?.interventions?.['2nd']?.used || []}
+                        initialGrade={allSubjects[index]?.grades['2nd']?.toString() ?? ""}
+                    />
+                ) : allSubjects[index]?.grades['2nd'] !== undefined ? Math.round(allSubjects[index]?.grades['2nd']) : "" : 
+                allSubjects[index]?.interventions?.['4th']?.grade ? (
+                    <CustomTooltip
+                        trigger={<span className='text-red-500'>{Math.round(allSubjects[index]?.interventions?.['4th']?.grade)}</span>}
+                        interventionRemarks={allSubjects[index]?.interventions?.['4th']?.remarks || ""}
+                        interventionUsed={allSubjects[index]?.interventions?.['4th']?.used || []}
+                        initialGrade={allSubjects[index]?.grades['4th']?.toString() ?? ""}
+                    />
+                ) : allSubjects[index]?.grades['4th'] !== undefined ? Math.round(allSubjects[index]?.grades['4th']) : ""}
+            </div>
+
+            <div className="col-span-1 text-center border-l-black border-l h-full">
+                <p className=''>
+                    {allSubjects[index]?.grades && sem === '1st semester' ?
+                        calculateQuarterlyAverage(
+                        {
+                            "1st": allSubjects[index]?.interventions?.['1st'] ? allSubjects[index]?.interventions['1st'].grade : allSubjects[index]?.grades['1st'],
+                            "2nd": allSubjects[index]?.interventions?.['2nd'] ? allSubjects[index]?.interventions['2nd'].grade : allSubjects[index]?.grades['2nd'],
+                        }) : 
+                        calculateQuarterlyAverage(
+                        {
+                            "1st": allSubjects[index]?.interventions?.['3rd'] ? allSubjects[index]?.interventions['3rd'].grade : allSubjects[index]?.grades['3rd'],
+                            "2nd": allSubjects[index]?.interventions?.['4th'] ? allSubjects[index]?.interventions['4th'].grade : allSubjects[index]?.grades['4th'],
+                        })
+                    }
+                </p>
+            </div>
+            <div className="col-span-1 text-center border-l-black border-l border-r border-r-black h-full">
+            <p className=''>
+                    {allSubjects[index]?.grades && sem === '1st semester' ?
+                        (() => {
+                            const grades = {
+                                "1st": allSubjects[index]?.interventions?.['1st'] ? allSubjects[index]?.interventions['1st'].grade : allSubjects[index]?.grades['1st'],
+                                "2nd": allSubjects[index]?.interventions?.['2nd'] ? allSubjects[index]?.interventions['2nd'].grade : allSubjects[index]?.grades['2nd'],
+                            };
+                            if (grades["1st"] === undefined || grades["2nd"] === undefined) return null;
+                            const average = calculateQuarterlyAverage(grades);
+                            return average !== null && average <= 74 ? "Failed" : "Passed";
+                        })() : 
+                        (() => {
+                            const grades = {
+                                "1st": allSubjects[index]?.interventions?.['3rd'] ? allSubjects[index]?.interventions['3rd'].grade : allSubjects[index]?.grades['3rd'],
+                                "2nd": allSubjects[index]?.interventions?.['4th'] ? allSubjects[index]?.interventions['4th'].grade : allSubjects[index]?.grades['4th'],
+                            };
+                            if (grades["1st"] === undefined || grades["2nd"] === undefined) return null;
+                            const average = calculateQuarterlyAverage(grades);
+                            return average !== null && average <= 74 ? "Failed" : "Passed";
+                        })()
+                    }
+                </p>
+            </div>
+        </div>
+        ))}
+    </>
+    )
+}
   return (
     <div className="max-w-full">
-        {!sf9 && (
-            <div className="flex justify-end">
-             {/* <FinalizeGradesDialog student={student} averages={averages} generalAverage={genAve}/> */}
-            </div>
-        )}
+     
         {!sf9 ? (
-            <h1 className='text-center'>LEARNER&apos;S PROGRESS REPORT CARD</h1>
+            <h1 className='text-xs font-semibold capitalize'>LEARNER&apos;S PROGRESS REPORT CARD</h1>
          ): (
             <h1 className='text-left text-xs font-semibold capitalize'>{sem}</h1>
          )}
@@ -87,21 +166,65 @@ function SrGradesTemplate({
                 <h1>Core Subjects</h1>
             </div>
         </div>
-        {coreSubjects && coreSubjects.map((subject)=>(
-            <div key={subject?._id} className={`max-w-full flex ${sf9 ? 'text-[0.6rem] leading-[0.65rem]' : 'text-lg'} border border-black`}>
+        {coreSubjects && Array.from({ length: 6 }).map((_, index) => (
+            <div key={coreSubjects[index]?._id} className={`max-w-full flex ${sf9 ? 'text-[0.6rem] leading-[0.65rem] h-5' : 'text-lg'} border border-black`}>
                 <div className="w-[60%] font-bold flex items-center justify-start py-1 px-2 border-r-black border-r">
-                    <h1>{subject?.subjectName}</h1>
+                    <h1>{coreSubjects[index]?.subjectName}</h1>
                 </div>
                 <div className="w-[25%] grid grid-cols-2 items-center font-bold border-r-black border-r">
                     <h1 className='text-center my-auto h-full content-center border-r-black border-r'>
-                        {sem === "1st semester" ? subject?.grades["1st"] : subject?.grades["3rd"]}
+                        {sem === "1st semester" ? 
+                        coreSubjects[index]?.interventions?.['1st']?.grade ? (
+                            <CustomTooltip
+                                trigger={<span className='text-red-500'>{Math.round(coreSubjects[index]?.interventions?.['1st']?.grade)}</span>}
+                                interventionRemarks={coreSubjects[index]?.interventions?.['1st']?.remarks || ""}
+                                interventionUsed={coreSubjects[index]?.interventions?.['1st']?.used || []}
+                                initialGrade={coreSubjects[index]?.grades['1st']?.toString() ?? ""}
+                            />
+                        ) : coreSubjects[index]?.grades['1st'] !== undefined ? Math.round(coreSubjects[index]?.grades['1st']) : "" : 
+                        coreSubjects[index]?.interventions?.['3rd']?.grade ? (
+                            <CustomTooltip
+                                trigger={<span className='text-red-500'>{Math.round(coreSubjects[index]?.interventions?.['3rd']?.grade)}</span>}
+                                interventionRemarks={coreSubjects[index]?.interventions?.['3rd']?.remarks || ""}
+                                interventionUsed={coreSubjects[index]?.interventions?.['3rd']?.used || []}
+                                initialGrade={coreSubjects[index]?.grades['3rd']?.toString() ?? ""}
+                            />
+                        ) : coreSubjects[index]?.grades['3rd'] !== undefined ? Math.round(coreSubjects[index]?.grades['3rd']) : ""}
                     </h1>
                     <h1 className='text-center my-auto h-full content-center'>
-                         {sem === "1st semester" ? subject?.grades["2nd"] : subject?.grades["4th"]}
+                    {sem === "1st semester" ? 
+                        coreSubjects[index]?.interventions?.['2nd']?.grade ? (
+                            <CustomTooltip
+                                trigger={<span className='text-red-500'>{Math.round(coreSubjects[index]?.interventions?.['2nd']?.grade)}</span>}
+                                interventionRemarks={coreSubjects[index]?.interventions?.['2nd']?.remarks || ""}
+                                interventionUsed={coreSubjects[index]?.interventions?.['2nd']?.used || []}
+                                initialGrade={coreSubjects[index]?.grades['2nd']?.toString() ?? ""}
+                            />
+                        ) : coreSubjects[index]?.grades['2nd'] !== undefined ? Math.round(coreSubjects[index]?.grades['2nd']) : "" : 
+                        coreSubjects[index]?.interventions?.['4th']?.grade ? (
+                            <CustomTooltip
+                                trigger={<span className='text-red-500'>{Math.round(coreSubjects[index]?.interventions?.['4th']?.grade)}</span>}
+                                interventionRemarks={coreSubjects[index]?.interventions?.['4th']?.remarks || ""}
+                                interventionUsed={coreSubjects[index]?.interventions?.['4th']?.used || []}
+                                initialGrade={coreSubjects[index]?.grades['4th']?.toString() ?? ""}
+                            />
+                        ) : coreSubjects[index]?.grades['4th'] !== undefined ? Math.round(coreSubjects[index]?.grades['4th']) : ""}
                     </h1>
                 </div>
                 <div className="w-[15%] font-bold text-center "> 
-                    <h1 className='text-center my-auto h-full content-center'>{subject?.grades ? calculateQuarterlyAverage(subject.grades) : null}</h1>
+                <h1 className='text-center my-auto h-full content-center'>{coreSubjects[index]?.grades && sem === '1st semester' ?
+                    calculateQuarterlyAverage(
+                    {
+                        "1st": coreSubjects[index]?.interventions?.['1st'] ? coreSubjects[index]?.interventions['1st'].grade : coreSubjects[index]?.grades['1st'],
+                        "2nd": coreSubjects[index]?.interventions?.['2nd'] ? coreSubjects[index]?.interventions['2nd'].grade : coreSubjects[index]?.grades['2nd'],
+                    }) : 
+                    calculateQuarterlyAverage(
+                    {
+                        "1st": coreSubjects[index]?.interventions?.['3rd'] ? coreSubjects[index]?.interventions['3rd'].grade : coreSubjects[index]?.grades['3rd'],
+                        "2nd": coreSubjects[index]?.interventions?.['4th'] ? coreSubjects[index]?.interventions['4th'].grade : coreSubjects[index]?.grades['4th'],
+                    })
+                    }
+                </h1>
                 </div>
             </div>
         ))}
@@ -111,21 +234,65 @@ function SrGradesTemplate({
                 <h1>Applied & Specialized Subjects</h1>
             </div>
         </div>
-        {appliedAndSpecialized && appliedAndSpecialized.map((subject)=>(
-            <div key={subject?._id} className={`max-w-full flex ${sf9 ? 'text-[0.6rem] leading-[0.65rem]' : 'text-lg'} border border-black`}>
+        {appliedAndSpecialized && Array.from({ length: 5 }).map((_, index) => (
+            <div key={appliedAndSpecialized[index]?._id} className={`max-w-full flex ${sf9 ? 'text-[0.6rem] leading-[0.65rem] h-5' : 'text-lg'} border border-black`}>
             <div className="w-[60%] font-bold flex items-center justify-start py-1 px-2 border-r-black border-r">
-                <h1>{subject?.subjectName}</h1>
+                <h1>{appliedAndSpecialized[index]?.subjectName}</h1>
             </div>
             <div className="w-[25%] grid grid-cols-2 items-center font-bold border-r-black border-r">
                 <h1 className='text-center my-auto h-full content-center border-r-black border-r'>
-                    {sem === "1st semester" ? subject?.grades["1st"] : subject?.grades["3rd"]}
+                    {sem === "1st semester" ? 
+                    appliedAndSpecialized[index]?.interventions?.['1st']?.grade ? (
+                        <CustomTooltip
+                            trigger={<span className='text-red-500'>{Math.round(appliedAndSpecialized[index]?.interventions?.['1st']?.grade)}</span>}
+                            interventionRemarks={appliedAndSpecialized[index]?.interventions?.['1st']?.remarks || ""}
+                            interventionUsed={appliedAndSpecialized[index]?.interventions?.['1st']?.used || []}
+                            initialGrade={appliedAndSpecialized[index]?.grades['1st']?.toString() ?? ""}
+                        />
+                    ) : appliedAndSpecialized[index]?.grades['1st'] !== undefined ? Math.round(appliedAndSpecialized[index]?.grades['1st']) : "" : 
+                    appliedAndSpecialized[index]?.interventions?.['3rd']?.grade ? (
+                        <CustomTooltip
+                            trigger={<span className='text-red-500'>{Math.round(appliedAndSpecialized[index]?.interventions?.['3rd']?.grade)}</span>}
+                            interventionRemarks={appliedAndSpecialized[index]?.interventions?.['3rd']?.remarks || ""}
+                            interventionUsed={appliedAndSpecialized[index]?.interventions?.['3rd']?.used || []}
+                            initialGrade={appliedAndSpecialized[index]?.grades['3rd']?.toString() ?? ""}
+                        />
+                    ) : appliedAndSpecialized[index]?.grades['3rd'] !== undefined ? Math.round(appliedAndSpecialized[index]?.grades['3rd']) : ""}
                 </h1>
                 <h1 className='text-center my-auto h-full content-center'>
-                     {sem === "1st semester" ? subject?.grades["2nd"] : subject?.grades["4th"]}
+                    {sem === "1st semester" ? 
+                    appliedAndSpecialized[index]?.interventions?.['2nd']?.grade ? (
+                        <CustomTooltip
+                            trigger={<span className='text-red-500'>{Math.round(appliedAndSpecialized[index]?.interventions?.['2nd']?.grade)}</span>}
+                            interventionRemarks={appliedAndSpecialized[index]?.interventions?.['2nd']?.remarks || ""}
+                            interventionUsed={appliedAndSpecialized[index]?.interventions?.['2nd']?.used || []}
+                            initialGrade={appliedAndSpecialized[index]?.grades['2nd']?.toString() ?? ""}
+                        />
+                    ) : appliedAndSpecialized[index]?.grades['2nd'] !== undefined ? Math.round(appliedAndSpecialized[index]?.grades['2nd']) : "" : 
+                    appliedAndSpecialized[index]?.interventions?.['4th']?.grade ? (
+                        <CustomTooltip
+                            trigger={<span className='text-red-500'>{Math.round(appliedAndSpecialized[index]?.interventions?.['4th']?.grade)}</span>}
+                            interventionRemarks={appliedAndSpecialized[index]?.interventions?.['4th']?.remarks || ""}
+                            interventionUsed={appliedAndSpecialized[index]?.interventions?.['4th']?.used || []}
+                            initialGrade={appliedAndSpecialized[index]?.grades['4th']?.toString() ?? ""}
+                        />
+                    ) : appliedAndSpecialized[index]?.grades['4th'] !== undefined ? Math.round(appliedAndSpecialized[index]?.grades['4th']) : ""}
                 </h1>
             </div>
             <div className="w-[15%] font-bold text-center "> 
-                <h1 className='text-center my-auto h-full content-center'>{subject?.grades ? calculateQuarterlyAverage(subject.grades) : null}</h1>
+                <h1 className='text-center my-auto h-full content-center'>{appliedAndSpecialized[index]?.grades && sem === '1st semester' ?
+                    calculateQuarterlyAverage(
+                    {
+                        "1st": appliedAndSpecialized[index]?.interventions?.['1st'] ? appliedAndSpecialized[index]?.interventions['1st'].grade : appliedAndSpecialized[index]?.grades['1st'],
+                        "2nd": appliedAndSpecialized[index]?.interventions?.['2nd'] ? appliedAndSpecialized[index]?.interventions['2nd'].grade : appliedAndSpecialized[index]?.grades['2nd'],
+                    }) : 
+                    calculateQuarterlyAverage(
+                    {
+                        "1st": appliedAndSpecialized[index]?.interventions?.['3rd'] ? appliedAndSpecialized[index]?.interventions['3rd'].grade : appliedAndSpecialized[index]?.grades['3rd'],
+                        "2nd": appliedAndSpecialized[index]?.interventions?.['4th'] ? appliedAndSpecialized[index]?.interventions['4th'].grade : appliedAndSpecialized[index]?.grades['4th'],
+                    })
+                    }
+                </h1>
             </div>
         </div>
         ))}

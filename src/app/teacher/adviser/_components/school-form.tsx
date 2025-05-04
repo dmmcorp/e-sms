@@ -33,7 +33,7 @@ function getFullName(student: StudentTypes) {
   return `${firstName}${middleName} ${lastName}`.trim();
 }
   return (
-    <div>
+    <div className=''>
       <h1 className='text-center font-semibold'>Generate School Forms</h1>
         <div className="mt-4 w-full flex items-center justify-center gap-x-10">
         <Button size={'lg'} onClick={() => setSelectedButton('sf9')} className={`mr-2 ${selectedButton === 'sf9' ? 'bg-blue-500' : 'bg-gray-300'}`}>School Form 9</Button>

@@ -3,11 +3,7 @@
 import React, { useMemo } from 'react'
 import { useQuery } from 'convex/react'
 import { api } from '../../../../../convex/_generated/api'
-import { Doc } from '../../../../../convex/_generated/dataModel'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { MapehComponent, MapehMainSubject, Quarter, QuarterAverages, QuarterGrades, StudentWithSectionStudent, SubjectType, ValidCounts } from '@/lib/types'
-import { Badge } from '@/components/ui/badge'
-import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import CustomTooltip from './custom-tooltip'
 
