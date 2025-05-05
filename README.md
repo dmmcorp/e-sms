@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# E-SMS (Electronic School Management System)
 
-## Getting Started
+This is a [Next.js](https://nextjs.org) application for managing school data, built with Convex as the backend.
 
-First, run the development server:
+## Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Before you can run this project, you need to have the following installed on your system:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1.  **Node.js:** This project requires Node.js. We recommend using the latest LTS (Long Term Support) version. You can download it from [nodejs.org](https://nodejs.org/). Node.js comes bundled with `npm` (Node Package Manager), which is used to install project dependencies.
+2.  **Code Editor:** A code editor is recommended for viewing and potentially modifying the code. [Visual Studio Code (VS Code)](https://code.visualstudio.com/) is a popular free option.
+3.  **Git (Optional):** If you need to clone the project repository from a source like GitHub, you will need Git installed.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Setup Instructions
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Follow these steps to get the project running locally:
 
-## Learn More
+1.  **Get the Code:**
 
-To learn more about Next.js, take a look at the following resources:
+    - If you received the project files as a ZIP archive, extract them to a folder on your computer.
+    - If you need to clone it from a repository, open your terminal or command prompt, navigate to where you want to store the project, and run:
+      ```bash
+      git clone <repository_url>
+      cd e-sms # Navigate into the project directory
+      ```
+      (Replace `<repository_url>` with the actual URL of the Git repository).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2.  **Install Dependencies:**
+    Open your terminal or command prompt _inside the project folder_ (`e-sms`) and run one of the following commands to install the necessary libraries:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+    ```bash
+    npm install
+    # or if you prefer yarn
+    # yarn install
+    # or if you prefer pnpm
+    # pnpm install
+    ```
 
-## Deploy on Vercel
+3.  **Set Up Environment Variables:**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+    - Create a file named `.env.local` in the root of the project folder (`e-sms`).
+    - Add the following line to this file, replacing `<your-convex-deployment-url>` with the specific Convex deployment URL provided to you:
+      ```env
+      # filepath: .env.local
+      NEXT_PUBLIC_CONVEX_URL=<your-convex-deployment-url>
+      ```
+    - _Note:_ You might need other environment variables depending on the project configuration (e.g., for authentication providers). Please refer to any additional setup documentation provided.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4.  **Run the Convex Backend Dev Server:**
+    The Convex backend needs to be running locally to interact with the database and execute backend functions. Open a _separate_ terminal or command prompt window inside the project folder and run:
+    ```bash
+    npx convex dev
+    ```
+    - The first time you run this, it might ask you to log in to Convex and link the project. Follow the on-screen instructions.
+    - Keep this terminal window open while you are developing. It synchronizes your backend code (`convex/` folder) with the Convex service.
+
+## Running the Development Server
+
+Once the setup is complete and the Convex dev server is running (from Step 4 above), you can start the Next.js frontend application.
+
+1.  Open a _new_ terminal or command prompt window inside the project folder (keep the `npx convex dev` window running).
+2.  Run one of the following commands:
+
+    ```bash
+    npm run dev
+    # or
+    # yarn dev
+    # or
+    # pnpm dev
+    ```
+
+3.  Open [http://localhost:3000](http://localhost:3000) (or the port specified in the terminal output) with your web browser to see the application.
+
+The application should now be running locally, connected to the Convex backend development environment. Changes you make to the frontend code (e.g., in the `src/app/` directory) should automatically update in your browser.
