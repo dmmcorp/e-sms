@@ -49,10 +49,11 @@ function EditStudent({
             elemPrevSchoolAddress: student?.elementary?.address || "",
             elemSchoolId: student?.elementary.schoolId || "",
 
-            jnrGenAve: student?.juniorHigh?.genAve || "",
+            jnrGenAve:  Number(student?.juniorHigh?.genAve) || undefined ,
             jnrPrevSchoolName: student?.juniorHigh?.school || "",
             jnrPrevSchoolAddress:  student?.juniorHigh?.address || "",
             jnrDateOfAdmission: student?.juniorHighDateOfAdmission ? new Date(student.juniorHighDateOfAdmission) : undefined,
+            jnrDateOfCompletion: student.juniorHigh?.completion ? new Date(student.juniorHigh?.completion) : undefined,
             enrollingTo: student.enrollingIn,
             alsRating: student?.alsRating || "",
         },
@@ -74,11 +75,13 @@ function EditStudent({
                 genAve: values.elemGenAve.toString(),
                 school: values.elemPrevSchoolName,
                 address: values.elemPrevSchoolAddress,
+                schoolId: values.elemSchoolId
             },
             juniorHigh: {
-                genAve: values.jnrGenAve || "",
+                genAve: values.jnrGenAve?.toString() || "",
                 school: values.jnrPrevSchoolName || "",
                 address: values.jnrPrevSchoolAddress || "",
+                completion: values.jnrDateOfCompletion?.toDateString() || ""
             },
             juniorHighDateOfAdmission: values.jnrDateOfAdmission.toDateString(),
             alsRating: values.alsRating,
@@ -196,7 +199,7 @@ function EditStudent({
                             render={({ field }) => (
                             <FormItem>
                                 <FormLabel>
-                                Sex <span className="text-red-500">*</span>
+                                Gender <span className="text-red-500">*</span>
                                 </FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
@@ -397,6 +400,41 @@ function EditStudent({
                                     </FormItem>
                                 )}
                             />
+                             <FormField
+                                control={form.control}
+                                name="jnrDateOfCompletion"
+                                render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                    <FormLabel>
+                                    Date of Completion <span className="text-red-500">*</span>
+                                    </FormLabel>
+                                    <Popover>
+                                    <PopoverTrigger className='flex w-full'>
+                                        <FormControl>
+                                            <Button
+                                            type='button'
+                                            variant={"outline"}
+                                            className={cn("pl-3 text-left font-normal w-full", !field.value && "text-muted-foreground")}
+                                            >
+                                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                        mode="single"
+                                        selected={field.value}
+                                        onSelect={field.onChange}
+                                        disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                                        initialFocus
+                                        />
+                                    </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
                             <FormField
                                 control={form.control}
                                 name="jnrGenAve"
@@ -406,7 +444,7 @@ function EditStudent({
                                         General Average 
                                     </FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Enter general average" {...field} />
+                                        <Input type='number' placeholder="Enter general average" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                     </FormItem>
@@ -433,6 +471,7 @@ function EditStudent({
                     <DialogFooter className="flex items-center justify-end">
                         <div className='flex items-center justify-evenly gap-5 ml-auto'>
                             <Button 
+                                type='button'
                                 onClick={()=> setEditDialog(false)}
                                 variant={'secondary'}
                                 disabled={isSubmitting}
