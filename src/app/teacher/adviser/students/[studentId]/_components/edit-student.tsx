@@ -49,7 +49,7 @@ function EditStudent({
             elemPrevSchoolAddress: student?.elementary?.address || "",
             elemSchoolId: student?.elementary.schoolId || "",
 
-            jnrGenAve:  Number(student?.juniorHigh?.genAve) || undefined,
+            jnrGenAve:  Number(student?.juniorHigh?.genAve) || undefined ,
             jnrPrevSchoolName: student?.juniorHigh?.school || "",
             jnrPrevSchoolAddress:  student?.juniorHigh?.address || "",
             jnrDateOfAdmission: student?.juniorHighDateOfAdmission ? new Date(student.juniorHighDateOfAdmission) : undefined,
