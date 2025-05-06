@@ -182,8 +182,8 @@ function SF10({sectionStudentId}: SF10Types) {
                     )}
                     {isSHS ? (
                     <div className="grid grid-cols-12 text-[0.55rem]  mt-[-4px]">
-                        <h1 className='flex gap-x-1 items-baseline col-span-5'>Date of Gradeuation/Completion (MM/DD/YYYY): <span className='bg-transparent border-b border-b-black flex-1  h-4 w-1/3 px-3'>{student.juniorHigh?.completion ? formatDateString(student.juniorHigh?.completion) : ""}</span></h1>
-                        <h1 className='flex gap-x-1 items-baseline col-span-3'>Name of School: <span className='bg-transparent border-b border-b-black line-clamp-1 flex-1 w-1/3 px-3 h-4'>{student.juniorHigh?.school}</span></h1>
+                        <h1 className='flex gap-x-1 items-baseline col-span-4'>Date of Gradeuation/Completion (MM/DD/YYYY): <span className='bg-transparent border-b border-b-black flex-1  h-4 w-1/3 px-3'>{student.juniorHigh?.completion ? formatDateString(student.juniorHigh?.completion) : ""}</span></h1>
+                        <h1 className='flex gap-x-1 items-baseline col-span-4'>Name of School: <span className='bg-transparent border-b border-b-black line-clamp-1 flex-1 w-1/3 px-3 h-4'>{student.juniorHigh?.school}</span></h1>
                         <h1 className='flex gap-x-1 items-baseline col-span-4'>School Address: <span className='bg-transparent border-b line-clamp-1 border-b-black flex-1 w-1/3 px-3  h-4'>{student.juniorHigh?.address}</span></h1>
                     </div>
                     ):(
