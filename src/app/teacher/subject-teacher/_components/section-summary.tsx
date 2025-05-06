@@ -74,7 +74,7 @@ function SectionSummary({
                     content={
                       <div className="flex items-center justify-center min-h-56 min-w-56">
                         {load.droppedStud.length !== 0 ? load.droppedStud.map((student, index) => (
-                          <h3 key={"dropped" + student.student?._id}>{index + 1}.{student.student?.lastName}, {student.student?.firstName} {student.student?.middleName?.charAt(0) || ""} </h3>
+                          <h3 className="capitalize" key={"dropped" + student.student?._id}>{index + 1}.{student.student?.lastName}, {student.student?.firstName} {student.student?.middleName?.charAt(0) || ""} </h3>
                         )) : (
                           <div className="flex items-center justify-center text-center w-full h-full">
                             No students has been dropped for this quarter.
@@ -91,7 +91,7 @@ function SectionSummary({
                     content={
                       <div className="flex items-center justify-center min-h-56 min-w-56">
                         {load.returningStud.length !== 0 ? load.returningStud.map((student, index)=>(
-                            <h3 key={"returning" + student.student?._id}>{index + 1}.{student.student?.lastName}, {student.student?.firstName} {student.student?.middleName?.charAt(0) || ""} </h3>
+                            <h3 className="capitalize" key={"returning" + student.student?._id}>{index + 1}.{student.student?.lastName}, {student.student?.firstName} {student.student?.middleName?.charAt(0) || ""} </h3>
                           )): (
                             <div className="flex items-center justify-center text-center w-full h-full">
                               No returning students.
@@ -115,13 +115,13 @@ function SectionSummary({
                         {load.needsInterventions.length !== 0 ? (
                           
                           load.needsInterventions.map((student, index) => (
-                          <div key={"intervention" + student.student?._id}  className="flex justify-between w-full">
-                            <h3 className="capitalize">
+                          <div  key={"intervention" + student.student?._id}  className="flex justify-between w-full">
+                            <h3 className="capitalize line-clamp-1 text-ellipsis">
                               {index + 1}.{student.student?.lastName},{" "}
                               {student.student?.firstName}{" "}
                               {student.student?.middleName?.charAt(0)}{" "}
                             </h3>
-                            <h3>{student.interventionGrade}</h3>
+                          
                           </div>
                           ))
                         ) : (

@@ -120,42 +120,7 @@ function InputDialog({
     }, [dialogOpen, component, highestScores, studentScores, title]);
     
 
-    // Function to handle saving scores
-    const handleSaveScore = () => {
-        setIsSaving(true);
-        // Transform scores into the required format
-        const transformedScores = Object.entries(scoresInput)
-            .filter(([_, score]) => !isNaN(score)) // Filter out empty or invalid scores
-            .map(([assessmentNo, score]) => ({
-                assessmentNo: parseInt(assessmentNo),
-                score: Number(score),
-            }));
-        if (title === 'highest scores') {
-            // Save highest scores
-            toast.promise(saveHighestScores({
-                loadId: loadId,
-                componentType: component,
-                scores: transformedScores
-            }), {
-                loading: "Saving scores...",
-                success: "Scores saved successfully.",
-                error: "Unable to save the scores"
-            });
-        } else {
-            // Save student scores
-            toast.promise(createComponentScore({
-                classRecordId: studentScores?.classRecord._id,
-                componentType: component,
-                scores: transformedScores
-            }), {
-                loading: "Saving scores...",
-                success: "Scores saved successfully.",
-                error: "Unable to save the scores"
-            });
-        }
-        setIsSaving(false);
-        setDialogOpen(false);
-    };
+ 
 
     // Function to handle changes in input fields
     const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
@@ -205,6 +170,53 @@ function InputDialog({
         );
     };
 
+    // Function to handle saving scores
+    const handleSaveScore = () => {
+        setIsSaving(true);
+        // Transform scores into the required format
+        const transformedScores = Object.entries(scoresInput)
+            .filter(([_, score]) => !isNaN(score)) // Filter out empty or invalid scores
+            .map(([assessmentNo, score]) => ({
+                assessmentNo: parseInt(assessmentNo),
+                score: Number(score),
+            }));
+        if (title === 'highest scores') {
+            // Save highest scores
+            toast.promise(saveHighestScores({
+                loadId: loadId,
+                componentType: component,
+                scores: transformedScores
+            }), {
+                loading: "Saving scores...",
+                success: "Scores saved successfully.",
+                error: "Unable to save the scores"
+            });
+            setIsSaving(false);
+            setDialogOpen(false);
+        } else {
+            // Save student scores
+            toast.promise(createComponentScore({
+                classRecordId: studentScores?.classRecord._id,
+                componentType: component,
+                scores: transformedScores
+            }), {
+                loading: "Saving scores...",
+                success: "Scores saved successfully.",
+                error: "Unable to save the scores"
+            });
+            setIsSaving(false);
+       
+            //Open the Dialog for submitting the grades and labeling the student for needs intervention or not
+            if(isSubmitted || !isReadyToSubmit() || isSaving){
+
+            } else {
+                setOpen(true)
+            }
+           
+        }
+      
+    };
+
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen} >
         <DialogContent className='md:max-w-4xl'>
@@ -218,13 +230,9 @@ function InputDialog({
                     </div>
               
                 
-                {isSubmitted ? (
-                    <div className="">
-                      
-                    </div>
-                ):(
-                    <div className="text-center flex justify-center items-center">
-                        <Button 
+           
+                  
+                        {/* <Button 
                             variant="default" 
                             onClick={() => {setOpen(true)}}
                             className={cn(
@@ -234,17 +242,17 @@ function InputDialog({
                             >
                             <Lock className="mr-2 h-4 w-4" />
                             Submit Grades
-                        </Button>
-                        <SubmitDialog 
-                            transmutedGrade={transmutedGrade}
-                            onOpenDialog={open}
-                            setOpenDialog={setOpen}
-                            isSaving={isSaving}
-                            handleSumbit={handleSubmitGrades}
-                        />
-                    </div>
-                )}
+                        </Button> */}
+                   
                 </DialogTitle>
+                <SubmitDialog 
+                    transmutedGrade={transmutedGrade}
+                    onOpenDialog={open}
+                    setOpenDialog={setOpen}
+                    isSaving={isSaving}
+                    handleSumbit={handleSubmitGrades}
+                />
+                  
             </div>
             {component === "Major Exam" ? (
                 <div className="space-y-2">
@@ -379,7 +387,7 @@ function InputDialog({
                         <X className="mr-2 h-4 w-4" />
                         Cancel
                     </Button>
-                    <Button onClick={handleSaveScore} >
+                    <Button onClick={handleSaveScore} disabled={isSubmitted} >
                     {isSaving ? (
                         <span className="flex items-center">
                         <span className="animate-spin mr-2">⏳</span> Saving...
@@ -387,7 +395,9 @@ function InputDialog({
                     ): (
                         <>
                             <Check className="mr-2 h-4 w-4" />
-                            Save
+                            {(!isSubmitted || !isReadyToSubmit() || isSaving) ? 
+                            "Save and Submit" : isSubmitted ? "Sumitted" : 'Save'}
+
                         </>
                     )}
                     </Button>

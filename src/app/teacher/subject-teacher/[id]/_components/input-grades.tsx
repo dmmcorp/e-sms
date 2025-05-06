@@ -449,6 +449,8 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
         const transmutedGrade = convertToTransmutedGrade(initialGrade, section.gradeLevel, learningMode, subjectThought.category)
 
         const isNotEnrolled = student.enrollment.status !== "enrolled"
+        const interventionGrade = student.classRecord.interventionGrade
+   
         return (
           <div
             key={student._id}
@@ -521,7 +523,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
               )}
             >
               <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "" : initialGrade.toFixed(1)}</h1>
-              <h1 className={cn(transmutedGrade <= 74 && "text-red-500", "h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{ transmutedGrade === 60 ? "" : transmutedGrade.toFixed(0)}</h1>
+              <h1 className={cn((interventionGrade ?? transmutedGrade) <= 74 && "text-red-500", "h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{ (transmutedGrade) === 60 ? "" : interventionGrade?.toFixed(0) ?? transmutedGrade.toFixed(0)}</h1>
             </div>
           </div>
         )
@@ -595,6 +597,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
         const transmutedGrade = convertToTransmutedGrade(initialGrade, section.gradeLevel, learningMode, subjectThought.category)
 
         const isNotEnrolled = student.enrollment.status !== "enrolled"
+        const interventionGrade = student.classRecord.interventionGrade
         return (
           <div
             key={student._id}
@@ -667,7 +670,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
               )}
             >
               <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "" : initialGrade.toFixed(1)}</h1>
-              <h1 className={cn(transmutedGrade <= 74 && "text-red-500", "h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{ transmutedGrade === 60 ? "" : transmutedGrade.toFixed(0)}</h1>
+              <h1 className={cn((interventionGrade ?? transmutedGrade) <= 74 && "text-red-500", "h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{ (transmutedGrade) === 60 ? "" : interventionGrade?.toFixed(0) ?? transmutedGrade.toFixed(0)}</h1>
             </div>
           </div>
         )

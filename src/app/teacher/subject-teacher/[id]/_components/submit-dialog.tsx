@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { DialogTitle } from '@radix-ui/react-dialog'
 import React from 'react'
@@ -24,6 +24,7 @@ function SubmitDialog({
     <Dialog open={onOpenDialog} onOpenChange={setOpenDialog}>
         <DialogContent>
             <DialogTitle>Are you sure you want to submit this grades?</DialogTitle>
+            <DialogDescription className='text-xs'>Once you submit the grades, you will no longer be able to edit this student's scores.</DialogDescription>
             <div className="">
                 <h1 className='font-semibold flex gap-x-2'>Quarterly Grade: 
                     <span className={cn(
