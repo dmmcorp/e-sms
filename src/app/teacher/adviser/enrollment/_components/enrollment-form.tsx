@@ -57,10 +57,11 @@ function EnrollmentForm() {
           elemPrevSchoolAddress: "",
           elemSchoolId: "",
       
-          jnrGenAve: "",
+          jnrGenAve: undefined,
           jnrPrevSchoolName: "",
           jnrPrevSchoolAddress: "",
           jnrDateOfAdmission: undefined,
+          jnrDateOfCompletion: undefined,
       
           alsRating: "",
         },
@@ -84,9 +85,10 @@ function EnrollmentForm() {
               schoolId: values.elemSchoolId,
           },
           juniorHigh: {
-            genAve: values.jnrGenAve || "",
+            genAve: values.jnrGenAve?.toString() || undefined,
             school: values.jnrPrevSchoolName || "",
             address: values.jnrPrevSchoolAddress || "",
+            completion: values.jnrDateOfCompletion?.toDateString() || ""
           },
           juniorHighDateOfAdmission: values.jnrDateOfAdmission.toDateString(),
           alsRating: values.alsRating,
@@ -106,14 +108,6 @@ function EnrollmentForm() {
         })
         setIsSubmitting(false)
     }
-
-    useEffect(() => {
-      const subscription = form.watch((value, { name, type }) => {
-        console.log("Form Errors:", form.formState.errors);
-      });
-      return () => subscription.unsubscribe();
-    }, [form]);
-
 
     if (isComplete) {
         return (
@@ -258,7 +252,7 @@ function EnrollmentForm() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            Sex <span className="text-red-500">*</span>
+                            Gender <span className="text-red-500">*</span>
                           </FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
@@ -468,6 +462,41 @@ function EnrollmentForm() {
                       </FormItem>
                     )}
                   />
+                   <FormField
+                      control={form.control}
+                      name="jnrDateOfCompletion"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>
+                            Date of Completion
+                          </FormLabel>
+                          <Popover>
+                            <PopoverTrigger className='flex w-full'>
+                                <FormControl>
+                                  <Button
+                                    type='button'
+                                    variant={"outline"}
+                                    className={cn("pl-3 text-left font-normal w-full", !field.value && "text-muted-foreground")}
+                                  >
+                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                  </Button>
+                                </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   <FormField
                     control={form.control}
                     name="jnrGenAve"
@@ -477,7 +506,7 @@ function EnrollmentForm() {
                           General Average
                         </FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter general average" {...field} />
+                          <Input type='number' placeholder="Enter general average" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -527,30 +556,40 @@ function EnrollmentForm() {
                   </div>
                 )}
 
-                {step < 3 ? (
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      if (step === 1) {
-                        const isValid = form.trigger(["firstName", "lastName", "dateOfBirth", "sex"])
-                        isValid.then((valid) => {
-                          if (valid) setStep(step + 1)
-                        })
-                      } else if (step === 2) {
-                        const isValid = form.trigger(["lrn", "jnrDateOfAdmission"])
-                        isValid.then((valid) => {
-                          if (valid) setStep(step + 1)
-                        })
-                      }
-                    }}
-                    className="gap-1"
-                  >
-                    Next <ChevronRight className="h-4 w-4" />
-                  </Button>
+                {step === 3 ? (
+                 <></>
                 ) : (
-                  <Button type="submit" disabled={isSubmitting} className="gap-1">
-                    {isSubmitting ? "Submitting..." : "Submit Enrollment"}
-                  </Button>
+                  
+                   <Button
+                   type="button"
+                   onClick={async() => {
+                     if (step === 1) {
+                       const isValid = await form.trigger([
+                         "firstName", 
+                         "lastName", 
+                         "dateOfBirth", 
+                         "sex"
+                       ]);
+                       if (isValid) setStep(step + 1);
+                     } else if (step === 2) {
+                       const isValid = await form.trigger([
+                         "lrn", 
+                         "enrollingTo",
+                         "jnrDateOfAdmission"
+                       ]);
+                       if (isValid) setStep(step + 1);
+                     }
+                   }}
+                   className="gap-1"
+                 >
+                   Next <ChevronRight className="h-4 w-4" />
+                 </Button>
+                )}
+
+                {step === 3 && (
+                   <Button type="submit" disabled={isSubmitting} className="gap-1">
+                   {isSubmitting ? "Submitting..." : "Submit Enrollment"}
+                 </Button>
                 )}
               </div>
             </form>

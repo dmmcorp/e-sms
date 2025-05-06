@@ -129,9 +129,10 @@ export const add = mutation({
     }),
     juniorHigh: v.optional(
       v.object({
-        genAve: v.string(),
+        genAve: v.optional(v.string()),
         school: v.string(),
         address: v.string(),
+        completion: v.optional(v.string()),
       })
     ),
     juniorHighDateOfAdmission: v.string(),
@@ -171,11 +172,13 @@ export const edit = mutation({
       genAve: v.string(),
       school: v.string(),
       address: v.string(),
+      schoolId: v.string(),
     }),
     juniorHigh: v.object({
-      genAve: v.string(),
+      genAve: v.optional(v.string()),
       school: v.string(),
       address: v.string(),
+      completion: v.optional(v.string()),
     }),
     juniorHighDateOfAdmission: v.string(),
     alsRating: v.optional(v.string()),
@@ -199,11 +202,13 @@ export const edit = mutation({
         genAve: args.elementary.genAve,
         school: args.elementary.school,
         address: args.elementary.address,
+        schoolId: args.elementary.schoolId,
       },
       juniorHigh: {
         genAve: args.juniorHigh.genAve,
         school: args.juniorHigh.school,
         address: args.juniorHigh.address,
+        completion: args.juniorHigh.completion,
       },
       juniorHighDateOfAdmission: args.juniorHighDateOfAdmission,
       alsRating: args.alsRating,

@@ -147,17 +147,18 @@ function SF10({sectionStudentId}: SF10Types) {
                                     />
                                     <Label htmlFor="highSchoolCompleter" className='ml-[-15px] text-[0.6rem]'>High School Completer*</Label>
 
-                                    <h1 className='flex w-1/3 items-baseline'>Gen. Ave: <input type="number"  className='bg-transparent border-b border-b-black flex-1 w-1/3 px-3 h-3' /></h1>
+                                    <h1 className='flex w-1/3 items-baseline'>Gen. Ave: <span className='bg-transparent border-b border-b-black flex-1 w-1/3 px-3 h-3' >{}</span></h1>
                                 </div>
                             <div className="col-span-5 flex gap-x-5 text-[0.55rem]">
                                 <Checkbox
                                     id="juniorHighSchoolCompleter"
                                     className='rounded-none checked:bg-transparent bg-transparent'
                                     disabled={false}
+                                    checked
                                 />
                                 <Label htmlFor="juniorHighSchoolCompleter" className='ml-[-15px] text-[0.6rem]'>Junior High School Completer*</Label>
 
-                                <h1 className='flex w-1/3 items-baseline'>Gen. Ave: <span className='bg-transparent border-b border-b-black flex-1 w-1/3 px-3 h-3' >{student.juniorHigh?.genAve}</span></h1>
+                                <h1 className='flex w-1/3 items-baseline'>Gen. Ave: <span className='bg-transparent border-b border-b-black flex-1 w-1/3 px-3' >{student.juniorHigh?.genAve}</span></h1>
                             </div>
                     </div>
                     ):(

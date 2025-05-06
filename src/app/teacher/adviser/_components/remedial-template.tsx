@@ -29,7 +29,7 @@ function RemedialTemplate({student, isSHS}:{
         {isSHS ? (
         <>
             <div className="grid grid-cols-12 border-y-black border-y mt-2 text-[0.5rem] bg-gray-300 font-semibold leading-3">
-                <div className="col-span-2 text-center border-l-black border-l  flex items-center justify-center py-1"><p>Indicate if Subject is CORE, APPLIED, or Specialized</p></div>
+                <div className="col-span-2 text-center border-l-black border-l  flex items-center justify-center py-1 px-2"><p>Indicate if Subject is CORE, APPLIED, or Specialized</p></div>
                 <div className="col-span-6 flex items-center justify-center border-x-black border-x">
                     <h1 className='uppercase text-center my-auto'>Subject</h1>
                 </div>

@@ -98,6 +98,10 @@ function Page() {
                             <p className="font-medium capitalize">{student?.juniorHigh?.address}</p>
                         </div>
                         <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Date of Completion</p>
+                            <p className="font-medium capitalize">{student?.juniorHigh?.completion ?? "Not provided"}</p>
+                        </div>
+                        <div className="space-y-1">
                             <p className="text-sm text-muted-foreground">General Average</p>
                             <p className="font-medium capitalize">{student?.juniorHigh?.genAve}</p>
                         </div>

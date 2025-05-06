@@ -218,7 +218,7 @@ const schema = defineSchema({
     }),
     juniorHigh: v.optional(
       v.object({
-        genAve: v.string(),
+        genAve: v.optional(v.string()),
         school: v.string(),
         address: v.string(),
         completion: v.optional(v.string()),

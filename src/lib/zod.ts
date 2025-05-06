@@ -148,9 +148,14 @@ export const enrollmentSchema = z.object({
     .max(50, { message: "Middle name must be at most 50 characters." })
     .nonempty({ message: "Middle name is required." }),
 
-  lrn: z.coerce.number()
-    .refine(value => value.toString().length === 11, { message: "LRN must be exactly 11 digits." })
-    .refine(value => value !== null && value !== undefined, { message: "LRN is required." }),
+  lrn: z.coerce
+    .number()
+    .refine((value) => value.toString().length === 11, {
+      message: "LRN must be exactly 11 digits.",
+    })
+    .refine((value) => value !== null && value !== undefined, {
+      message: "LRN is required.",
+    }),
 
   enrollingTo: z
     .string()
@@ -160,10 +165,13 @@ export const enrollmentSchema = z.object({
     required_error: "Date of birth is required.",
   }),
 
-  sex: z.string().nonempty({ message: "Sex is required." }),
+  sex: z.string().nonempty({ message: "Gender is required." }),
 
   elemGenAve: z.coerce
-    .number()
+    .number({
+      required_error: "Elementary general average is required.",
+      invalid_type_error: "Elementary general average is required.",
+    })
     .refine((value) => value !== null && value !== undefined, {
       message: "Elementary general average is required.",
     }),
@@ -172,17 +180,22 @@ export const enrollmentSchema = z.object({
     .nonempty({ message: "Elementary school ID is required." }),
   elemPrevSchoolName: z
     .string()
-    .nonempty({ message: "Previous elementary school name is required." }),
+    .nonempty({ message: "Elementary school name is required." }),
   elemPrevSchoolAddress: z
     .string()
-    .nonempty({ message: "Previous elementary school address is required." }),
+    .nonempty({ message: "Elementary school address is required." }),
 
-  jnrGenAve: z.string().optional(),
+  jnrGenAve: z.coerce.number().optional(),
   jnrPrevSchoolName: z.string().optional(),
   jnrPrevSchoolAddress: z.string().optional(),
   jnrDateOfAdmission: z.date({
     required_error: "Date of admission is required.",
   }),
+  jnrDateOfCompletion: z
+    .date({
+      required_error: "Date of admission is required.",
+    })
+    .optional(),
 
   alsRating: z.string().optional(),
 });

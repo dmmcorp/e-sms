@@ -13,7 +13,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import ActionCeil from './action-ceil'
 import { Id } from '../../../../../../convex/_generated/dataModel'
 import Loading from '@/app/teacher/loading'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function Students() {
     const router = useRouter();
@@ -22,6 +22,10 @@ export default function Students() {
     const students = useQuery(api.students.getStudents, {
         sectionId: sectionId === null ? undefined : sectionId ?? undefined,
     });
+
+    const section = useQuery(api.sections.getSection,{
+        sectionId: sectionId === null ? undefined : sectionId ?? undefined,
+    })
     if(!students) return <Loading/>
   return (
     <div className='md:container md:pt-10'>
@@ -35,10 +39,13 @@ export default function Students() {
                 <div className="space-y-2 ">
 
                     <h1 className="text-lg md:text-3xl font-bold tracking-tighter">Assign student to your section</h1>
-               
+                    
                     
                 </div>
             </CardTitle>
+            <CardDescription className='mt-5'>
+                Students enrolling in <strong>{section?.gradeLevel}</strong>.
+            </CardDescription>
         </CardHeader>
            <CardContent>
         <DataTable

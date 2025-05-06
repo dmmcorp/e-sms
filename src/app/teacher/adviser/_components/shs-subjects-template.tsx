@@ -26,9 +26,8 @@ function ShsSubjectsTemplate({ record }: ShsSubjectsTemplateProps) {
                 record.gradeLevel === "Grade 11 - 2nd semester" ||
                 record.gradeLevel === "Grade 12 - 1st semester" ||
                 record.gradeLevel === "Grade 12 - 2nd semester"
-    console.log("semester:",semester)
   return (
-    <div>
+    <div className='mt-2'>
         <div className="">
           
             <div className="grid grid-cols-12 gap-x-2 text-[0.6rem] font-semibold">
@@ -61,7 +60,7 @@ function ShsSubjectsTemplate({ record }: ShsSubjectsTemplateProps) {
             </div>
         </div>
         
-        {!student || student === null?  Array.from({ length: 12 }).map((_, index) => (
+        {!student || student === null?  Array.from({ length: 11 }).map((_, index) => (
            <GradesInputsTemplate key={index}/>
         )) : semester && (
             <SrGradesTemplate student={student} sem={semester} sf10/>
