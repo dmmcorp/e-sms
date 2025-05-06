@@ -1,5 +1,6 @@
 import { ConvexClientProvider } from "@/components/convex-client-provider";
 import { Footer } from "@/components/footer";
+import { AutoLogout } from "@/components/guards/auto-logout";
 import { SchoolHeadGuard } from "@/components/guards/sh-guard";
 import MainNav from "@/components/main-nav";
 import { ThemeProviderWithDynamicColors } from "@/components/theme-provider-with-dynamic-colors";
@@ -26,6 +27,7 @@ export default function RootLayout({
             className={`flex flex-col antialiased min-w-screen min-h-screen bg-zinc-50`}
           >
             <SchoolHeadGuard>
+              <AutoLogout />
               <ThemeProviderWithDynamicColors>
                 <MainNav />
                 {children}

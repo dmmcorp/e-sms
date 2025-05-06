@@ -7,6 +7,7 @@ import { SystemAdminGuard } from "@/components/guards/admin-guard";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProviderWithDynamicColors } from "@/components/theme-provider-with-dynamic-colors";
 import { Footer } from "@/components/footer";
+import { AutoLogout } from "@/components/guards/auto-logout";
 
 export const metadata: Metadata = {
   title: "ERMS-Admin",
@@ -26,6 +27,7 @@ export default function RootLayout({
             className={`antialiased min-w-screen min-h-screen flex flex-col bg-zinc-50`}
           >
             <SystemAdminGuard>
+              <AutoLogout />
               <ThemeProviderWithDynamicColors>
                 <MainNav />
                 <Toaster richColors />
