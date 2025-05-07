@@ -149,11 +149,7 @@ function InputDialog({
             loadId: loadId,
             studentId: studentScores?._id,
             transmutedGrade: transmutedGrade,
-        }), {
-            loading: "Submitting grades...",
-            success: "Submitted successfully.",
-            error: "Failed to submit grades.",
-        });
+        }));
         setOpen(false);
         setDialogOpen(false);
         setIsSaving(false);
@@ -206,11 +202,14 @@ function InputDialog({
             });
             setIsSaving(false);
        
-            //Open the Dialog for submitting the grades and labeling the student for needs intervention or not
+            //Submit Grades
             if(isSubmitted || !isReadyToSubmit() || isSaving){
-
+                setDialogOpen(false)
             } else {
+              
                 setOpen(true)
+         
+              
             }
            
         }

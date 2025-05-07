@@ -13,7 +13,6 @@ interface SubmitDialogProps {
 }
 function SubmitDialog({
     transmutedGrade,
-    setOpenDialog,
     onOpenDialog,
     handleSumbit,
     isSaving,
@@ -21,10 +20,19 @@ function SubmitDialog({
 }:SubmitDialogProps) {
     if(transmutedGrade)
   return (
-    <Dialog open={onOpenDialog} onOpenChange={setOpenDialog}>
+    <Dialog open={onOpenDialog}>
         <DialogContent>
-            <DialogTitle>Are you sure you want to submit this grades?</DialogTitle>
-            <DialogDescription className='text-xs'>Once you submit the grades, you will no longer be able to edit this student's scores.</DialogDescription>
+            <DialogTitle>
+                {
+                    <span className={cn(
+                        transmutedGrade <= 74 ? "text-red-600" : 'text-green-500',
+                        'text-xl font-semibold'
+                    )}>
+                        {transmutedGrade <= 74 ? "Failed" : "Passed"}
+                    </span>
+            
+                }
+            </DialogTitle>
             <div className="">
                 <h1 className='font-semibold flex gap-x-2'>Quarterly Grade: 
                     <span className={cn(
@@ -33,32 +41,16 @@ function SubmitDialog({
                     )}>
                         {transmutedGrade}
                     </span>
+                    {transmutedGrade <= 74 && (
                     <span className={cn(
-                        transmutedGrade <= 74 ? "text-red-600" : 'text-green-500',
-                        'font-normal'
-                    )}>
-                        {transmutedGrade <= 74 ? "Failed" : "Passed"}
-                    </span>
-                </h1>
-                {transmutedGrade <= 74 && (
-                    <h1 className={cn(
                         transmutedGrade <= 74 ? "text-red-600" : '',
                         'font-normal'
-                    )}>Needs Intervention</h1>
+                    )}>- Needs Intervention</span>
                 )}
-              
+                    
+                </h1>
             </div>
             <DialogFooter>
-                <Button 
-                    variant="secondary" 
-                    onClick={() => setOpenDialog(false)}
-                    className={cn(
-                        !transmutedGrade ? "hidden" : "flex",
-                    )}
-                    disabled={ isSaving }
-                    >
-                    No
-                </Button>
                 <Button 
                     variant="default" 
                     onClick={handleSumbit}
@@ -67,7 +59,7 @@ function SubmitDialog({
                     )}
                     disabled={ isSaving }
                     >
-                    Submit
+                    Okay
                 </Button>
             </DialogFooter>
         </DialogContent>
