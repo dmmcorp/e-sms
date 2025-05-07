@@ -14,6 +14,7 @@ import InputDialog from "./input-dialog";
 import { useQuery } from "convex/react";
 import { api } from "../../../../../../convex/_generated/api";
 import { Id } from "../../../../../../convex/_generated/dataModel";
+import CustomTooltip from "@/app/teacher/adviser/_components/custom-tooltip";
 
 export type DialogType = "highest scores" | string;
 export type Component = "Written Works" | "Performance Tasks" | "Major Exam"
@@ -450,7 +451,8 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
 
         const isNotEnrolled = student.enrollment.status !== "enrolled"
         const interventionGrade = student.classRecord.interventionGrade
-   
+        const interventionRemarks = student.classRecord.interventionRemarks
+        const interventionUsed = student.classRecord.interventionUsed
         return (
           <div
             key={student._id}
@@ -523,7 +525,20 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
               )}
             >
               <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "" : initialGrade.toFixed(1)}</h1>
-              <h1 className={cn((interventionGrade ?? transmutedGrade) <= 74 && "text-red-500", "h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{ (transmutedGrade) === 60 ? "" : interventionGrade?.toFixed(0) ?? transmutedGrade.toFixed(0)}</h1>
+              {(transmutedGrade)<= 74 ? (
+
+              <CustomTooltip
+                trigger={
+                  <h1 className={cn((interventionGrade ?? transmutedGrade) <= 74 && "text-red-500", "h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{ (transmutedGrade) === 60 ? "" : interventionGrade?.toFixed(0) ?? transmutedGrade.toFixed(0)}</h1>
+                  
+                }
+                initialGrade={transmutedGrade.toString()}
+                interventionRemarks={interventionRemarks ?? "No assigned Remarks"}
+                interventionUsed={interventionUsed ?? []}
+                />
+              ) : (
+                <h1 className={cn((interventionGrade ?? transmutedGrade) <= 74 && "text-red-500", "h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{ (transmutedGrade) === 60 ? "" : interventionGrade?.toFixed(0) ?? transmutedGrade.toFixed(0)}</h1>
+              )}
             </div>
           </div>
         )
@@ -598,6 +613,8 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
 
         const isNotEnrolled = student.enrollment.status !== "enrolled"
         const interventionGrade = student.classRecord.interventionGrade
+        const interventionRemarks = student.classRecord.interventionRemarks
+        const interventionUsed = student.classRecord.interventionUsed
         return (
           <div
             key={student._id}
@@ -670,7 +687,20 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
               )}
             >
               <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "" : initialGrade.toFixed(1)}</h1>
-              <h1 className={cn((interventionGrade ?? transmutedGrade) <= 74 && "text-red-500", "h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{ (transmutedGrade) === 60 ? "" : interventionGrade?.toFixed(0) ?? transmutedGrade.toFixed(0)}</h1>
+              {(transmutedGrade)<= 74 ? (
+
+              <CustomTooltip
+                trigger={
+                  <h1 className={cn((interventionGrade ?? transmutedGrade) <= 74 && "text-red-500", "h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{ (transmutedGrade) === 60 ? "" : interventionGrade?.toFixed(0) ?? transmutedGrade.toFixed(0)}</h1>
+                  
+                }
+                initialGrade={transmutedGrade.toString()}
+                interventionRemarks={interventionRemarks ?? "No assigned Remarks"}
+                interventionUsed={interventionUsed ?? []}
+                />
+              ) : (
+                <h1 className={cn((interventionGrade ?? transmutedGrade) <= 74 && "text-red-500", "h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{ (transmutedGrade) === 60 ? "" : interventionGrade?.toFixed(0) ?? transmutedGrade.toFixed(0)}</h1>
+              )}
             </div>
           </div>
         )
