@@ -44,6 +44,7 @@ function InputDialog({
     transmutedGrade,
     isSubmitted,
     component,
+    learningMode
 }: InputDialogProps ) {
     // State to manage the input scores for each assessment
     const [scoresInput, setScoresInput] = useState<{ [key: number]: number }>({});
@@ -55,7 +56,7 @@ function InputDialog({
     const [open, setOpen] = useState<boolean>(false);
     // Calculate the total score from the input scores
     const totalScore = Object.values(scoresInput).reduce((acc, curr) => acc + curr, 0);
-    
+
     // Convex mutations for saving data
     const saveHighestScores = useMutation(api.teachingLoad.saveHighestScores);
     const createComponentScore = useMutation(api.classRecords.createComponentScore);
@@ -119,9 +120,6 @@ function InputDialog({
         }
     }, [dialogOpen, component, highestScores, studentScores, title]);
     
-
- 
-
     // Function to handle changes in input fields
     const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
         const rawValue = parseFloat(e.target.value);
@@ -148,22 +146,14 @@ function InputDialog({
         toast.promise(saveQuarterlyGrades({
             loadId: loadId,
             studentId: studentScores?._id,
-            transmutedGrade: transmutedGrade,
+            wwGradeWeights: wwGradeWeights ?? 0,
+            ptGradeWeights: ptGradeWeights ?? 0,
+            meGradeWeights: meGradeWeights ?? 0,
+            learningMode: learningMode,
         }));
         setOpen(false);
         setDialogOpen(false);
         setIsSaving(false);
-    };
-
-    // Function to check if the grades are ready to be submitted
-    const isReadyToSubmit = () => {
-        if (!studentScores) return false;
-      
-        return (
-          studentScores.written.length >= 1 &&
-          studentScores.performance.length >= 1 &&
-          studentScores.exam.length >= 1
-        );
     };
 
     // Function to handle saving scores
@@ -194,27 +184,25 @@ function InputDialog({
             toast.promise(createComponentScore({
                 classRecordId: studentScores?.classRecord._id,
                 componentType: component,
-                scores: transformedScores
+                scores: transformedScores,
+                learningMode: learningMode
             }), {
                 loading: "Saving scores...",
-                success: "Scores saved successfully.",
+                success: (data) => { 
+                    setIsSaving(false);
+                    if(data.readyToSubmit) {
+                       handleSubmitGrades()
+                    }
+                    setDialogOpen(false)
+                    return "Scores saved successfully."
+                },
                 error: "Unable to save the scores"
             });
             setIsSaving(false);
-       
-            //Submit Grades
-            if(isSubmitted || !isReadyToSubmit() || isSaving){
-                setDialogOpen(false)
-            } else {
-              
-                setOpen(true)
-         
-              
-            }
-           
         }
       
     };
+
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen} >
@@ -394,8 +382,11 @@ function InputDialog({
                     ): (
                         <>
                             <Check className="mr-2 h-4 w-4" />
-                            {(!isSubmitted || !isReadyToSubmit() || isSaving) ? 
-                            "Save and Submit" : isSubmitted ? "Sumitted" : 'Save'}
+                            {isSubmitted ? (
+                                "Submitted"
+                            ): (
+                                "Save"
+                            )}
 
                         </>
                     )}

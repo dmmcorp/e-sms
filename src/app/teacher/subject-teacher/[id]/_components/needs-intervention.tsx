@@ -65,7 +65,7 @@ const forImprovementsColumns: ColumnDef<StudentNeedsIntervention>[] = [
         const quarterlyGrade = student.classRecord?.quarterlyGrade
        
         return (
-          <div className="flex items-center gap-x-3 ">
+          <div className="flex items-center justify-center text-center gap-x-3 ">
            {quarterlyGrade}
           </div>
         )
@@ -97,7 +97,7 @@ const forImprovementsColumns: ColumnDef<StudentNeedsIntervention>[] = [
             <div className="">
             <p className="">
               <span className="font-semibold">{interventionUsed ? interventionUsed.length > 1 ? "Remarks -" : interventionUsed && interventionUsed.length === 1 && `${interventionUsed[0]} - ` : ""}</span>
-              <span className="">{remarksValue} </span>
+              <span className="text-wrap">{remarksValue} </span>
             </p>
   
             </div>
@@ -108,7 +108,7 @@ const forImprovementsColumns: ColumnDef<StudentNeedsIntervention>[] = [
   
     {
       id: "action",
-      header: "",
+      header: "Action",
       cell: ({ row }) => <ActionCeil student={row.original}/>
     },
   ]

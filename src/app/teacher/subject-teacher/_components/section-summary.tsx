@@ -172,7 +172,7 @@ function SectionSummary({
                    
                       {load.needsInterventionsAll.length === 0 ?
                        <TableRow>
-                        <TableCell colSpan={4} className="text-center " >No failed students.</TableCell>
+                        <TableCell colSpan={4} className="text-center " >No failed students for this quarter.</TableCell>
                       </TableRow>
                       : load.needsInterventionsAll.map((load) => (
                         <TableRow key={load.studentId}>

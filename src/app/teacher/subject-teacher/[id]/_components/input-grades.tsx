@@ -448,7 +448,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
 
         const initialGrade = calculateInitialGrade(wwWeightedScore, ptWeightedScore, meWeightedScore)
         const transmutedGrade = convertToTransmutedGrade(initialGrade, section.gradeLevel, learningMode, subjectThought.category)
-
+        
         const isNotEnrolled = student.enrollment.status !== "enrolled"
         const interventionGrade = student.classRecord.interventionGrade
         const interventionRemarks = student.classRecord.interventionRemarks
@@ -502,7 +502,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
                 {ptPercentageScore === 0 ? "" : ptPercentageScore.toFixed(1)}
               </h1>
               <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
-                {ptPercentageScore === 0 ? "" : ptPercentageScore.toFixed(1)}
+                {ptWeightedScore === 0 ? "" : ptWeightedScore.toFixed(1)}
               </h1>
             </button>
             {learningMode?.toLowerCase() === "face to face" && (
@@ -514,7 +514,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
                   {mePercentageScore === 0 ? "" : mePercentageScore.toFixed(1)}
                 </h1>
                 <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
-                  {mePercentageScore === 0 ? "" : mePercentageScore.toFixed(1)}
+                  {meWeightedScore === 0 ? "" : meWeightedScore.toFixed(1)}
                 </h1>
               </button>
             )}
@@ -525,8 +525,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
               )}
             >
               <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "" : initialGrade.toFixed(1)}</h1>
-              {(transmutedGrade)<= 74 ? (
-
+              {student.classRecord.needsIntervention ? (
               <CustomTooltip
                 trigger={
                   <h1 className={cn((interventionGrade ?? transmutedGrade) <= 74 && "text-red-500", "h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{ (transmutedGrade) === 60 ? "" : interventionGrade?.toFixed(0) ?? transmutedGrade.toFixed(0)}</h1>
@@ -664,7 +663,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
                 {ptPercentageScore === 0 ? "" : ptPercentageScore.toFixed(1)}
               </h1>
               <h1 className="w-[10%] h-full uppercase border border-b-0 border-black  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center font-semibold text-center">
-                {ptPercentageScore === 0 ? "" : ptPercentageScore.toFixed(1)}
+                {ptWeightedScore === 0 ? "" : ptWeightedScore.toFixed(1)}
               </h1>
             </button>
             {learningMode?.toLowerCase() === "face to face" && (
@@ -676,7 +675,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
                   {mePercentageScore === 0 ? "" : mePercentageScore.toFixed(1)}
                 </h1>
                 <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-[0.5rem] md:text-[0.6rem] flex justify-center items-center  font-semibold text-center">
-                  {mePercentageScore === 0 ? "" : mePercentageScore.toFixed(1)}
+                  {meWeightedScore === 0 ? "" : meWeightedScore.toFixed(1)}
                 </h1>
               </button>
             )}
@@ -687,7 +686,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
               )}
             >
               <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "" : initialGrade.toFixed(1)}</h1>
-              {(transmutedGrade)<= 74 ? (
+              {student.classRecord.needsIntervention ? (
 
               <CustomTooltip
                 trigger={

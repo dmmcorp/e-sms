@@ -22,7 +22,7 @@ function CustomTooltip({
             <TooltipTrigger asChild className=''>
                 {trigger}
             </TooltipTrigger>
-            <TooltipContent className='max-w-4xl bg-white text-black p-5 space-y-2 shadow-md'>
+            <TooltipContent className='max-w-xl bg-white text-black p-5 space-y-2 shadow-md'>
                 <Label className='font-semibold'>Intervention Method(s)</Label>
                 <div className="flex items-center justify-center flex-wrap gap-2">
                     {interventionUsed.length > 1 ? interventionUsed.map((intUsed, index)=>(
@@ -36,7 +36,7 @@ function CustomTooltip({
                     <p className='line line-clamp-3 text-ellipsis'>{interventionRemarks}</p>
                 </div>
                 <div className="mt-2 flex items-center gap-x-2">
-                    <Label className='font-semibold'>Initial Grade:</Label>
+                    <Label className='font-semibold'>Original Grade:</Label>
                     <p>{initialGrade}</p>
                 </div>
             </TooltipContent>
