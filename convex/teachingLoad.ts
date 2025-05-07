@@ -56,6 +56,8 @@ export const getTeachingLoad = query({
       const classRecords = await asyncMap(
         initClassRecords,
         async (classRecord) => {
+          const load = await ctx.db.get(classRecord.teachingLoadId);
+          if (!load) return null;
           const enrollment = filteredEnrollments.find(
             (e) => e.studentId === classRecord.studentId
           );
@@ -70,6 +72,7 @@ export const getTeachingLoad = query({
               chartData: [],
               isReturning: isReturning,
               isDropped: isDropped,
+              teachingLoad: load,
             };
           }
 
@@ -124,18 +127,20 @@ export const getTeachingLoad = query({
           // Return the class record with chart data
           return {
             ...classRecord,
+            teachingLoad: load,
             chartData: chartData,
             isReturning: isReturning,
             isDropped: isDropped,
           };
         }
-      );
+      ).then((data) => data.filter((record) => record != null));
 
       // Fetch dropped students and include their details
       const droppedStudents = await asyncMap(
         classRecords.filter((record) => record.isDropped),
         async (record) => {
           const student = await ctx.db.get(record.studentId);
+
           return {
             ...record,
             student: student,
@@ -157,7 +162,21 @@ export const getTeachingLoad = query({
 
       // Fetch students needing interventions and include their details
       const needsInterventions = await asyncMap(
-        classRecords.filter((record) => record.interventionGrade === undefined),
+        classRecords.filter(
+          (record) =>
+            record.needsIntervention && record.interventionGrade === undefined
+        ),
+        async (record) => {
+          const student = await ctx.db.get(record.studentId);
+          return {
+            ...record,
+            student: student,
+          };
+        }
+      );
+
+      const needsInterventionsAll = await asyncMap(
+        classRecords.filter((record) => record.needsIntervention),
         async (record) => {
           const student = await ctx.db.get(record.studentId);
           return {
@@ -180,6 +199,7 @@ export const getTeachingLoad = query({
         droppedStud: droppedStudents,
         returningStud: returningStudents,
         needsInterventions: needsInterventions,
+        needsInterventionsAll: needsInterventionsAll,
       };
     });
   },
@@ -313,6 +333,8 @@ export const getLoadUsingSectionId = query({
       const classRecords = await asyncMap(
         initClassRecords,
         async (classRecord) => {
+          const load = await ctx.db.get(classRecord.teachingLoadId);
+          if (!load) return null;
           const ww = await ctx.db
             .query("writtenWorks")
             .filter((q) => q.eq(q.field("classRecordId"), classRecord._id))
@@ -365,13 +387,27 @@ export const getLoadUsingSectionId = query({
           return {
             ...classRecord,
             chartData: chartData,
+            teachingLoad: load,
           };
         }
-      );
+      ).then((data) => data.filter((record) => record != null));
 
       // Fetch students needing interventions and include their details
       const needsInterventions = await asyncMap(
-        classRecords.filter((record) => record.interventionGrade === undefined),
+        classRecords.filter(
+          (record) =>
+            record.needsIntervention && record.interventionGrade === undefined
+        ),
+        async (record) => {
+          const student = await ctx.db.get(record.studentId);
+          return {
+            ...record,
+            student: student,
+          };
+        }
+      );
+      const needsInterventionsAll = await asyncMap(
+        classRecords.filter((record) => record.needsIntervention),
         async (record) => {
           const student = await ctx.db.get(record.studentId);
           return {
@@ -398,6 +434,7 @@ export const getLoadUsingSectionId = query({
         // droppedStud: droppedStudents,
         // returningStud: returningStudents,
         needsInterventions: needsInterventions,
+        needsInterventionsAll: needsInterventionsAll,
       };
     });
     return subjects.filter((s) => s != null);
