@@ -114,6 +114,7 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
         return {
           subjectName: subject.subjectName || "",
           gradeLevel: subject.gradeLevel,
+          category: subject.category,
           sectionId: subject.sectionId ? subject.sectionId.toString() : "",
           quarter: Array.isArray(subject.quarter) ? subject.quarter : [],
           semester: Array.isArray(subject.semester) ? subject.semester : [],
@@ -133,8 +134,8 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
       });
     }
     // Dependency array: run when user data changes, but only set initial formData once
-    console.log("FormData: ", JSON.stringify(formData, null, 2));
   }, [user, sections, formData]);
+  console.log("FormData: ", JSON.stringify(formData, null, 2));
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>

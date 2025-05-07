@@ -724,6 +724,7 @@ export const getUser = query({
             id: `subject_${subject._id}_${group.sectionId}`,
             subjectName: subject.subjectName,
             gradeLevel: subject.gradeLevel,
+            category: subject.category,
             sectionId: group.sectionId, // Use the actual section ID
             quarter: Array.from(group.quarters), // Convert Set to array
             semester: Array.from(group.semesters), // Convert Set to array
