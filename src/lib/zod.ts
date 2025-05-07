@@ -150,8 +150,8 @@ export const enrollmentSchema = z.object({
 
   lrn: z.coerce
     .number()
-    .refine((value) => value.toString().length === 11, {
-      message: "LRN must be exactly 11 digits.",
+    .refine((value) => value.toString().length === 12, {
+      message: "LRN must be exactly 12 digits.",
     })
     .refine((value) => value !== null && value !== undefined, {
       message: "LRN is required.",
