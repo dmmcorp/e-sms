@@ -38,7 +38,7 @@ const highlightGroup: AllHighlights[] = [
         icon: <Users className="h-6 w-6 text-primary" />,
       },
       {
-        title: "Record Management (RMM - Records Management Module)",
+        title: "Records Management (RMM - Records Management Module)",
         description:
           "This module handles all the core records within the system, such as student profiles, teacher profiles, enrollment records, class records, and system maintenance data. It also includes a form generation sub-module.",
         icon: <FileDigit className="h-6 w-6 text-primary" />,

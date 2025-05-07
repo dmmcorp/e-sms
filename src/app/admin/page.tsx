@@ -42,7 +42,7 @@ function Page() {
 
             <div className="text-lg font-medium flex flex-col justify-center items-center mt-auto mb-[60px] text-black">
               <h1>ERMS.</h1>
-              <h1>Electronic Record Management System</h1>
+              <h1>Electronic Records Management System</h1>
             </div>
           </div>
         </>
@@ -51,7 +51,7 @@ function Page() {
           <div className="hidden lg:w-[50%] bg-zinc-50 lg:flex lg:flex-col lg:justify-center lg:items-center text-white px-[76px]">
             <div className="text-lg font-medium flex flex-col justify-center items-center mt-auto mb-[60px] text-black">
               <h1>ERMS.</h1>
-              <h1>Electronic Record Management System</h1>
+              <h1>Electronic Records Management System</h1>
             </div>
           </div>
         </>

@@ -42,7 +42,7 @@ export const AuthScreen = () => {
           Simplify your workflow with seamless electronic records management!
         </h1>
         <p className="text-lg font-medium">
-          Electronic Record Management System
+          Electronic Records Management System
         </p>
       </div>
 

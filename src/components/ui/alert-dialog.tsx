@@ -10,7 +10,7 @@ function AlertDialog({
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {
   return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />
-}
+} 
 
 function AlertDialogTrigger({
   ...props
