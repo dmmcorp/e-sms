@@ -13,7 +13,7 @@ import Image from "next/image";
 import { BiLogOut } from "react-icons/bi";
 import { api } from "../../convex/_generated/api";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn, roleFormatter } from "@/lib/utils";
 import Link from "next/link";
 
 function MainNav() {
@@ -29,7 +29,7 @@ function MainNav() {
   return (
     <nav
       className={cn(
-        (pathName === "/admin" || pathName === "/teacher") ? "hidden" : "flex",
+        pathName === "/admin" || pathName === "/teacher" ? "hidden" : "flex",
         "px-3 md:px-10 w-full h-18 z-50 shadow-md py-5 justify-between items-center pr-3 sm:pr-5 md:pr-10 lg:pr-10"
       )}
       style={{
@@ -38,7 +38,15 @@ function MainNav() {
       }}
     >
       <Link
-        href={user?.role === "admin" ? "/admin" : user?.role === "principal" ? "/principal" : user?.role === "registrar" ? "/registrar" : "/teacher"}
+        href={
+          user?.role === "admin"
+            ? "/admin"
+            : user?.role === "principal"
+              ? "/principal"
+              : user?.role === "registrar"
+                ? "/registrar"
+                : "/teacher"
+        }
         className="flex items-center gap-x-1 px-3 md:w-[20%] "
       >
         {school?.schoolImage ? (
@@ -73,7 +81,9 @@ function MainNav() {
 
                 <div className="text-center hidden md:block">
                   <h3 className="text-sm capitalize">{user?.fullName}</h3>
-                  <h6 className="text-xs text-left text-white/70">Teacher</h6>
+                  <h6 className="text-xs text-left text-white/70">
+                    {user?.role ? roleFormatter(user.role) : ""}
+                  </h6>
                 </div>
               </div>
             </DropdownMenuTrigger>

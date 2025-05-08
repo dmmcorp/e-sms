@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { GradeLevelsTypes, SectionType } from "./types";
+import { GradeLevelsTypes, RoleType, SectionType } from "./types";
 import {
   transmutationTable3,
   transmutationTableJRHigh2,
@@ -122,9 +122,9 @@ export function convertToTransmutedGrade(
 }
 type Scores =
   | {
-      assessmentNo: number;
-      score: number;
-    }[]
+    assessmentNo: number;
+    score: number;
+  }[]
   | undefined;
 export function getTotalScore(scores: Scores) {
   if (!scores) return 0;
@@ -205,11 +205,11 @@ export const remarks = (average: number | string) => {
 export function calculateQuarterlyAverage(
   grades:
     | {
-        "1st": number | undefined;
-        "2nd": number | undefined;
-        "3rd": number | undefined;
-        "4th": number | undefined;
-      }
+      "1st": number | undefined;
+      "2nd": number | undefined;
+      "3rd": number | undefined;
+      "4th": number | undefined;
+    }
     | undefined
 ): number | null {
   if (!grades) return null;
@@ -235,4 +235,10 @@ export function convertSemesterToNumber(semester: string | undefined): string {
     default:
       return ""; // Return the original string if no match is found
   }
+}
+
+export const roleFormatter = (role: RoleType) => {
+  const formattedRole = role === "admin" ? "Admin" : role === "adviser" ? "Adviser" : role === "adviser/subject-teacher" ? "Adviser/Subject-Teacher" : role === "principal" ? "Principal" : role === "registrar" ? "Registrar" : "Subject Teacher"
+
+  return formattedRole
 }
