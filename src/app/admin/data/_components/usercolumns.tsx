@@ -12,6 +12,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useConvexMutation } from "@convex-dev/react-query";
 import { api } from "../../../../../convex/_generated/api";
 import { toast } from "sonner";
+import { ConvexError } from "convex/values";
 
 // Define the User type kahit di na siguro Doc, but if needed just use Doc
 export type User = {
@@ -51,8 +52,12 @@ export const usercolumns: ColumnDef<User>[] = [
         onSuccess: () => {
           toast.success("User deleted successfully.");
         },
-        onError: () => {
-          toast.error("Failed to delete user.");
+        onError: (error) => {
+          if (error instanceof ConvexError) {
+            toast.error(error.data);
+          } else {
+            toast.error("Failed to delete user.");
+          }
         },
       });
 
