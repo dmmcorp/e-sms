@@ -25,11 +25,9 @@ function ActionCell({
     const router = useRouter()
     return (    
         <div>
-              <DropdownMenu>
+              <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-               
                     <MoreHorizontal className="h-4 w-4" />
-               
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                  <DropdownMenuItem onClick={() => router.push(`/teacher/adviser/students/${student._id}`)}>
