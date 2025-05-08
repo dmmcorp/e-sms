@@ -88,7 +88,7 @@ export const modules = [
     { id: "students", label: "Students" },
     { id: "enrollments", label: "Enrollments" },
     { id: "sections", label: "Sections" },
-    { id: "subjects", label: "Subjects & Teaching Loads" },
+    // { id: "subjects", label: "Subjects & Teaching Loads" },
     { id: "grades", label: "Grades & Class Records" },
 ];
 

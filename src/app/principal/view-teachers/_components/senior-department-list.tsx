@@ -196,7 +196,7 @@ export function SeniorDepartmentList() {
                                 {/* Display advisory sections relevant to the filter */}
                                 <p className="text-sm text-muted-foreground">
                                   {advisorySectionsToDisplay.length > 0
-                                    ? `Advises: ${advisorySectionsToDisplay.map((section) => section.name).join(", ")}`
+                                    ? `Adviser: ${advisorySectionsToDisplay.map((section) => section.name).join(", ")}`
                                     : "No advisory sections in this semester"}
                                 </p>
                               </div>

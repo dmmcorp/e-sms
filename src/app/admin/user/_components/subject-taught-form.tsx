@@ -1053,6 +1053,7 @@ export const SubjectTaughtForm = ({
                 <Button
                   variant="ghost"
                   size="sm"
+                  type="button"
                   onClick={() => removeSubject(index)}
                   className="text-red-500 hover:text-red-700 hover:bg-red-50"
                   disabled={isPending}
