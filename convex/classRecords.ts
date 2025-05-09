@@ -69,18 +69,6 @@ export const createComponentScore = mutation({
         .filter((q) => q.eq(q.field("classRecordId"), args.classRecordId))
         .collect();
 
-      let ww = ctx.db
-        .query("writtenWorks")
-        .filter((q) => q.eq(q.field("classRecordId"), args.classRecordId));
-
-      let pt = ctx.db
-        .query("performanceTasks")
-        .filter((q) => q.eq(q.field("classRecordId"), args.classRecordId));
-
-      let me = ctx.db
-        .query("majorExams")
-        .filter((q) => q.eq(q.field("classRecordId"), args.classRecordId));
-
       try {
         await asyncMap(args.scores, async (assessment) => {
           const existing = existingComponents.find(
@@ -91,41 +79,44 @@ export const createComponentScore = mutation({
             await ctx.db.patch(existing._id, {
               score: assessment.score,
             });
-
-            const wwLength = (await ww.collect()).length;
-            const ptLength = (await pt.collect()).length;
-            const meLength = (await me.collect()).length;
-
-            if (args.learningMode === "Face to face") {
-              readyToSubmit = wwLength >= 1 && ptLength >= 1 && meLength >= 1;
-            }
-            if (args.learningMode === "Modular") {
-              readyToSubmit = wwLength >= 1 && ptLength >= 1;
-            }
-            if (args.learningMode === "Others") {
-              readyToSubmit = true;
-            }
           } else {
             await ctx.db.insert(componentType, {
               classRecordId: args.classRecordId as Id<"classRecords">,
               assessmentNo: assessment.assessmentNo as AssessmentNoType,
               score: assessment.score,
             });
-            const wwLength = (await ww.collect()).length;
-            const ptLength = (await pt.collect()).length;
-            const meLength = (await me.collect()).length;
-
-            if (args.learningMode === "Face to face") {
-              readyToSubmit = wwLength >= 1 && ptLength >= 1 && meLength >= 1;
-            }
-            if (args.learningMode === "Modular") {
-              readyToSubmit = wwLength >= 1 && ptLength >= 1;
-            }
-            if (args.learningMode === "Others") {
-              readyToSubmit = true;
-            }
           }
         });
+
+        // Collect lengths after patching or inserting to ensure accuracy
+        const wwLength = (
+          await ctx.db
+            .query("writtenWorks")
+            .filter((q) => q.eq(q.field("classRecordId"), args.classRecordId))
+            .collect()
+        ).length;
+        const ptLength = (
+          await ctx.db
+            .query("performanceTasks")
+            .filter((q) => q.eq(q.field("classRecordId"), args.classRecordId))
+            .collect()
+        ).length;
+        const meLength = (
+          await ctx.db
+            .query("majorExams")
+            .filter((q) => q.eq(q.field("classRecordId"), args.classRecordId))
+            .collect()
+        ).length;
+
+        if (args.learningMode === "Face to face") {
+          readyToSubmit = wwLength >= 1 && ptLength >= 1 && meLength >= 1;
+        }
+        if (args.learningMode === "Modular") {
+          readyToSubmit = wwLength >= 1 && ptLength >= 1;
+        }
+        if (args.learningMode === "Others") {
+          readyToSubmit = true;
+        }
       } catch (error) {
         console.log(error);
       }

@@ -193,6 +193,7 @@ function InputDialog({
                     if(data.readyToSubmit) {
                        handleSubmitGrades()
                     }
+                    console.log(data.readyToSubmit)
                     setDialogOpen(false)
                     return "Scores saved successfully."
                 },
@@ -247,7 +248,7 @@ function InputDialog({
                         <Input
                             id={component + ("1")}
                             name={component + ("1")}
-                            disabled={isSubmitted}
+                           
                             placeholder={`Enter exam score`}
                             value={scoresInput["1"] ?? ''}
                             min={0}
@@ -316,7 +317,7 @@ function InputDialog({
                         <Input
                             id={component + (index + 1)}
                             name={component + (index + 1)}
-                            disabled={isSubmitted}
+                        
                             placeholder={`Score`}
                             type="number"
                             min={0}
@@ -374,7 +375,7 @@ function InputDialog({
                         <X className="mr-2 h-4 w-4" />
                         Cancel
                     </Button>
-                    <Button onClick={handleSaveScore} disabled={isSubmitted} >
+                    <Button onClick={handleSaveScore}  >
                     {isSaving ? (
                         <span className="flex items-center">
                         <span className="animate-spin mr-2">⏳</span> Saving...
@@ -382,12 +383,7 @@ function InputDialog({
                     ): (
                         <>
                             <Check className="mr-2 h-4 w-4" />
-                            {isSubmitted ? (
-                                "Submitted"
-                            ): (
-                                "Save"
-                            )}
-
+                            Save
                         </>
                     )}
                     </Button>
