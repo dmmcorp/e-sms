@@ -33,7 +33,7 @@ export const AuthScreen = () => {
                 </h1>
 
                 <h1 className="text-xl font-medium my-10">
-                    Electronic Record Management System
+                    Electronic Records Management System
                 </h1>
             </div> */}
 

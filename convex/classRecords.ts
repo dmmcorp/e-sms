@@ -169,18 +169,18 @@ export const saveQuarterlyGrades = mutation({
 
     const wwhighestScores = highestScores
       ? highestScores.find((score) => score.componentType === "Written Works")
-          ?.scores // Get highest scores for Written Works
+        ?.scores // Get highest scores for Written Works
       : undefined;
 
     const pthighestScores = highestScores
       ? highestScores.find(
-          (score) => score.componentType === "Performance Tasks"
-        )?.scores // Get highest scores for Performance Tasks
+        (score) => score.componentType === "Performance Tasks"
+      )?.scores // Get highest scores for Performance Tasks
       : undefined;
 
     const mehighestScores = highestScores
       ? highestScores.find((score) => score.componentType === "Major Exam")
-          ?.scores // Get highest scores for Major Exam
+        ?.scores // Get highest scores for Major Exam
       : undefined;
 
     const wwTotal = getTotalScore(wwhighestScores); // Calculate total score for Written Works

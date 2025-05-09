@@ -45,7 +45,7 @@ export const AuthScreenRegister = () => {
 
             <div className="text-lg font-medium flex flex-col justify-center items-center mt-auto mb-[60px] text-black">
               <h1>ERMS.</h1>
-              <h1>Electronic Record Management System</h1>
+              <h1>Electronic Records Management System</h1>
             </div>
           </div>
         </>
