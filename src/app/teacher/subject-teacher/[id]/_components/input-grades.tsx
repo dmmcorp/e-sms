@@ -472,7 +472,9 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
                   key={"ww-m" + wwindex}
                   className="w-[7%] h-full uppercase border border-b-0 border-black first:border-l-2   text-[0.6rem] flex justify-center items-center font-semibold text-center"
                 >
-                  {student.written[wwindex]?.score === 0 ? "0" : student.written[wwindex]?.score || ""} {/* Display score or empty string */}
+                  {student.written.find(w => w.assessmentNo === wwindex + 1)?.score === 0 
+                  ? "0" 
+                  : student.written.find(w => w.assessmentNo === wwindex + 1)?.score || ""} {/* Display score or empty string */}
                 </h1>
               ))}
 
@@ -492,7 +494,9 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
                   key={"pt-m" + ptindex}
                   className="w-[7%] h-full uppercase border border-b-0 border-black  text-[0.6rem] flex justify-center items-center font-semibold text-center"
                 >
-                  {student.performance[ptindex]?.score === 0 ? "0" : student.performance[ptindex]?.score || ""} {/* Display score or empty string */}
+                  {student.performance.find(p => p.assessmentNo === ptindex + 1)?.score === 0 
+                  ? "0" 
+                  : student.performance.find(p => p.assessmentNo === ptindex + 1)?.score || ""} {/* Display score or empty string */}
                 </h1>
               ))}
               <h1 className="w-[10%] h-full border border-b-0 border-black  text-[0.6rem] flex justify-center items-center font-semibold text-center">
@@ -609,7 +613,7 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
 
         const initialGrade = calculateInitialGrade(wwWeightedScore, ptWeightedScore, meWeightedScore)
         const transmutedGrade = convertToTransmutedGrade(initialGrade, section.gradeLevel, learningMode, subjectThought.category)
-
+        
         const isNotEnrolled = student.enrollment.status !== "enrolled"
         const interventionGrade = student.classRecord.interventionGrade
         const interventionRemarks = student.classRecord.interventionRemarks
@@ -633,7 +637,9 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
                   key={"ww-m" + wwindex}
                   className="w-[7%] h-full uppercase border border-b-0 border-black first:border-l-2   text-[0.6rem] flex justify-center items-center font-semibold text-center"
                 >
-                  {student.written[wwindex]?.score === 0 ? "0" : student.written[wwindex]?.score || ""} {/* Display score or empty string */}
+                  {student.written.find(w => w.assessmentNo === wwindex + 1)?.score === 0 
+                  ? "0" 
+                  : student.written.find(w => w.assessmentNo === wwindex + 1)?.score || ""} {/* Display score or empty string */}
                 </h1>
               ))}
 
@@ -653,7 +659,9 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
                   key={"pt-m" + ptindex}
                   className="w-[7%] h-full uppercase border border-b-0 border-black  text-[0.6rem] flex justify-center items-center font-semibold text-center"
                 >
-                  {student.performance[ptindex]?.score === 0 ? "0" : student.performance[ptindex]?.score || ""} {/* Display score or empty string */}
+                  {student.performance.find(p => p.assessmentNo === ptindex + 1)?.score === 0 
+                  ? "0" 
+                  : student.performance.find(p => p.assessmentNo === ptindex + 1)?.score || ""} {/* Display score or empty string */}
                 </h1>
               ))}
               <h1 className="w-[10%] h-full border border-b-0 border-black  text-[0.6rem] flex justify-center items-center font-semibold text-center">
@@ -687,7 +695,6 @@ function ClassRecordTemplate({ teachingLoad, selectedComponent }: ClassRecordTem
             >
               <h1 className="h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center">{initialGrade === 0 ? "" : initialGrade.toFixed(1)}</h1>
               {student.classRecord.needsIntervention ? (
-
               <CustomTooltip
                 trigger={
                   <h1 className={cn((interventionGrade ?? transmutedGrade) <= 74 && "text-red-500", "h-full uppercase border border-black border-b-0 border-t-0  text-xs flex justify-center items-center  font-semibold text-center")}>{ (transmutedGrade) === 60 ? "" : interventionGrade?.toFixed(0) ?? transmutedGrade.toFixed(0)}</h1>

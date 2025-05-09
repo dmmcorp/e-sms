@@ -1,7 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
 import { asyncMap } from "convex-helpers";
-import { Doc } from "./_generated/dataModel";
+import { Doc, Id } from "./_generated/dataModel";
 import { AssessmentNoType } from "../src/lib/types";
 import {
   calculateInitialGrade,
@@ -81,47 +81,53 @@ export const createComponentScore = mutation({
         .query("majorExams")
         .filter((q) => q.eq(q.field("classRecordId"), args.classRecordId));
 
-      for (const assessment of args.scores) {
-        const existing = existingComponents.find(
-          (c) => c.assessmentNo === assessment.assessmentNo
-        );
+      try {
+        await asyncMap(args.scores, async (assessment) => {
+          const existing = existingComponents.find(
+            (c) => c.assessmentNo === assessment.assessmentNo
+          );
 
-        if (existing) {
-          await ctx.db.patch(existing._id, {
-            score: assessment.score,
-          });
-          const wwLength = (await ww.collect()).length;
-          const ptLength = (await pt.collect()).length;
-          const meLength = (await me.collect()).length;
-          if (args.learningMode === "Face to face") {
-            readyToSubmit = wwLength >= 1 && ptLength >= 1 && meLength >= 1;
-          }
-          if (args.learningMode === "Modular") {
-            readyToSubmit = wwLength >= 1 && ptLength >= 1;
-          }
-          if (args.learningMode === "Others") {
-            readyToSubmit = true;
-          }
-        } else {
-          await ctx.db.insert(componentType, {
-            classRecordId: args.classRecordId,
-            assessmentNo: assessment.assessmentNo as AssessmentNoType,
-            score: assessment.score,
-          });
+          if (existing) {
+            await ctx.db.patch(existing._id, {
+              score: assessment.score,
+            });
 
-          const wwLength = (await ww.collect()).length;
-          const ptLength = (await pt.collect()).length;
-          const meLength = (await me.collect()).length;
-          if (args.learningMode === "Face to face") {
-            readyToSubmit = wwLength >= 1 && ptLength >= 1 && meLength >= 1;
+            const wwLength = (await ww.collect()).length;
+            const ptLength = (await pt.collect()).length;
+            const meLength = (await me.collect()).length;
+
+            if (args.learningMode === "Face to face") {
+              readyToSubmit = wwLength >= 1 && ptLength >= 1 && meLength >= 1;
+            }
+            if (args.learningMode === "Modular") {
+              readyToSubmit = wwLength >= 1 && ptLength >= 1;
+            }
+            if (args.learningMode === "Others") {
+              readyToSubmit = true;
+            }
+          } else {
+            await ctx.db.insert(componentType, {
+              classRecordId: args.classRecordId as Id<"classRecords">,
+              assessmentNo: assessment.assessmentNo as AssessmentNoType,
+              score: assessment.score,
+            });
+            const wwLength = (await ww.collect()).length;
+            const ptLength = (await pt.collect()).length;
+            const meLength = (await me.collect()).length;
+
+            if (args.learningMode === "Face to face") {
+              readyToSubmit = wwLength >= 1 && ptLength >= 1 && meLength >= 1;
+            }
+            if (args.learningMode === "Modular") {
+              readyToSubmit = wwLength >= 1 && ptLength >= 1;
+            }
+            if (args.learningMode === "Others") {
+              readyToSubmit = true;
+            }
           }
-          if (args.learningMode === "Modular") {
-            readyToSubmit = wwLength >= 1 && ptLength >= 1;
-          }
-          if (args.learningMode === "Others") {
-            readyToSubmit = true;
-          }
-        }
+        });
+      } catch (error) {
+        console.log(error);
       }
 
       return { readyToSubmit: readyToSubmit };
@@ -169,18 +175,18 @@ export const saveQuarterlyGrades = mutation({
 
     const wwhighestScores = highestScores
       ? highestScores.find((score) => score.componentType === "Written Works")
-        ?.scores // Get highest scores for Written Works
+          ?.scores // Get highest scores for Written Works
       : undefined;
 
     const pthighestScores = highestScores
       ? highestScores.find(
-        (score) => score.componentType === "Performance Tasks"
-      )?.scores // Get highest scores for Performance Tasks
+          (score) => score.componentType === "Performance Tasks"
+        )?.scores // Get highest scores for Performance Tasks
       : undefined;
 
     const mehighestScores = highestScores
       ? highestScores.find((score) => score.componentType === "Major Exam")
-        ?.scores // Get highest scores for Major Exam
+          ?.scores // Get highest scores for Major Exam
       : undefined;
 
     const wwTotal = getTotalScore(wwhighestScores); // Calculate total score for Written Works
