@@ -86,14 +86,34 @@ const transformForExport = (table: string, data: any[], enrichmentData?: any) =>
 
     switch (table) {
         case "sections":
-            return transformedData.map(section => ({
-                "Section Name": section.name,
-                "Grade Level": section.gradeLevel,
-                "School Year": section.schoolYear,
-                "Adviser": userMap.get(section.adviserId) || "Not Assigned",
-                "Students Count": sectionCounts.get(section._id) || 0,
-                "Created": new Date(section._creationTime).toLocaleDateString(),
-            }));
+            return transformedData.map(section => {
+                let quarterDisplay = "N/A";
+                const isSHS = section.gradeLevel === "Grade 11" || section.gradeLevel === "Grade 12";
+
+                if (isSHS) {
+                    if (section.semester === "1st semester") {
+                        quarterDisplay = "1st & 2nd Quarter";
+                    } else if (section.semester === "2nd semester") {
+                        quarterDisplay = "3rd & 4th Quarter";
+                    } else {
+                        quarterDisplay = "N/A (SHS)"; // Should have a semester
+                    }
+                } else {
+                    quarterDisplay = "1st, 2nd, 3rd & 4th Quarter";
+                }
+
+                return {
+                    "Section Name": section.name,
+                    "Grade Level": section.gradeLevel,
+                    "School Year": section.schoolYear,
+                    "Adviser": userMap.get(section.adviserId) || "Not Assigned",
+                    "Students Count": sectionCounts.get(section._id) || 0,
+                    "Created": new Date(section._creationTime).toLocaleDateString(),
+                    "Semester": section.semester || (isSHS ? "N/A" : "Whole Year (JHS)"),
+                    "Applicable Quarters": quarterDisplay,
+                };
+
+            })
 
         case 'students':
             return transformedData.map(student => ({
