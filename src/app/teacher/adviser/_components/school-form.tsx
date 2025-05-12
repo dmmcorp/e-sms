@@ -44,7 +44,7 @@ function getFullName(student: StudentTypes) {
           <div className=''>
             <div className="flex w-full justify-center">
               <Select onValueChange={(value) => setSelectedStudent(value)}>
-                  <SelectTrigger className="w-[180px] capitalize">
+                  <SelectTrigger className="w-fit capitalize">
                       <SelectValue placeholder="Select a student" className='capitalize' />
                   </SelectTrigger>
                   <SelectContent className='max-h-64'>
