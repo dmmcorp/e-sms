@@ -1,7 +1,7 @@
 "use client"
 import React from 'react'
 import useTeacherStore from '../_store/useTeacher'
-import SubjectThought from './_components/subject-taught'
+import SubjectTaught from './_components/subject-taught'
 
 function SubjectTeacherPage() {
   const teacher = useTeacherStore(state => state.teacher)
@@ -12,7 +12,7 @@ function SubjectTeacherPage() {
         Welcome teacher {firstName}! 
       </h1>
       
-      <SubjectThought/>
+      <SubjectTaught/>
    
     </div>
 

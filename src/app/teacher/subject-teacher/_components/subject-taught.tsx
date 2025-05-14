@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import Loading from '../../loading'
 
-function SubjectThought() {
+function SubjectTaught() {
   // Fetch the list of subjects using the `useQuery` hook
   const subjects = useQuery(api.subjectThought.getSubjects)
   const [selectedSem, setSelectedSem] = useState<SemesterType | undefined>()
@@ -81,4 +81,4 @@ function SubjectThought() {
   )
 }
 
-export default SubjectThought
+export default SubjectTaught
