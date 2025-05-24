@@ -105,115 +105,115 @@ function UserPage() {
     }
 
     // Adviser validations
-    if (
-      formData.role === "adviser" ||
-      formData.role === "adviser/subject-teacher"
-    ) {
-      if (!formData.sections || formData.sections.length === 0) {
-        fieldErrors.sections = "At least one section is required";
-      } else {
-        // Validate each section
-        formData.sections.forEach((section, index) => {
-          if (!section.name) {
-            fieldErrors[`section${index}Name`] = "Section name is required";
-          }
-          if (!section.gradeLevel) {
-            fieldErrors[`section${index}GradeLevel`] =
-              "Grade level is required";
-          }
-          if (!section.schoolYear) {
-            fieldErrors[`section${index}SchoolYear`] =
-              "School year is required";
-          }
-        });
-      }
-    }
+    // if (
+    //   formData.role === "adviser" ||
+    //   formData.role === "adviser/subject-teacher"
+    // ) {
+    //   if (!formData.sections || formData.sections.length === 0) {
+    //     fieldErrors.sections = "At least one section is required";
+    //   } else {
+    //     // Validate each section
+    //     formData.sections.forEach((section, index) => {
+    //       if (!section.name) {
+    //         fieldErrors[`section${index}Name`] = "Section name is required";
+    //       }
+    //       if (!section.gradeLevel) {
+    //         fieldErrors[`section${index}GradeLevel`] =
+    //           "Grade level is required";
+    //       }
+    //       if (!section.schoolYear) {
+    //         fieldErrors[`section${index}SchoolYear`] =
+    //           "School year is required";
+    //       }
+    //     });
+    //   }
+    // }
 
     // Subject Teacher validations
-    if (
-      formData.role === "subject-teacher" ||
-      formData.role === "adviser/subject-teacher"
-    ) {
-      if (!formData.subjectsTaught || formData.subjectsTaught.length === 0) {
-        fieldErrors.subjectsTaught = "At least one subject is required";
-      } else {
-        // Validate each subject
-        formData.subjectsTaught.forEach((subject, index) => {
-          if (!subject.subjectName) {
-            fieldErrors[`subject${index}Name`] = "Subject name is required";
-          }
-          if (!subject.gradeLevel) {
-            fieldErrors[`subject${index}Grade`] = "Grade level is required";
-          }
-          if (!subject.sectionId) {
-            fieldErrors[`subject${index}Section`] = "Section is required";
-          }
+    // if (
+    //   formData.role === "subject-teacher" ||
+    //   formData.role === "adviser/subject-teacher"
+    // ) {
+    //   if (!formData.subjectsTaught || formData.subjectsTaught.length === 0) {
+    //     fieldErrors.subjectsTaught = "At least one subject is required";
+    //   } else {
+    //     // Validate each subject
+    //     formData.subjectsTaught.forEach((subject, index) => {
+    //       if (!subject.subjectName) {
+    //         fieldErrors[`subject${index}Name`] = "Subject name is required";
+    //       }
+    //       if (!subject.gradeLevel) {
+    //         fieldErrors[`subject${index}Grade`] = "Grade level is required";
+    //       }
+    //       if (!subject.sectionId) {
+    //         fieldErrors[`subject${index}Section`] = "Section is required";
+    //       }
 
-          if (
-            (subject.gradeLevel === "Grade 11" ||
-              subject.gradeLevel === "Grade 12") &&
-            !subject.category
-          ) {
-            fieldErrors[`subject${index}Category`] = "Category is required";
-          }
+    //       if (
+    //         (subject.gradeLevel === "Grade 11" ||
+    //           subject.gradeLevel === "Grade 12") &&
+    //         !subject.category
+    //       ) {
+    //         fieldErrors[`subject${index}Category`] = "Category is required";
+    //       }
 
-          // MAPEH validation
-          if (subject.isMapeh && !subject.mapehComponent) {
-            fieldErrors[`subject${index}MapehComponent`] =
-              "MAPEH component is required";
-          }
+    //       // MAPEH validation
+    //       if (subject.isMapeh && !subject.mapehComponent) {
+    //         fieldErrors[`subject${index}MapehComponent`] =
+    //           "MAPEH component is required";
+    //       }
 
-          if (
-            (!subject.quarter || subject.quarter.length === 0) &&
-            (!subject.semester || subject.semester.length === 0)
-          ) {
-            fieldErrors[`subject${index}Period`] =
-              "Select either quarters or semesters";
-          }
+    //       if (
+    //         (!subject.quarter || subject.quarter.length === 0) &&
+    //         (!subject.semester || subject.semester.length === 0)
+    //       ) {
+    //         fieldErrors[`subject${index}Period`] =
+    //           "Select either quarters or semesters";
+    //       }
 
-          if (
-            subject.gradeLevel === "Grade 11" ||
-            subject.gradeLevel === "Grade 12"
-          ) {
-            if (!subject.quarter || subject.quarter.length === 0) {
-              fieldErrors[`subject${index}Quarter`] = "Quarter is required";
-            }
-            if (!subject.semester || subject.semester.length === 0) {
-              fieldErrors[`subject${index}Semester`] = "Semester is required";
-            }
-          }
+    //       if (
+    //         subject.gradeLevel === "Grade 11" ||
+    //         subject.gradeLevel === "Grade 12"
+    //       ) {
+    //         if (!subject.quarter || subject.quarter.length === 0) {
+    //           fieldErrors[`subject${index}Quarter`] = "Quarter is required";
+    //         }
+    //         if (!subject.semester || subject.semester.length === 0) {
+    //           fieldErrors[`subject${index}Semester`] = "Semester is required";
+    //         }
+    //       }
 
-          // Validate grade weights
-          if (subject.gradeWeights) {
-            const weights = subject.gradeWeights;
-            let total = 0;
+    //       // Validate grade weights
+    //       if (subject.gradeWeights) {
+    //         const weights = subject.gradeWeights;
+    //         let total = 0;
 
-            if (weights.type === "Face to face" && weights.faceToFace) {
-              total =
-                weights.faceToFace.ww +
-                weights.faceToFace.pt +
-                weights.faceToFace.majorExam;
-            } else if (weights.type === "Modular" && weights.modular) {
-              total = weights.modular.ww + weights.modular.pt;
-            } else if (weights.type === "Other" && weights.other) {
-              // Check if other array exists and has elements
-              total =
-                weights.other && weights.other.length > 0
-                  ? weights.other.reduce(
-                      (sum, item) => sum + item.percentage,
-                      0
-                    )
-                  : 0;
-            }
+    //         if (weights.type === "Face to face" && weights.faceToFace) {
+    //           total =
+    //             weights.faceToFace.ww +
+    //             weights.faceToFace.pt +
+    //             weights.faceToFace.majorExam;
+    //         } else if (weights.type === "Modular" && weights.modular) {
+    //           total = weights.modular.ww + weights.modular.pt;
+    //         } else if (weights.type === "Other" && weights.other) {
+    //           // Check if other array exists and has elements
+    //           total =
+    //             weights.other && weights.other.length > 0
+    //               ? weights.other.reduce(
+    //                   (sum, item) => sum + item.percentage,
+    //                   0
+    //                 )
+    //               : 0;
+    //         }
 
-            if (total !== 100) {
-              fieldErrors[`subject${index}Weights`] =
-                "Grade weights must total 100%";
-            }
-          }
-        });
-      }
-    }
+    //         if (total !== 100) {
+    //           fieldErrors[`subject${index}Weights`] =
+    //             "Grade weights must total 100%";
+    //         }
+    //       }
+    //     });
+    //   }
+    // }
 
     // If there are validation errors, show them and DON'T submit the form
     if (Object.keys(fieldErrors).length > 0) {

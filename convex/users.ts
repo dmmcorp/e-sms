@@ -913,9 +913,11 @@ export const updateUser = mutation({
     await ctx.db.patch(userId, userData);
 
     const createdSectionsMap = new Map<number, { firstSemId?: Id<"sections">, secondSemId?: Id<"sections">, jhsId?: Id<"sections"> }>();
-
     // ! ADVISER ROLE
-    if (args.role === "adviser" || args.role === "adviser/subject-teacher") {
+    if (
+      (args.role === "adviser" || args.role === "adviser/subject-teacher") &&
+      args.sections
+    ) {
       const submittedSections = args.sections || [];
       const submittedSectionIds = new Set(submittedSections.map(s => s.sectionId).filter(Boolean) as Id<"sections">[]);
 
@@ -947,7 +949,7 @@ export const updateUser = mutation({
       }
 
       // Create new sections (handle SHS pair creation)
-      const createdSectionsMap = new Map<number, { firstSemId?: Id<"sections">, secondSemId?: Id<"sections">, jhsId?: Id<"sections"> }>(); // Store created IDs for pending subjects
+
       for (const [index, sectionToCreate] of newSectionsToCreate.entries()) {
         const isSHS = seniorHighGrades.includes(sectionToCreate.gradeLevel);
         if (isSHS) {

@@ -38,12 +38,12 @@ export const SectionForm = ({
       setFormData((prev) => ({
         ...prev,
         sections: [
-          {
-            name: "",
-            gradeLevel: "Grade 7",
-            schoolYear: "2024-2025",
-            sectionId: undefined,
-          },
+          // {
+          //   name: "",
+          //   gradeLevel: "Grade 7",
+          //   schoolYear: "2024-2025",
+          //   sectionId: undefined,
+          // },
         ],
       }));
     }
@@ -79,6 +79,8 @@ export const SectionForm = ({
     });
   };
 
+  console.log("Sections:", formData.sections);
+
   return (
     <motion.div
       variants={containerVariants}
@@ -106,7 +108,7 @@ export const SectionForm = ({
             <CardContent className="pt-4 space-y-3">
               <div className="flex justify-between items-center">
                 <h4 className="font-medium">Section {index + 1}</h4>
-                {formData.sections!.length > 1 && (
+                {formData.sections!.length > 0 && (
                   <Button
                     type="button"
                     variant="ghost"
