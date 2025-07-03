@@ -213,39 +213,43 @@ export const edit = mutation({
 
     const isSHS =
       args.enrollingIn === "Grade 11" || args.enrollingIn === "Grade 12";
-    await ctx.db.patch(student._id, {
-      lastName: args.lastName,
-      firstName: args.firstName,
-      middleName: args.middleName,
-      sex: args.sex,
-      lrn: args.lrn,
-      dateOfBirth: args.dateOfBirth,
-      elementary: {
-        genAve: args.elementary?.genAve,
-        school: args.elementary?.school,
-        address: args.elementary?.address,
-        schoolId: args.elementary?.schoolId,
-      },
-      juniorHigh: {
-        genAve: args.juniorHigh?.genAve,
-        school: args.juniorHigh?.school,
-        address: args.juniorHigh?.address,
-        completion: args.juniorHigh?.completion,
-      },
-      juniorHighDateOfAdmission:
-        args.enrollingIn === "Grade 11" || args.enrollingIn === "Grade 12"
-          ? undefined
-          : args.juniorHighDateOfAdmission,
-      seniorHighDateOfAdmission:
-        args.enrollingIn === "Grade 11" || args.enrollingIn === "Grade 12"
-          ? args.juniorHighDateOfAdmission
+
+    const existingStudent = await ctx.db.get(args.studentId);
+    if (existingStudent) {
+      await ctx.db.patch(student._id, {
+        lastName: args.lastName,
+        firstName: args.firstName,
+        middleName: args.middleName,
+        sex: args.sex,
+        lrn: args.lrn,
+        dateOfBirth: args.dateOfBirth,
+        elementary: {
+          genAve: args.elementary?.genAve,
+          school: args.elementary?.school,
+          address: args.elementary?.address,
+          schoolId: args.elementary?.schoolId,
+        },
+        juniorHigh: {
+          genAve: args.juniorHigh?.genAve,
+          school: args.juniorHigh?.school,
+          address: args.juniorHigh?.address,
+          completion: args.juniorHigh?.completion,
+        },
+        juniorHighDateOfAdmission:
+          args.enrollingIn === "Grade 11" || args.enrollingIn === "Grade 12"
+            ? existingStudent.seniorHighDateOfAdmission
+            : args.juniorHighDateOfAdmission,
+        seniorHighDateOfAdmission:
+          args.enrollingIn === "Grade 11" || args.enrollingIn === "Grade 12"
+            ? args.juniorHighDateOfAdmission
+            : existingStudent.juniorHighDateOfAdmission,
+        alsRating: args.alsRating,
+        enrollingIn: args.enrollingIn,
+        semesterEnrollingIn: isSHS
+          ? (args.semesterEnrollingIn as "1st semester" | "2nd semester")
           : undefined,
-      alsRating: args.alsRating,
-      enrollingIn: args.enrollingIn,
-      semesterEnrollingIn: isSHS
-        ? (args.semesterEnrollingIn as "1st semester" | "2nd semester")
-        : undefined,
-    });
+      });
+    }
   },
 });
 

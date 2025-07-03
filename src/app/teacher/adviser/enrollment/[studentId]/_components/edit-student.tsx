@@ -52,14 +52,16 @@ function EditStudent({
             jnrGenAve:  Number(student?.juniorHigh?.genAve) || undefined ,
             jnrPrevSchoolName: student?.juniorHigh?.school || "",
             jnrPrevSchoolAddress:  student?.juniorHigh?.address || "",
-            jnrDateOfAdmission: student?.juniorHighDateOfAdmission ? new Date(student.juniorHighDateOfAdmission) : undefined,
+            jnrDateOfAdmission: (student.enrollingIn === "Grade 11" || student.enrollingIn === "Grade 12")
+                ? (student.seniorHighDateOfAdmission ? new Date(student.seniorHighDateOfAdmission) : undefined)
+                : (student.juniorHighDateOfAdmission ? new Date(student.juniorHighDateOfAdmission) : undefined),
             jnrDateOfCompletion: student.juniorHigh?.completion ? new Date(student.juniorHigh?.completion) : undefined,
             enrollingTo: student.enrollingIn,
             semesterEnrollingIn: student.semesterEnrollingIn,
             alsRating: student?.alsRating || "",
         },
     });
-        
+    const isSHS = form.watch("enrollingTo") === "Grade 11" || form.watch("enrollingTo") === "Grade 12";
     function onSubmit(values: z.infer<typeof enrollmentSchema>) {
         // Do something with the form values.
         // ✅ This will be type-safe and validated.
