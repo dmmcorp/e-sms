@@ -145,6 +145,8 @@ export const add = mutation({
       .filter((q) => q.eq(q.field("lrn"), args.lrn))
       .first();
 
+    const isSHS =
+      args.enrollingIn === "Grade 11" || args.enrollingIn === "Grade 12";
     if (isExistingStudent !== null) {
       throw new ConvexError(
         `Student with the lrn:${isExistingStudent.lrn} is already exist.`
@@ -152,6 +154,7 @@ export const add = mutation({
     } else {
       await ctx.db.insert("students", {
         ...args,
+        semesterEnrollingIn: isSHS ? "1st semester" : undefined,
         status: "not-enrolled",
         isArchived: false,
       });
@@ -211,6 +214,10 @@ export const edit = mutation({
         completion: args.juniorHigh.completion,
       },
       juniorHighDateOfAdmission: args.juniorHighDateOfAdmission,
+      seniorHighDateOfAdmission:
+        args.enrollingIn === "Grade 11"
+          ? args.juniorHighDateOfAdmission
+          : undefined,
       alsRating: args.alsRating,
       enrollingIn: args.enrollingIn,
     });
