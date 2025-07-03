@@ -175,7 +175,7 @@ function SF10({sectionStudentId}: SF10Types) {
                         
                         </div>
                         
-                        <h1 className='col-span-4 flex gap-x-3 w-1/2 items-baseline '>Gen. Ave: <span className='bg-transparent border-b border-b-black flex-1 text-center w-1/3 px-3 h-4'>{student.elementary.genAve}</span></h1>
+                        <h1 className='col-span-4 flex gap-x-3 w-1/2 items-baseline '>Gen. Ave: <span className='bg-transparent border-b border-b-black flex-1 text-center w-1/3 px-3 h-4'>{student.elementary?.genAve}</span></h1>
                         <h1 className='col-span-4 flex gap-x-3 items-baseline '>Citation(if Any): <span className='bg-transparent border-b border-b-black text-center flex-1 w-1/3 px-3 h-4'></span></h1>
                         
                     </div>
@@ -188,9 +188,9 @@ function SF10({sectionStudentId}: SF10Types) {
                     </div>
                     ):(
                     <div className="grid grid-cols-12 gap-x-5 text-[0.6rem] ">
-                        <h1 className='flex gap-x-1 col-span-5 pl-5'>Name of Elementary School: <span className='bg-transparent border-b border-b-black flex-1 h-4 w-1/3 px-3'>{student.elementary.school}</span></h1>
-                        <h1 className='flex gap-x-1  col-span-3'>School ID: <span className='bg-transparent border-b border-b-black line-clamp-1 flex-1 w-1/3 px-3 h-4'>{student.elementary.schoolId}</span></h1>
-                        <h1 className='flex gap-x-1  col-span-4'>Address of School: <span className='bg-transparent border-b line-clamp-1 border-b-black flex-1 w-1/3 px-3 h-4'>{student.elementary.address}</span></h1>
+                        <h1 className='flex gap-x-1 col-span-5 pl-5'>Name of Elementary School: <span className='bg-transparent border-b border-b-black flex-1 h-4 w-1/3 px-3'>{student.elementary?.school}</span></h1>
+                        <h1 className='flex gap-x-1  col-span-3'>School ID: <span className='bg-transparent border-b border-b-black line-clamp-1 flex-1 w-1/3 px-3 h-4'>{student.elementary?.schoolId}</span></h1>
+                        <h1 className='flex gap-x-1  col-span-4'>Address of School: <span className='bg-transparent border-b line-clamp-1 border-b-black flex-1 w-1/3 px-3 h-4'>{student.elementary?.address}</span></h1>
                     </div>    
                     )}
                 </div>

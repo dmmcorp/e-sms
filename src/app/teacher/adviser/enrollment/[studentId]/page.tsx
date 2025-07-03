@@ -69,19 +69,19 @@ function Page() {
                 <div className="grid gap-4 sm:grid-cols-2 px-2">
                     <div className="space-y-1">
                         <p className="text-sm text-muted-foreground">School Name</p>
-                        <p className="font-medium capitalize">{student?.elementary.school}</p>
+                        <p className="font-medium capitalize">{student?.elementary?.school}</p>
                     </div>
                     <div className="space-y-1">
                         <p className="text-sm text-muted-foreground">School Address</p>
-                        <p className="font-medium capitalize">{student?.elementary.address}</p>
+                        <p className="font-medium capitalize">{student?.elementary?.address}</p>
                     </div>
                     <div className="space-y-1">
                         <p className="text-sm text-muted-foreground">School ID</p>
-                        <p className="font-medium capitalize">{student?.elementary.schoolId}</p>
+                        <p className="font-medium capitalize">{student?.elementary?.schoolId}</p>
                     </div>
                     <div className="space-y-1">
                         <p className="text-sm text-muted-foreground">General Average</p>
-                        <p className="font-medium capitalize">{student?.elementary.genAve}</p>
+                        <p className="font-medium capitalize">{student?.elementary?.genAve}</p>
                     </div>
                 </div>
             </div>
