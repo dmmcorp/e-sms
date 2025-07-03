@@ -137,7 +137,7 @@ export const add = mutation({
         completion: v.optional(v.string()),
       })
     ),
-    juniorHighDateOfAdmission: v.string(),
+    juniorHighDateOfAdmission: v.optional(v.string()),
     alsRating: v.optional(v.string()),
     enrollingIn: gradeLevel,
     semesterEnrollingIn: v.optional(v.string()),
@@ -159,6 +159,12 @@ export const add = mutation({
         ...args,
         semesterEnrollingIn: isSHS
           ? (args.semesterEnrollingIn as "1st semester" | "2nd semester")
+          : undefined,
+        juniorHighDateOfAdmission: isSHS
+          ? undefined
+          : args.juniorHighDateOfAdmission,
+        seniorHighDateOfAdmission: isSHS
+          ? args.juniorHighDateOfAdmission
           : undefined,
         status: "not-enrolled",
         isArchived: false,

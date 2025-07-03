@@ -263,6 +263,7 @@ function EditStudent({
                             </FormItem>
                             )}
                         />
+                        {form.watch("enrollingTo") === "Grade 11" || form.watch("enrollingTo") === "Grade 7" ? (
                         <FormField
                         control={form.control}
                         name="jnrDateOfAdmission"
@@ -297,6 +298,7 @@ function EditStudent({
                             </FormItem>
                         )}
                         />
+                        ) : null}
                         {form.watch("enrollingTo") === "Grade 11" || form.watch("enrollingTo") === "Grade 12" ? (
                          <FormField
                             control={form.control}
