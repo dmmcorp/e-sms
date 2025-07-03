@@ -91,7 +91,7 @@ function EnrollmentForm() {
             address: values.jnrPrevSchoolAddress || undefined,
             completion: values.jnrDateOfCompletion?.toDateString() || undefined
           },
-          juniorHighDateOfAdmission: values.jnrDateOfAdmission.toDateString(),
+          juniorHighDateOfAdmission: values.jnrDateOfAdmission?.toDateString() || undefined,
           alsRating: values.alsRating,
           enrollingIn: values.enrollingTo as GradeLevelsTypes,
           semesterEnrollingIn: values.semesterEnrollingIn as "1st semester" | "2nd semester" | undefined,

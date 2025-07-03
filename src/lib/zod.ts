@@ -186,12 +186,14 @@ export const enrollmentSchema = z.object({
   jnrGenAve: z.coerce.number().optional(),
   jnrPrevSchoolName: z.string().optional(),
   jnrPrevSchoolAddress: z.string().optional(),
-  jnrDateOfAdmission: z.date({
-    required_error: "Date of admission is required.",
-  }),
-  jnrDateOfCompletion: z
+  jnrDateOfAdmission: z
     .date({
       required_error: "Date of admission is required.",
+    })
+    .optional(),
+  jnrDateOfCompletion: z
+    .date({
+      required_error: "Date of completion is required.",
     })
     .optional(),
 

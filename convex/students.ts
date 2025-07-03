@@ -198,7 +198,7 @@ export const edit = mutation({
         completion: v.optional(v.string()),
       })
     ),
-    juniorHighDateOfAdmission: v.string(),
+    juniorHighDateOfAdmission: v.optional(v.string()),
     alsRating: v.optional(v.string()),
     enrollingIn: gradeLevel,
     semesterEnrollingIn: v.optional(v.string()),
@@ -232,9 +232,12 @@ export const edit = mutation({
         address: args.juniorHigh?.address,
         completion: args.juniorHigh?.completion,
       },
-      juniorHighDateOfAdmission: args.juniorHighDateOfAdmission,
+      juniorHighDateOfAdmission:
+        args.enrollingIn === "Grade 11" || args.enrollingIn === "Grade 12"
+          ? undefined
+          : args.juniorHighDateOfAdmission,
       seniorHighDateOfAdmission:
-        args.enrollingIn === "Grade 11"
+        args.enrollingIn === "Grade 11" || args.enrollingIn === "Grade 12"
           ? args.juniorHighDateOfAdmission
           : undefined,
       alsRating: args.alsRating,

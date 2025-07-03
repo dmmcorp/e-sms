@@ -84,7 +84,7 @@ function EditStudent({
                 address: values.jnrPrevSchoolAddress || "",
                 completion: values.jnrDateOfCompletion?.toDateString() || ""
             },
-            juniorHighDateOfAdmission: values.jnrDateOfAdmission.toDateString(),
+            juniorHighDateOfAdmission: values.jnrDateOfAdmission ? values.jnrDateOfAdmission.toDateString() : undefined,
             alsRating: values.alsRating,
             enrollingIn: values.enrollingTo as GradeLevelsTypes,
             semesterEnrollingIn: values.semesterEnrollingIn || undefined,
@@ -169,11 +169,13 @@ function EditStudent({
                                 Date of Birth <span className="text-red-500">*</span>
                                 </FormLabel>
                                 <Popover>
-                                <PopoverTrigger asChild className='z-50'>
+                                <PopoverTrigger className='z-50 w-full'>
                                     <FormControl>
                                     <Button
+                                        type='button'
+                            
                                         variant={"outline"}
-                                        className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                        className={cn("pl-3 text-left font-normal w-full", !field.value && "text-muted-foreground")}
                                     >
                                         {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
                                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
@@ -263,21 +265,22 @@ function EditStudent({
                             </FormItem>
                             )}
                         />
-                        {form.watch("enrollingTo") === "Grade 11" || form.watch("enrollingTo") === "Grade 7" ? (
+                       
                         <FormField
                         control={form.control}
                         name="jnrDateOfAdmission"
                         render={({ field }) => (
                             <FormItem className="flex flex-col">
                                 <FormLabel>
-                                    Date of Admission <span className="text-red-500">*</span>
+                                    Date of Admission {form.watch("enrollingTo") === "Grade 11" ? "(SHS)" : "(JHS)" } <span className="text-red-500">*</span>
                                 </FormLabel>
                                 <Popover>
-                                <PopoverTrigger asChild>
+                                <PopoverTrigger >
                                     <FormControl>
                                     <Button
                                         variant={"outline"}
-                                        className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                        type='button'
+                                        className={cn("pl-3 text-left font-normal w-full", !field.value && "text-muted-foreground")}
                                     >
                                         {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
                                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
@@ -298,7 +301,6 @@ function EditStudent({
                             </FormItem>
                         )}
                         />
-                        ) : null}
                         {form.watch("enrollingTo") === "Grade 11" || form.watch("enrollingTo") === "Grade 12" ? (
                          <FormField
                             control={form.control}
@@ -461,7 +463,7 @@ function EditStudent({
                                             </Button>
                                         </FormControl>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
+                                    <PopoverContent className="w-auto p-0 z-[9999]" align="start">
                                         <Calendar
                                         mode="single"
                                         selected={field.value}
