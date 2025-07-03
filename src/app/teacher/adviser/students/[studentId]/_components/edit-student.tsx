@@ -47,7 +47,7 @@ function EditStudent({
             elemGenAve: Number(student?.elementary?.genAve) || undefined,
             elemPrevSchoolName: student?.elementary?.school || "",
             elemPrevSchoolAddress: student?.elementary?.address || "",
-            elemSchoolId: student?.elementary.schoolId || "",
+            elemSchoolId: student?.elementary?.schoolId || "",
 
             jnrGenAve:  Number(student?.juniorHigh?.genAve) || undefined ,
             jnrPrevSchoolName: student?.juniorHigh?.school || "",
@@ -55,6 +55,7 @@ function EditStudent({
             jnrDateOfAdmission: student?.juniorHighDateOfAdmission ? new Date(student.juniorHighDateOfAdmission) : undefined,
             jnrDateOfCompletion: student.juniorHigh?.completion ? new Date(student.juniorHigh?.completion) : undefined,
             enrollingTo: student.enrollingIn,
+            semesterEnrollingIn: student.semesterEnrollingIn,
             alsRating: student?.alsRating || "",
         },
     });
@@ -72,11 +73,11 @@ function EditStudent({
             lrn:  values.lrn.toString(),
             dateOfBirth: values.dateOfBirth.toDateString(),
             elementary: {
-                genAve: values.elemGenAve.toString(),
-                school: values.elemPrevSchoolName,
-                address: values.elemPrevSchoolAddress,
-                schoolId: values.elemSchoolId
-            },
+                genAve: values.elemGenAve ? values.elemGenAve.toString() : undefined,
+                school: values.elemPrevSchoolName ?? "",
+                address: values.elemPrevSchoolAddress ?? "",
+                schoolId: values.elemSchoolId ?? ""
+            } ,
             juniorHigh: {
                 genAve: values.jnrGenAve?.toString() || "",
                 school: values.jnrPrevSchoolName || "",
@@ -85,11 +86,11 @@ function EditStudent({
             },
             juniorHighDateOfAdmission: values.jnrDateOfAdmission.toDateString(),
             alsRating: values.alsRating,
-            enrollingIn: values.enrollingTo as GradeLevelsTypes
+            enrollingIn: values.enrollingTo as GradeLevelsTypes,
+            semesterEnrollingIn: values.semesterEnrollingIn || undefined,
         }),{
             loading: "Updating student information...",
-            success: () =>{ 
-                form.reset()
+            success: () => {
                 setEditDialog(false)
             return "Updated student information"
             },
@@ -296,6 +297,43 @@ function EditStudent({
                             </FormItem>
                         )}
                         />
+                        {form.watch("enrollingTo") === "Grade 11" || form.watch("enrollingTo") === "Grade 12" ? (
+                         <FormField
+                            control={form.control}
+                            name="semesterEnrollingIn"
+                            render={({ field }) => (
+                            <FormItem  className=''>
+                                <FormLabel>
+                                Semester for Enrollment  <span className="text-red-500">*</span>
+                                </FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                    <SelectTrigger className='w-full'>
+                                    <SelectValue placeholder="Select semester" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem  value={"1st semester"}>1st semester</SelectItem>
+                                    <SelectItem  value={"2nd semester"}>2nd semester</SelectItem>
+                                </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        ) : (
+                            <FormField
+                                control={form.control}
+                                name="semesterEnrollingIn"
+                                render={({ field }) => (
+                                    <FormItem className='hidden'>
+                                        <FormControl>
+                                            <Input type='hidden' {...field} />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        )}
                     </div>
                     </div>
 
@@ -309,7 +347,7 @@ function EditStudent({
                             render={({ field }) => (
                                 <FormItem>
                                 <FormLabel>
-                                    School Name <span className="text-red-500">*</span>
+                                    School Name
                                 </FormLabel>
                                 <FormControl>
                                     <Input placeholder="Enter previous school name" {...field} />
@@ -325,7 +363,7 @@ function EditStudent({
                                 render={({ field }) => (
                                     <FormItem>
                                     <FormLabel>
-                                        School Address <span className="text-red-500">*</span>
+                                        School Address
                                     </FormLabel>
                                     <FormControl>
                                         <Input placeholder="Enter previous school address" {...field} />
@@ -340,7 +378,7 @@ function EditStudent({
                                 render={({ field }) => (
                                     <FormItem>
                                     <FormLabel>
-                                        School Id <span className="text-red-500">*</span>
+                                        School Id
                                     </FormLabel>
                                     <FormControl>
                                         <Input placeholder="Enter previous school Id" {...field} />
@@ -355,7 +393,7 @@ function EditStudent({
                                 render={({ field }) => (
                                     <FormItem>
                                     <FormLabel>
-                                        General Average <span className="text-red-500">*</span>
+                                        General Average
                                     </FormLabel>
                                     <FormControl>
                                         <Input type='number' placeholder="Enter general average" {...field} />
@@ -406,7 +444,7 @@ function EditStudent({
                                 render={({ field }) => (
                                 <FormItem className="flex flex-col">
                                     <FormLabel>
-                                    Date of Completion <span className="text-red-500">*</span>
+                                    Date of Completion
                                     </FormLabel>
                                     <Popover>
                                     <PopoverTrigger className='flex w-full'>
@@ -472,7 +510,10 @@ function EditStudent({
                         <div className='flex items-center justify-evenly gap-5 ml-auto'>
                             <Button 
                                 type='button'
-                                onClick={()=> setEditDialog(false)}
+                                onClick={()=> {
+                                    form.reset()
+                                    setEditDialog(false)
+                                }}
                                 variant={'secondary'}
                                 disabled={isSubmitting}
                             >

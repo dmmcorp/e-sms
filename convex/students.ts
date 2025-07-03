@@ -121,23 +121,26 @@ export const add = mutation({
     sex: v.union(v.literal("male"), v.literal("female")),
     lrn: v.string(),
     dateOfBirth: v.string(),
-    elementary: v.object({
-      genAve: v.string(),
-      school: v.string(),
-      address: v.string(),
-      schoolId: v.string(),
-    }),
+    elementary: v.optional(
+      v.object({
+        genAve: v.optional(v.string()),
+        school: v.optional(v.string()),
+        address: v.optional(v.string()),
+        schoolId: v.optional(v.string()),
+      })
+    ),
     juniorHigh: v.optional(
       v.object({
         genAve: v.optional(v.string()),
-        school: v.string(),
-        address: v.string(),
+        school: v.optional(v.string()),
+        address: v.optional(v.string()),
         completion: v.optional(v.string()),
       })
     ),
     juniorHighDateOfAdmission: v.string(),
     alsRating: v.optional(v.string()),
     enrollingIn: gradeLevel,
+    semesterEnrollingIn: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const isExistingStudent = await ctx.db
@@ -154,7 +157,9 @@ export const add = mutation({
     } else {
       await ctx.db.insert("students", {
         ...args,
-        semesterEnrollingIn: isSHS ? "1st semester" : undefined,
+        semesterEnrollingIn: isSHS
+          ? (args.semesterEnrollingIn as "1st semester" | "2nd semester")
+          : undefined,
         status: "not-enrolled",
         isArchived: false,
       });
@@ -171,21 +176,26 @@ export const edit = mutation({
     sex: v.union(v.literal("male"), v.literal("female")),
     lrn: v.string(),
     dateOfBirth: v.string(),
-    elementary: v.object({
-      genAve: v.string(),
-      school: v.string(),
-      address: v.string(),
-      schoolId: v.string(),
-    }),
-    juniorHigh: v.object({
-      genAve: v.optional(v.string()),
-      school: v.string(),
-      address: v.string(),
-      completion: v.optional(v.string()),
-    }),
+    elementary: v.optional(
+      v.object({
+        genAve: v.optional(v.string()),
+        school: v.optional(v.string()),
+        address: v.optional(v.string()),
+        schoolId: v.optional(v.string()),
+      })
+    ),
+    juniorHigh: v.optional(
+      v.object({
+        genAve: v.optional(v.string()),
+        school: v.optional(v.string()),
+        address: v.optional(v.string()),
+        completion: v.optional(v.string()),
+      })
+    ),
     juniorHighDateOfAdmission: v.string(),
     alsRating: v.optional(v.string()),
     enrollingIn: gradeLevel,
+    semesterEnrollingIn: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     if (!args.studentId) return undefined;
@@ -194,6 +204,9 @@ export const edit = mutation({
     if (student === null) {
       throw new ConvexError("No student data found.");
     }
+
+    const isSHS =
+      args.enrollingIn === "Grade 11" || args.enrollingIn === "Grade 12";
     await ctx.db.patch(student._id, {
       lastName: args.lastName,
       firstName: args.firstName,
@@ -202,16 +215,16 @@ export const edit = mutation({
       lrn: args.lrn,
       dateOfBirth: args.dateOfBirth,
       elementary: {
-        genAve: args.elementary.genAve,
-        school: args.elementary.school,
-        address: args.elementary.address,
-        schoolId: args.elementary.schoolId,
+        genAve: args.elementary?.genAve,
+        school: args.elementary?.school,
+        address: args.elementary?.address,
+        schoolId: args.elementary?.schoolId,
       },
       juniorHigh: {
-        genAve: args.juniorHigh.genAve,
-        school: args.juniorHigh.school,
-        address: args.juniorHigh.address,
-        completion: args.juniorHigh.completion,
+        genAve: args.juniorHigh?.genAve,
+        school: args.juniorHigh?.school,
+        address: args.juniorHigh?.address,
+        completion: args.juniorHigh?.completion,
       },
       juniorHighDateOfAdmission: args.juniorHighDateOfAdmission,
       seniorHighDateOfAdmission:
@@ -220,6 +233,9 @@ export const edit = mutation({
           : undefined,
       alsRating: args.alsRating,
       enrollingIn: args.enrollingIn,
+      semesterEnrollingIn: isSHS
+        ? (args.semesterEnrollingIn as "1st semester" | "2nd semester")
+        : undefined,
     });
   },
 });

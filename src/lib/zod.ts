@@ -161,6 +161,10 @@ export const enrollmentSchema = z.object({
     .string()
     .nonempty({ message: "Select the grade level you are enrolling in" }),
 
+  semesterEnrollingIn: z
+    .string()
+    .nonempty({ message: "Select the semester you are enrolling in" }),
+
   dateOfBirth: z.date({
     required_error: "Date of birth is required.",
   }),
@@ -172,18 +176,12 @@ export const enrollmentSchema = z.object({
       required_error: "Elementary general average is required.",
       invalid_type_error: "Elementary general average is required.",
     })
-    .refine((value) => value !== null && value !== undefined, {
-      message: "Elementary general average is required.",
-    }),
-  elemSchoolId: z
-    .string()
-    .nonempty({ message: "Elementary school ID is required." }),
-  elemPrevSchoolName: z
-    .string()
-    .nonempty({ message: "Elementary school name is required." }),
-  elemPrevSchoolAddress: z
-    .string()
-    .nonempty({ message: "Elementary school address is required." }),
+    .optional(),
+  elemSchoolId: z.string().optional(),
+
+  elemPrevSchoolName: z.string().optional(),
+
+  elemPrevSchoolAddress: z.string().optional(),
 
   jnrGenAve: z.coerce.number().optional(),
   jnrPrevSchoolName: z.string().optional(),

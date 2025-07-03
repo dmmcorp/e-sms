@@ -84,32 +84,15 @@ export const promote = mutation({
         semesterEnrollingIn: nextSemester,
         status: nextStatus,
       });
+      await ctx.db.patch(enrollment._id, {
+        status: typeOfPromotion,
+      });
+      await ctx.db.insert("promotion", {
+        studentId: args.studentId,
+        sectionId: args.sectionId,
+        type: typeOfPromotion,
+      });
     }
-
-    // if (args.isSHS) {
-    //   if (
-    //     typeOfPromotion === "promoted" ||
-    //     typeOfPromotion === "conditionally-promoted"
-    //   ) {
-    //     await ctx.db.patch(args.studentId, {
-    //       enrollingIn:
-    //         sem === "2nd semester" ? "Grade 12" : student.enrollingIn,
-    //       semesterEnrollingIn:
-    //         sem === "1st semester" ? "2nd semester" : "2nd semester",
-    //       status: nextGradeLevel ? "not-enrolled" : "graduated",
-    //     });
-    //     await ctx.db.patch(enrollment._id, {
-    //       status: typeOfPromotion,
-    //     });
-    //   }
-    //   await ctx.db.insert("promotion", {
-    //     studentId: args.studentId,
-    //     sectionId: args.sectionId,
-    //     type: typeOfPromotion,
-    //   });
-
-    //   return { success: true, promotionType: typeOfPromotion };
-    // }
 
     if (!args.isSHS) {
       if (

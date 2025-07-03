@@ -210,17 +210,19 @@ const schema = defineSchema({
     sex: v.union(v.literal("male"), v.literal("female")),
     lrn: v.string(),
     dateOfBirth: v.string(),
-    elementary: v.object({
-      genAve: v.string(),
-      school: v.string(),
-      address: v.string(),
-      schoolId: v.optional(v.string()),
-    }),
+    elementary: v.optional(
+      v.object({
+        genAve: v.optional(v.string()),
+        school: v.optional(v.string()),
+        address: v.optional(v.string()),
+        schoolId: v.optional(v.string()),
+      })
+    ),
     juniorHigh: v.optional(
       v.object({
         genAve: v.optional(v.string()),
-        school: v.string(),
-        address: v.string(),
+        school: v.optional(v.string()),
+        address: v.optional(v.string()),
         completion: v.optional(v.string()),
       })
     ),

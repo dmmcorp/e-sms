@@ -62,8 +62,9 @@ function EnrollmentForm() {
           jnrPrevSchoolAddress: "",
           jnrDateOfAdmission: undefined,
           jnrDateOfCompletion: undefined,
-      
           alsRating: "",
+          enrollingTo: undefined,
+          semesterEnrollingIn: undefined, // Default to 1st semester
         },
       });
 
@@ -79,20 +80,21 @@ function EnrollmentForm() {
           lrn:  values.lrn.toString(),
           dateOfBirth: values.dateOfBirth.toDateString(),
           elementary: {
-              genAve: values.elemGenAve.toString(),
-              school: values.elemPrevSchoolName,
-              address: values.elemPrevSchoolAddress,
-              schoolId: values.elemSchoolId,
+              genAve: values.elemGenAve ? values.elemGenAve.toString() : undefined,
+              school: values.elemPrevSchoolName || undefined,
+              address: values.elemPrevSchoolAddress || undefined,
+              schoolId: values.elemSchoolId || undefined,
           },
           juniorHigh: {
             genAve: values.jnrGenAve?.toString() || undefined,
-            school: values.jnrPrevSchoolName || "",
-            address: values.jnrPrevSchoolAddress || "",
-            completion: values.jnrDateOfCompletion?.toDateString() || ""
+            school: values.jnrPrevSchoolName || undefined,
+            address: values.jnrPrevSchoolAddress || undefined,
+            completion: values.jnrDateOfCompletion?.toDateString() || undefined
           },
           juniorHighDateOfAdmission: values.jnrDateOfAdmission.toDateString(),
           alsRating: values.alsRating,
-          enrollingIn: values.enrollingTo as GradeLevelsTypes
+          enrollingIn: values.enrollingTo as GradeLevelsTypes,
+          semesterEnrollingIn: values.semesterEnrollingIn as "1st semester" | "2nd semester" | undefined,
         }),{
           loading: "Adding student...",
           success: () =>{ 
@@ -317,6 +319,8 @@ function EnrollmentForm() {
                         </FormItem>
                       )}
                     />
+                    {form.watch("enrollingTo") === "Grade 7" || form.watch("enrollingTo") === "Grade 11" ? (
+                  
                     <FormField
                       control={form.control}
                       name="jnrDateOfAdmission"
@@ -328,7 +332,7 @@ function EnrollmentForm() {
                           <Popover>
                             <PopoverTrigger className='flex w-full'>
                                 <FormControl>
-                                  <Button
+                                  <Button 
                                     type='button'
                                     variant={"outline"}
                                     className={cn("pl-3 text-left font-normal w-full", !field.value && "text-muted-foreground")}
@@ -352,10 +356,50 @@ function EnrollmentForm() {
                         </FormItem>
                       )}
                     />
-                  </div>
-                  
-
-                  
+                    ) : (
+                      <></>
+                    )}
+                    {form.watch("enrollingTo") === "Grade 11" || form.watch("enrollingTo") === "Grade 12" ? (
+                     <FormField
+                      control={form.control}
+                      name="semesterEnrollingIn"
+                      render={({ field }) => (
+                        <FormItem  className='flex flex-col'>
+                          <FormLabel>
+                            Semester for Enrollment  <span className="text-red-500">*</span>
+                          </FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select semester" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {["1st semester", "2nd semester"].map((semester) => (
+                                <SelectItem key={semester} value={semester}>
+                                  {semester}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    ) : (
+                      <FormField
+                          control={form.control}
+                          name="semesterEnrollingIn"
+                          render={({ field }) => (
+                              <FormItem className='hidden'>
+                                  <FormControl>
+                                      <Input type='hidden' {...field} />
+                                  </FormControl>
+                              </FormItem>
+                          )}
+                      />
+                    )}
+                  </div> 
                 </div>
               )}
 
@@ -371,7 +415,7 @@ function EnrollmentForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          School Name <span className="text-red-500">*</span>
+                          School Name
                         </FormLabel>
                         <FormControl>
                           <Input placeholder="Enter previous school name" {...field} />
@@ -387,7 +431,7 @@ function EnrollmentForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          School Address <span className="text-red-500">*</span>
+                          School Address
                         </FormLabel>
                         <FormControl>
                           <Input placeholder="Enter previous school address" {...field} />
@@ -402,7 +446,7 @@ function EnrollmentForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          School Id <span className="text-red-500">*</span>
+                          School Id
                         </FormLabel>
                         <FormControl>
                           <Input placeholder="Enter previous school Id" {...field} />
@@ -417,7 +461,7 @@ function EnrollmentForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          General Average <span className="text-red-500">*</span>
+                          General Average
                         </FormLabel>
                         <FormControl>
                           <Input type='number' placeholder="Enter general average" {...field} />
