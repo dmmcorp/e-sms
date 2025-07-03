@@ -164,13 +164,13 @@ function Page() {
                       <span className="font-medium">{student.currentSection.section?.name}</span>
                     </div>
                   </div>
-                  <div className="">
+                  <div className="overflow-hidden">
                     <p className="text-sm text-muted-foreground">Subjects</p>
-                    <div className="space-y-1 grid grid-cols-1 px-1 items-start justify-start ">
+                    <div className="space-y-1 grid grid-cols-1 px-1 items-start justify-start overflow-ellipsis overflow-hidden">
                       {student?.enrollment.find(e => e.status === 'enrolled')?.subjectsWithDetails.map(s => (
-                      
-                          <Badge key={s.subject?.subjectName} className="font-medium">{s.subject?.subjectName}</Badge>
-                      
+
+                          <Badge key={s.subject?.subjectName} className="font-medium overflow-hidden">{s.subject?.subjectName}</Badge>
+
                       )) || <p className="font-medium">No subjects assigned</p>}
                     </div>
                   </div>
