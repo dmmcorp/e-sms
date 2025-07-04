@@ -158,7 +158,6 @@ function SectionSummary({
               <Separator className="my-2" />
               <h3 className="text-lg font-semibold mb-3">Students Requiring Intervention</h3>
    
-              <ScrollArea className="h-[200px] max-w-full">
                 <Table className="w-full border-x-gray-50 border-x shadow-md h-[100px] max-h-[100px] overflow-auto">
                   <TableHeader className="bg-primary ">
                   <TableRow className="font-semibold">
@@ -199,7 +198,7 @@ function SectionSummary({
                   </TableBody>
                 
                 </Table>
-              </ScrollArea>
+           
               <Separator className="my-2" />
             <div className="flex items-center justify-end">
               <Link href={`/teacher/subject-teacher/${load._id}`}>
