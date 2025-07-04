@@ -251,7 +251,7 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                         </h1>
                         <div className="col-span-3 grid grid-cols-4">
                             {quarters.map((quarter) =>  (
-                                <div key={quarter}className={cn(sf10 ? ' min-h-[1rem] text-[0.55rem]' : 'min-h-[2rem] text-sm','col-span-1 border-b border-black border-r h-full flex justify-center items-center ')}>
+                                <div key={quarter}className={cn(sf10 ? ' min-h-[1rem] text-[0.55rem]' : 'min-h-[2rem] text-sm','col-span-1 border-black border-r h-full flex justify-center items-center ')}>
                                 </div>
                             ))}
                         </div>
