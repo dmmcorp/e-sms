@@ -267,7 +267,7 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                 return (
                 <div key={subject._id} className={cn( sf10 ? 'text-[0.55rem] leading-3 h4' : 'text-sm ' ,"grid grid-cols-12 w-full items-center text-center font-semibold ")}>
                     <div className={cn(
-                        'col-span-5 h-full text-xs flex items-center border-x border-x-black border-b-black border-b',
+                        'col-span-5 h-full text-[0.55rem] flex items-center border-x border-x-black border-b-black border-b',
                         'isMapehComponent' in subject && subject.isMapehComponent ? 'pl-5' : 'pl-2',
                         'justify-start'
                     )}>
