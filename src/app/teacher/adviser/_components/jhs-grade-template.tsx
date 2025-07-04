@@ -250,7 +250,7 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                                 <div key={quarter} className={cn(sf10 ? ' min-h-[1rem] text-[0.55rem]' : 'min-h-[2rem] text-sm','col-span-1 border-b border-black border-r h-full flex justify-center items-center ')}>
                                     {intervention?.grade ? (
                                         <CustomTooltip
-                                            trigger={<span className='text-red-500'>{Math.round(intervention.grade)}</span>}
+                                            trigger={<span className='text-black'>{Math.round(intervention.grade)}</span>}
                                             interventionRemarks={intervention.remarks || ""}
                                             interventionUsed={intervention.used || []}
                                             initialGrade={grade?.toString() ?? ""}

@@ -57,7 +57,7 @@ if(sf10) {
             {sem === "1st semester" ? 
             allSubjects[index]?.interventions?.['1st']?.grade ? (
                 <CustomTooltip
-                    trigger={<span className='text-red-500'>{Math.round(allSubjects[index]?.interventions?.['1st']?.grade)}</span>}
+                    trigger={<span className='text-black'>{Math.round(allSubjects[index]?.interventions?.['1st']?.grade)}</span>}
                     interventionRemarks={allSubjects[index]?.interventions?.['1st']?.remarks || ""}
                     interventionUsed={allSubjects[index]?.interventions?.['1st']?.used || []}
                     initialGrade={allSubjects[index]?.grades['1st']?.toString() ?? ""}
@@ -65,7 +65,7 @@ if(sf10) {
             ) : allSubjects[index]?.grades['1st'] !== undefined ? Math.round(allSubjects[index]?.grades['1st']) : "" : 
             allSubjects[index]?.interventions?.['3rd']?.grade ? (
                 <CustomTooltip
-                    trigger={<span className='text-red-500'>{Math.round(allSubjects[index]?.interventions?.['3rd']?.grade)}</span>}
+                    trigger={<span className='text-black'>{Math.round(allSubjects[index]?.interventions?.['3rd']?.grade)}</span>}
                     interventionRemarks={allSubjects[index]?.interventions?.['3rd']?.remarks || ""}
                     interventionUsed={allSubjects[index]?.interventions?.['3rd']?.used || []}
                     initialGrade={allSubjects[index]?.grades['3rd']?.toString() ?? ""}
@@ -76,7 +76,7 @@ if(sf10) {
             {sem === "1st semester" ? 
                 allSubjects[index]?.interventions?.['2nd']?.grade ? (
                     <CustomTooltip
-                        trigger={<span className='text-red-500'>{Math.round(allSubjects[index]?.interventions?.['2nd']?.grade)}</span>}
+                        trigger={<span className='text-black'>{Math.round(allSubjects[index]?.interventions?.['2nd']?.grade)}</span>}
                         interventionRemarks={allSubjects[index]?.interventions?.['2nd']?.remarks || ""}
                         interventionUsed={allSubjects[index]?.interventions?.['2nd']?.used || []}
                         initialGrade={allSubjects[index]?.grades['2nd']?.toString() ?? ""}
@@ -84,7 +84,7 @@ if(sf10) {
                 ) : allSubjects[index]?.grades['2nd'] !== undefined ? Math.round(allSubjects[index]?.grades['2nd']) : "" : 
                 allSubjects[index]?.interventions?.['4th']?.grade ? (
                     <CustomTooltip
-                        trigger={<span className='text-red-500'>{Math.round(allSubjects[index]?.interventions?.['4th']?.grade)}</span>}
+                        trigger={<span className='text-black'>{Math.round(allSubjects[index]?.interventions?.['4th']?.grade)}</span>}
                         interventionRemarks={allSubjects[index]?.interventions?.['4th']?.remarks || ""}
                         interventionUsed={allSubjects[index]?.interventions?.['4th']?.used || []}
                         initialGrade={allSubjects[index]?.grades['4th']?.toString() ?? ""}
@@ -176,7 +176,7 @@ if(sf10) {
                         {sem === "1st semester" ? 
                         coreSubjects[index]?.interventions?.['1st']?.grade ? (
                             <CustomTooltip
-                                trigger={<span className='text-red-500'>{Math.round(coreSubjects[index]?.interventions?.['1st']?.grade)}</span>}
+                                trigger={<span className='text-black'>{Math.round(coreSubjects[index]?.interventions?.['1st']?.grade)}</span>}
                                 interventionRemarks={coreSubjects[index]?.interventions?.['1st']?.remarks || ""}
                                 interventionUsed={coreSubjects[index]?.interventions?.['1st']?.used || []}
                                 initialGrade={coreSubjects[index]?.grades['1st']?.toString() ?? ""}
@@ -184,7 +184,7 @@ if(sf10) {
                         ) : coreSubjects[index]?.grades['1st'] !== undefined ? Math.round(coreSubjects[index]?.grades['1st']) : "" : 
                         coreSubjects[index]?.interventions?.['3rd']?.grade ? (
                             <CustomTooltip
-                                trigger={<span className='text-red-500'>{Math.round(coreSubjects[index]?.interventions?.['3rd']?.grade)}</span>}
+                                trigger={<span className='text-black'>{Math.round(coreSubjects[index]?.interventions?.['3rd']?.grade)}</span>}
                                 interventionRemarks={coreSubjects[index]?.interventions?.['3rd']?.remarks || ""}
                                 interventionUsed={coreSubjects[index]?.interventions?.['3rd']?.used || []}
                                 initialGrade={coreSubjects[index]?.grades['3rd']?.toString() ?? ""}
@@ -195,7 +195,7 @@ if(sf10) {
                     {sem === "1st semester" ? 
                         coreSubjects[index]?.interventions?.['2nd']?.grade ? (
                             <CustomTooltip
-                                trigger={<span className='text-red-500'>{Math.round(coreSubjects[index]?.interventions?.['2nd']?.grade)}</span>}
+                                trigger={<span className='text-black'>{Math.round(coreSubjects[index]?.interventions?.['2nd']?.grade)}</span>}
                                 interventionRemarks={coreSubjects[index]?.interventions?.['2nd']?.remarks || ""}
                                 interventionUsed={coreSubjects[index]?.interventions?.['2nd']?.used || []}
                                 initialGrade={coreSubjects[index]?.grades['2nd']?.toString() ?? ""}
@@ -203,7 +203,7 @@ if(sf10) {
                         ) : coreSubjects[index]?.grades['2nd'] !== undefined ? Math.round(coreSubjects[index]?.grades['2nd']) : "" : 
                         coreSubjects[index]?.interventions?.['4th']?.grade ? (
                             <CustomTooltip
-                                trigger={<span className='text-red-500'>{Math.round(coreSubjects[index]?.interventions?.['4th']?.grade)}</span>}
+                                trigger={<span className='text-black'>{Math.round(coreSubjects[index]?.interventions?.['4th']?.grade)}</span>}
                                 interventionRemarks={coreSubjects[index]?.interventions?.['4th']?.remarks || ""}
                                 interventionUsed={coreSubjects[index]?.interventions?.['4th']?.used || []}
                                 initialGrade={coreSubjects[index]?.grades['4th']?.toString() ?? ""}
@@ -244,7 +244,7 @@ if(sf10) {
                     {sem === "1st semester" ? 
                     appliedAndSpecialized[index]?.interventions?.['1st']?.grade ? (
                         <CustomTooltip
-                            trigger={<span className='text-red-500'>{Math.round(appliedAndSpecialized[index]?.interventions?.['1st']?.grade)}</span>}
+                            trigger={<span className='text-black'>{Math.round(appliedAndSpecialized[index]?.interventions?.['1st']?.grade)}</span>}
                             interventionRemarks={appliedAndSpecialized[index]?.interventions?.['1st']?.remarks || ""}
                             interventionUsed={appliedAndSpecialized[index]?.interventions?.['1st']?.used || []}
                             initialGrade={appliedAndSpecialized[index]?.grades['1st']?.toString() ?? ""}
@@ -252,7 +252,7 @@ if(sf10) {
                     ) : appliedAndSpecialized[index]?.grades['1st'] !== undefined ? Math.round(appliedAndSpecialized[index]?.grades['1st']) : "" : 
                     appliedAndSpecialized[index]?.interventions?.['3rd']?.grade ? (
                         <CustomTooltip
-                            trigger={<span className='text-red-500'>{Math.round(appliedAndSpecialized[index]?.interventions?.['3rd']?.grade)}</span>}
+                            trigger={<span className='text-black'>{Math.round(appliedAndSpecialized[index]?.interventions?.['3rd']?.grade)}</span>}
                             interventionRemarks={appliedAndSpecialized[index]?.interventions?.['3rd']?.remarks || ""}
                             interventionUsed={appliedAndSpecialized[index]?.interventions?.['3rd']?.used || []}
                             initialGrade={appliedAndSpecialized[index]?.grades['3rd']?.toString() ?? ""}
@@ -263,7 +263,7 @@ if(sf10) {
                     {sem === "1st semester" ? 
                     appliedAndSpecialized[index]?.interventions?.['2nd']?.grade ? (
                         <CustomTooltip
-                            trigger={<span className='text-red-500'>{Math.round(appliedAndSpecialized[index]?.interventions?.['2nd']?.grade)}</span>}
+                            trigger={<span className='text-black'>{Math.round(appliedAndSpecialized[index]?.interventions?.['2nd']?.grade)}</span>}
                             interventionRemarks={appliedAndSpecialized[index]?.interventions?.['2nd']?.remarks || ""}
                             interventionUsed={appliedAndSpecialized[index]?.interventions?.['2nd']?.used || []}
                             initialGrade={appliedAndSpecialized[index]?.grades['2nd']?.toString() ?? ""}
@@ -271,7 +271,7 @@ if(sf10) {
                     ) : appliedAndSpecialized[index]?.grades['2nd'] !== undefined ? Math.round(appliedAndSpecialized[index]?.grades['2nd']) : "" : 
                     appliedAndSpecialized[index]?.interventions?.['4th']?.grade ? (
                         <CustomTooltip
-                            trigger={<span className='text-red-500'>{Math.round(appliedAndSpecialized[index]?.interventions?.['4th']?.grade)}</span>}
+                            trigger={<span className='text-black'>{Math.round(appliedAndSpecialized[index]?.interventions?.['4th']?.grade)}</span>}
                             interventionRemarks={appliedAndSpecialized[index]?.interventions?.['4th']?.remarks || ""}
                             interventionUsed={appliedAndSpecialized[index]?.interventions?.['4th']?.used || []}
                             initialGrade={appliedAndSpecialized[index]?.grades['4th']?.toString() ?? ""}
