@@ -19,30 +19,8 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
         studentId: student._id
     });
 
-    // Calculate the general average across all subjects
-    function calculateGeneralAverage(): number | null {
-        if (!subjects || subjects.length === 0) return null;
-
-        let total = 0;
-        let count = 0;
-
-        subjects.forEach(subject => {
-            // For each quarter, pick the intervention grade if it exists, otherwise the regular grade
-            const modifiedGrades = {
-                "1st": subject?.interventions?.["1st"]?.grade ?? subject?.grades?.["1st"],
-                "2nd": subject?.interventions?.["2nd"]?.grade ?? subject?.grades?.["2nd"],
-                "3rd": subject?.interventions?.["3rd"]?.grade ?? subject?.grades?.["3rd"],
-                "4th": subject?.interventions?.["4th"]?.grade ?? subject?.grades?.["4th"],
-            } as const;
-            const subjectAvg = calculateQuarterlyAverage(modifiedGrades);
-            if (subjectAvg !== null) {
-                total += subjectAvg;
-                count += 1;
-            }
-        });
-
-        return count > 0 ? total / count : null;
-    }
+ 
+ 
 
     const quarters: Quarter[] = ["1st", "2nd", "3rd", "4th"];
     const calculateMapehAverage = (mapehComponents: MapehComponent[]): QuarterGrades => {
@@ -83,21 +61,26 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
 
     function calculateQuarterlyAverage(grades: QuarterGrades | undefined): number | null {
         if (!grades) return null;
-        const validGrades = Object.values(grades).filter((grade): grade is number => grade !== undefined);
-        if (validGrades.length === 0) return null;
+        const validGrades = Object.values(grades).filter((grade): grade is number => grade !== undefined && grade !== null && !isNaN(grade));
+        if (validGrades.length != 4) return null;
         const sum = validGrades.reduce((acc, grade) => acc + grade, 0);
-        // Only round to 2 decimal places for general average
-        return Math.round((sum / validGrades.length) * 100) / 100;
+      
+        // Only round to 2 decimal places for general average\
+   
+        return Math.round((sum / 4));
     }
 
     // Determine pass/fail status based on intervention grade or quarterly average
     function getPassFailStatus(subject: SubjectType): string {
         if (!subject) return "";
-
+      
         // For MAPEH main entry, use the quarterly average
         if ('isMapehMain' in subject) {
             const average = calculateQuarterlyAverage(subject.grades);
-            return average !== null && average > 74 ? "Passed" : "Failed";
+            return average !== null ? average > 74 ? "Passed" : "Failed": "";
+        }
+        if ('isMapehComponent' in subject) {
+            return "";
         }
 
         // For regular subjects and MAPEH components, check each quarter
@@ -115,7 +98,7 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
         return average > 74 ? "Passed" : "Failed";
     }
 
-       // Organize subjects with MAPEH at the bottom
+    // Organize subjects with MAPEH at the bottom
     const organizedSubjects = useMemo(() => {
         if (!subjects) return [];
 
@@ -171,7 +154,65 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
         ] as SubjectType[];
     }, [subjects]);
 
+       // Calculate the general average across all subjects
+    function calculateGeneralAverage(): number | null {
+        if (!subjects || subjects.length === 0) return null;
+
+        let total = 0;
+        let count = 0;
+
+         const mapehComponents = subjects.filter(subject =>
+            subject?.subjectName && ["Music", "Arts", "Physical Education", "Health"].includes(subject.subjectName)
+        ) as MapehComponent[];
+
+        const mapehComponentsAverage = calculateMapehAverage(mapehComponents);
+        const mapehAverage = calculateQuarterlyAverage(mapehComponentsAverage);
+    
+        const noMAPEHSubjects = subjects.filter(subject =>
+             subject?.subjectName &&
+            !["Music", "Arts", "Physical Education", "Health", "MAPEH"].includes(subject.subjectName)
+        )
+
+       
+        noMAPEHSubjects.forEach(subject => {
+            // For each quarter, pick the intervention grade if it exists, otherwise the regular grade
+        
+            if("isMapehComponent" in subject) {
+                return;
+            }
+            const modifiedGrades = {
+                "1st": subject?.interventions?.["1st"]?.grade !== undefined && subject?.interventions?.["1st"]?.grade !== 0
+                    ? subject?.interventions?.["1st"]?.grade
+                    : subject?.grades?.["1st"],
+                "2nd": subject?.interventions?.["2nd"]?.grade !== undefined && subject?.interventions?.["2nd"]?.grade !== 0
+                    ? subject?.interventions?.["2nd"]?.grade
+                    : subject?.grades?.["2nd"],
+                "3rd": subject?.interventions?.["3rd"]?.grade !== undefined && subject?.interventions?.["3rd"]?.grade !== 0
+                    ? subject?.interventions?.["3rd"]?.grade
+                    : subject?.grades?.["3rd"],
+                "4th": subject?.interventions?.["4th"]?.grade !== undefined && subject?.interventions?.["4th"]?.grade !== 0
+                    ? subject?.interventions?.["4th"]?.grade
+                    : subject?.grades?.["4th"],
+            } as const;
+
+            const subjectAvg = calculateQuarterlyAverage(modifiedGrades);
+           
+            if (subjectAvg !== null) {
+                total += subjectAvg;
+                count += 1;
+            }
+        });
+        if(mapehAverage !== null) {
+            total += mapehAverage;
+            count += 1;
+        }
+        return count > 0 ? total / count : null;
+    }
+
+
+
     const generalAverage = calculateGeneralAverage()
+  
 
     return (
         <div className='text-sm md:text-sm w-full gap-x-10'>
@@ -201,7 +242,7 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                 if (!subject) {
                     return (
                  
-                    <div key={index} className={cn(sf10 ? "text-[0.55rem] leading-3" :"text-sm","grid grid-cols-12 w-full items-center text-center font-semibold   border-b-black border-b ")}>
+                    <div key={index} className={cn(sf10 ? "text-[0.55rem] leading-3" :"text-sm min-h-[2rem]","grid grid-cols-12 w-full items-center text-center font-semibold   border-b-black border-b ")}>
                         <h1 className={cn(
                             'col-span-5 flex items-center border-x border-x-black  px-2 leading-none h-full',
                             'justify-start'
@@ -210,7 +251,7 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                         </h1>
                         <div className="col-span-3 grid grid-cols-4">
                             {quarters.map((quarter) =>  (
-                                <div key={quarter} className='col-span-1  border-black border-r h-full flex justify-center items-center min-h-[1rem]'>
+                                <div key={quarter}className={cn(sf10 ? ' min-h-[1rem] text-[0.55rem]' : 'min-h-[2rem] text-sm','col-span-1 border-b border-black border-r h-full flex justify-center items-center ')}>
                                 </div>
                             ))}
                         </div>
@@ -226,7 +267,7 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                 return (
                 <div key={subject._id} className={cn( sf10 ? 'text-[0.55rem] leading-3 h4' : 'text-sm ' ,"grid grid-cols-12 w-full items-center text-center font-semibold ")}>
                     <div className={cn(
-                        'col-span-5 h-full flex items-center border-x border-x-black border-b-black border-b',
+                        'col-span-5 h-full text-xs flex items-center border-x border-x-black border-b-black border-b',
                         'isMapehComponent' in subject && subject.isMapehComponent ? 'pl-5' : 'pl-2',
                         'justify-start'
                     )}>
@@ -295,10 +336,10 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
                 </div>
                   
                 <div className={cn(sf9? "text-sm": "",'col-span-2 border-b border-black border-r h-full flex justify-center items-center min-h-[1.5rem]')}>
-                {generalAverage?.toFixed(0)}
+                {calculateGeneralAverage()}
                 </div>
                 <div className={cn(sf9 ? "text-sm" : "",'col-span-2 border-b border-black border-r h-full flex justify-center items-center min-h-[1.5rem]')}>
-                {generalAverage ? generalAverage <= 74 ? "Failed" : "Passed" : null}
+                {generalAverage ? generalAverage  : null}
                 </div>
                     
             </div>
