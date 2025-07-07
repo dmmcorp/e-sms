@@ -27,8 +27,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import SF9 from "@/app/teacher/adviser/_components/sf9";
-import { useReactToPrint } from 'react-to-print';
+import { useReactToPrint } from "react-to-print";
 import { PrinterIcon } from "lucide-react";
+import SF10 from "@/app/teacher/adviser/_components/SF10";
 
 const formSchema = z
   .object({
@@ -46,19 +47,21 @@ export function RegistrarSearch() {
   );
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
-  const [selectedStudent, setSelectedStudent] = useState<Doc<"students"> | null>(null);
+  const [selectedStudent, setSelectedStudent] =
+    useState<Doc<"students"> | null>(null);
   const [activeTab, setActiveTab] = useState("front");
   const componentRef = useRef(null);
 
   // Get section student ID for the selected student
-  const sectionStudentId = useQuery(api.students.getStudentSectionId,
+  const sectionStudentId = useQuery(
+    api.students.getStudentSectionId,
     selectedStudent ? { studentId: selectedStudent._id } : "skip"
   );
 
   // Print handler
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
-    documentTitle: `Form 137 - ${selectedStudent?.lastName}, ${selectedStudent?.firstName} - ${activeTab === 'front' ? 'Front' : 'Back'}`,
+    documentTitle: `Form 137 - ${selectedStudent?.lastName}, ${selectedStudent?.firstName} - ${activeTab === "front" ? "Front" : "Back"}`,
   });
 
   // 1. Define form.
@@ -215,11 +218,11 @@ export function RegistrarSearch() {
         </Card>
       )}
 
-      {/* SF9 Section */}
+      {/* SF10 Section */}
       {selectedStudent && sectionStudentId && (
         <Card className="w-full">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Form 137 (SF9)</CardTitle>
+            <CardTitle>Form 137 (SF10)</CardTitle>
             {/* <Button
               variant="outline"
               size="icon"
@@ -231,10 +234,10 @@ export function RegistrarSearch() {
           <CardContent>
             <div className="w-full flex justify-center">
               <div className="w-full max-w-[1300px]">
-                <SF9
+                <SF10
                   sectionStudentId={sectionStudentId}
-                  componentRef={componentRef}
-                  onTabChange={setActiveTab}
+                  // componentRef={componentRef}
+                  // onTabChange={setActiveTab}
                   readOnly
                 />
               </div>
