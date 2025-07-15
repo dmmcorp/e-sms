@@ -37,7 +37,8 @@ function SrGradesTemplate({
         const validGrades = Object.values(grades).filter((grade): grade is number => grade !== undefined);
         if (validGrades.length === 0) return null;
         const sum = validGrades.reduce((acc, grade) => acc + grade, 0);
-        return sum / validGrades.length;
+        const quarterAverage = Math.round(sum / validGrades.length).toFixed(0)
+        return Number(quarterAverage)
     }
 
 if(sf10) {

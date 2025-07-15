@@ -65,9 +65,9 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
         if (validGrades.length != 4) return null;
         const sum = validGrades.reduce((acc, grade) => acc + grade, 0);
       
-        // Only round to 2 decimal places for general average\
-   
-        return Math.round((sum / 4));
+        const quarterAverage = Math.round((sum / 4)).toFixed(0)
+
+        return Number(quarterAverage);
     }
 
     // Determine pass/fail status based on intervention grade or quarterly average
@@ -208,8 +208,6 @@ function JrGradesTemplate({ student, sf9, sf10}: JrGradesTemplateProps) {
         }
         return count > 0 ? total / count : null;
     }
-
-
 
     const generalAverage = calculateGeneralAverage()
   
