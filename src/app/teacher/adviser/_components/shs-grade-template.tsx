@@ -98,13 +98,13 @@ if(sf10) {
                     {allSubjects[index]?.grades && sem === '1st semester' ?
                         calculateQuarterlyAverage(
                         {
-                            "1st": allSubjects[index]?.interventions?.['1st'] ? allSubjects[index]?.interventions['1st'].grade : allSubjects[index]?.grades['1st'],
-                            "2nd": allSubjects[index]?.interventions?.['2nd'] ? allSubjects[index]?.interventions['2nd'].grade : allSubjects[index]?.grades['2nd'],
+                            "1st": allSubjects[index]?.interventions?.['1st']?.grade ? allSubjects[index]?.interventions['1st'].grade : allSubjects[index]?.grades['1st'],
+                            "2nd": allSubjects[index]?.interventions?.['2nd']?.grade ? allSubjects[index]?.interventions['2nd'].grade : allSubjects[index]?.grades['2nd'],
                         }) : 
                         calculateQuarterlyAverage(
                         {
-                            "1st": allSubjects[index]?.interventions?.['3rd'] ? allSubjects[index]?.interventions['3rd'].grade : allSubjects[index]?.grades['3rd'],
-                            "2nd": allSubjects[index]?.interventions?.['4th'] ? allSubjects[index]?.interventions['4th'].grade : allSubjects[index]?.grades['4th'],
+                            "1st": allSubjects[index]?.interventions?.['3rd']?.grade ? allSubjects[index]?.interventions['3rd'].grade : allSubjects[index]?.grades['3rd'],
+                            "2nd": allSubjects[index]?.interventions?.['4th']?.grade ? allSubjects[index]?.interventions['4th'].grade : allSubjects[index]?.grades['4th'],
                         })
                     }
                 </p>
@@ -284,13 +284,13 @@ if(sf10) {
                 <h1 className='text-center my-auto h-full content-center'>{appliedAndSpecialized[index]?.grades && sem === '1st semester' ?
                     calculateQuarterlyAverage(
                     {
-                        "1st": appliedAndSpecialized[index]?.interventions?.['1st'] ? appliedAndSpecialized[index]?.interventions['1st'].grade : appliedAndSpecialized[index]?.grades['1st'],
-                        "2nd": appliedAndSpecialized[index]?.interventions?.['2nd'] ? appliedAndSpecialized[index]?.interventions['2nd'].grade : appliedAndSpecialized[index]?.grades['2nd'],
+                        "1st": appliedAndSpecialized[index]?.interventions?.['1st']?.grade ? appliedAndSpecialized[index]?.interventions['1st'].grade : appliedAndSpecialized[index]?.grades['1st'],
+                        "2nd": appliedAndSpecialized[index]?.interventions?.['2nd']?.grade  ? appliedAndSpecialized[index]?.interventions['2nd'].grade : appliedAndSpecialized[index]?.grades['2nd'],
                     }) : 
                     calculateQuarterlyAverage(
                     {
-                        "1st": appliedAndSpecialized[index]?.interventions?.['3rd'] ? appliedAndSpecialized[index]?.interventions['3rd'].grade : appliedAndSpecialized[index]?.grades['3rd'],
-                        "2nd": appliedAndSpecialized[index]?.interventions?.['4th'] ? appliedAndSpecialized[index]?.interventions['4th'].grade : appliedAndSpecialized[index]?.grades['4th'],
+                        "1st": appliedAndSpecialized[index]?.interventions?.['3rd']?.grade  ? appliedAndSpecialized[index]?.interventions['3rd'].grade : appliedAndSpecialized[index]?.grades['3rd'],
+                        "2nd": appliedAndSpecialized[index]?.interventions?.['4th']?.grade  ? appliedAndSpecialized[index]?.interventions['4th'].grade : appliedAndSpecialized[index]?.grades['4th'],
                     })
                     }
                 </h1>
@@ -300,7 +300,7 @@ if(sf10) {
 
         <div className={`max-w-full flex ${sf9 ? 'text-[0.6rem]' : 'text-lg'} font-bold border border-black `}>
             <div className={`w-[85%] text-right tracking-widest ${sf9 ? 'text-[0.6rem]' : 'text-xl'} border-r border-r-black px-2 py-1`}>General Average for this Semester</div>
-            <div className="w-[15%] content-center text-center">{}</div>
+            <div className="w-[15%] content-center text-center">{1}</div>
         </div>
     </div>
   )
