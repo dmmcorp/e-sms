@@ -41,6 +41,40 @@ function SrGradesTemplate({
         return Number(quarterAverage)
     }
 
+    function calculateGeneralAverage(): number | null {
+        if (!subjects || subjects.length === 0) return null;
+
+        let total = 0;
+        let count = 0;
+
+        allSubjects.forEach(subject => {
+            let modifiedGrades: { "1st": number | undefined; "2nd": number | undefined } | undefined;
+
+            if (sem === "1st semester") {
+                modifiedGrades = {
+                    "1st": subject?.interventions?.["1st"]?.grade ?? subject?.grades?.["1st"],
+                    "2nd": subject?.interventions?.["2nd"]?.grade ?? subject?.grades?.["2nd"],
+                };
+            } else {
+                modifiedGrades = {
+                    "1st": subject?.interventions?.["3rd"]?.grade ?? subject?.grades?.["3rd"],
+                    "2nd": subject?.interventions?.["4th"]?.grade ?? subject?.grades?.["4th"],
+                };
+            }
+
+            const subjectAvg = calculateQuarterlyAverage(modifiedGrades);
+
+            if (subjectAvg !== null) {
+                total += subjectAvg;
+                count += 1;
+            }
+        });
+
+        return count > 0 ? Math.round(total / count) : null;
+    }
+    
+    const generalAverage = calculateGeneralAverage()
+
 if(sf10) {
     return(
         <>
@@ -300,7 +334,7 @@ if(sf10) {
 
         <div className={`max-w-full flex ${sf9 ? 'text-[0.6rem]' : 'text-lg'} font-bold border border-black `}>
             <div className={`w-[85%] text-right tracking-widest ${sf9 ? 'text-[0.6rem]' : 'text-xl'} border-r border-r-black px-2 py-1`}>General Average for this Semester</div>
-            <div className="w-[15%] content-center text-center">{1}</div>
+            <div className="w-[15%] content-center text-center">{generalAverage}</div>
         </div>
     </div>
   )
