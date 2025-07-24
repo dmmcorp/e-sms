@@ -129,73 +129,84 @@ export const UserForm = z.object({
 
 export type UserFormData = z.infer<typeof UserForm>;
 
-export const enrollmentSchema = z.object({
-  lastName: z
-    .string()
-    .min(2, { message: "Last name must be at least 2 characters." })
-    .max(50, { message: "Last name must be at most 50 characters." })
-    .nonempty({ message: "Last name is required." }),
+export const enrollmentSchema = z
+  .object({
+    lastName: z
+      .string()
+      .min(2, { message: "Last name must be at least 2 characters." })
+      .max(50, { message: "Last name must be at most 50 characters." })
+      .nonempty({ message: "Last name is required." }),
 
-  firstName: z
-    .string()
-    .min(2, { message: "First name must be at least 2 characters." })
-    .max(50, { message: "First name must be at most 50 characters." })
-    .nonempty({ message: "First name is required." }),
+    firstName: z
+      .string()
+      .min(2, { message: "First name must be at least 2 characters." })
+      .max(50, { message: "First name must be at most 50 characters." })
+      .nonempty({ message: "First name is required." }),
 
-  middleName: z
-    .string()
-    .min(2, { message: "Middle name must be at least 2 characters." })
-    .max(50, { message: "Middle name must be at most 50 characters." })
-    .nonempty({ message: "Middle name is required." }),
+    middleName: z
+      .string()
+      .min(2, { message: "Middle name must be at least 2 characters." })
+      .max(50, { message: "Middle name must be at most 50 characters." })
+      .nonempty({ message: "Middle name is required." }),
 
-  lrn: z.coerce
-    .number()
-    .refine((value) => value.toString().length === 12, {
-      message: "LRN must be exactly 12 digits.",
-    })
-    .refine((value) => value !== null && value !== undefined, {
-      message: "LRN is required.",
+    lrn: z.coerce
+      .number()
+      .refine((value) => value.toString().length === 12, {
+        message: "LRN must be exactly 12 digits.",
+      })
+      .refine((value) => value !== null && value !== undefined, {
+        message: "LRN is required.",
+      }),
+
+    enrollingTo: z
+      .string()
+      .nonempty({ message: "Select the grade level you are enrolling in" }),
+
+    semesterEnrollingIn: z.string().optional(),
+
+    dateOfBirth: z.date({
+      required_error: "Date of birth is required.",
     }),
 
-  enrollingTo: z
-    .string()
-    .nonempty({ message: "Select the grade level you are enrolling in" }),
+    sex: z.string().nonempty({ message: "Gender is required." }),
 
-  semesterEnrollingIn: z
-    .string()
-    .nonempty({ message: "Select the semester you are enrolling in" }),
+    elemGenAve: z.coerce
+      .number({
+        required_error: "Elementary general average is required.",
+        invalid_type_error: "Elementary general average is required.",
+      })
+      .optional(),
+    elemSchoolId: z.string().optional(),
 
-  dateOfBirth: z.date({
-    required_error: "Date of birth is required.",
-  }),
+    elemPrevSchoolName: z.string().optional(),
 
-  sex: z.string().nonempty({ message: "Gender is required." }),
+    elemPrevSchoolAddress: z.string().optional(),
 
-  elemGenAve: z.coerce
-    .number({
-      required_error: "Elementary general average is required.",
-      invalid_type_error: "Elementary general average is required.",
-    })
-    .optional(),
-  elemSchoolId: z.string().optional(),
+    jnrGenAve: z.coerce.number().optional(),
+    jnrPrevSchoolName: z.string().optional(),
+    jnrPrevSchoolAddress: z.string().optional(),
+    jnrDateOfAdmission: z
+      .date({
+        required_error: "Date of admission is required.",
+      })
+      .optional(),
+    jnrDateOfCompletion: z
+      .date({
+        required_error: "Date of completion is required.",
+      })
+      .optional(),
 
-  elemPrevSchoolName: z.string().optional(),
-
-  elemPrevSchoolAddress: z.string().optional(),
-
-  jnrGenAve: z.coerce.number().optional(),
-  jnrPrevSchoolName: z.string().optional(),
-  jnrPrevSchoolAddress: z.string().optional(),
-  jnrDateOfAdmission: z
-    .date({
-      required_error: "Date of admission is required.",
-    })
-    .optional(),
-  jnrDateOfCompletion: z
-    .date({
-      required_error: "Date of completion is required.",
-    })
-    .optional(),
-
-  alsRating: z.string().optional(),
-});
+    alsRating: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (
+      (data.enrollingTo === "Grade 11" || data.enrollingTo === "Grade 12") &&
+      (!data.semesterEnrollingIn || data.semesterEnrollingIn.trim() === "")
+    ) {
+      ctx.addIssue({
+        path: ["semesterEnrollingIn"],
+        code: z.ZodIssueCode.custom,
+        message: "Select the semester you are enrolling in",
+      });
+    }
+  });
