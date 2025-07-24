@@ -267,6 +267,14 @@ function PromoteDialog({
   ); // Exclude subjects with average >= 75
 
   const handlePromote = () => {
+    if (failedSubjects.length === 0 && generalAverage === null) {
+      toast.error("No subjects to promote or general average is missing.");
+      return;
+    }
+    if (subjectGrades.length <= 2) {
+      toast.error("Not enough subjects found for promotion.");
+      return;
+    }
     setIsLoading(true);
     const noOfFailedSub = failedSubjects.length;
     const genAve = generalAverage === null ? undefined : generalAverage;
@@ -310,7 +318,6 @@ function PromoteDialog({
           },
         }
       );
-      toast.success("Created");
     } catch (error) {
       console.log(error);
       toast.error(`Error: ${error}`);
