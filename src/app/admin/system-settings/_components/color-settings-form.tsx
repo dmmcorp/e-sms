@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { useDynamicTheme } from "@/components/theme-provider-with-dynamic-colors";
 
 export function ColorSettingsForm() {
+  const createUserLogs = useMutation(api.logs.createUserLogs);
   const settings = useQuery(api.systemSettings.getColor);
   const updatePrimaryColor = useMutation(api.systemSettings.updatePrimaryColor);
   const { primaryColor: currentThemeColor } = useDynamicTheme();
@@ -40,10 +41,19 @@ export function ColorSettingsForm() {
       await updatePrimaryColor({
         primaryColor: color,
       });
-
+      await createUserLogs({
+        action: "update",
+        target: "color-settings",
+        details: `Color settings updated on ${new Date().toISOString().split("T")[0]}`,
+      });
       toast.success("Settings updated.");
     } catch (error) {
       toast.error("Failed to update settings");
+      await createUserLogs({
+        action: "update",
+        target: "color-settings",
+        details: `Color settings update failed on ${new Date().toISOString().split("T")[0]}`,
+      });
     }
   };
 

@@ -15,6 +15,7 @@ import {
 } from "../src/lib/types";
 import { internal } from "./_generated/api";
 import { seniorHighGrades } from "../src/lib/constants";
+import { addUserLogs } from "./logs";
 
 const quarterType = v.union(
   v.literal("1st quarter"),
@@ -217,9 +218,20 @@ export const createUser = mutation({
         isActive: true,
       },
     });
-
+    await addUserLogs(ctx, {
+      action: "create_user",
+      details: `User account created for email: ${email}`,
+      target: `${userData.role} - ${userData.fullName}`,
+      userId: adminId as Id<"users">,
+    });
     // if no response throw an error
     if (!accountResponse?.user?._id) {
+      await addUserLogs(ctx, {
+        action: "create_user",
+        details: `Failed to create user account for email: ${email}`,
+        target: `${userData.role} - ${userData.fullName}`,
+        userId: adminId as Id<"users">,
+      });
       throw new ConvexError("Failed to create account");
     }
     const newUserId = accountResponse.user?._id;
@@ -231,9 +243,7 @@ export const createUser = mutation({
       sections
     ) {
       for (const [index, section] of sections.entries()) {
-        const isSHS = ["Grade 11", "Grade 12"].includes(
-          section.gradeLevel
-        );
+        const isSHS = ["Grade 11", "Grade 12"].includes(section.gradeLevel);
 
         if (isSHS) {
           // Create two sections for SHS, one for each semester
@@ -317,11 +327,13 @@ export const createUser = mutation({
         }
         // --- End Find or Create subjectTaught record ---
 
-
         // --- Determine Target Section(s) ---
         let targetSectionIds: Id<"sections">[] = [];
         // sectionDetailsForLoadCreation is used later for load creation, initialize it
-        let sectionDetailsForLoadCreation: { id: Id<"sections">, semester?: SemesterType } | null = null;
+        let sectionDetailsForLoadCreation: {
+          id: Id<"sections">;
+          semester?: SemesterType;
+        } | null = null;
 
         if (subject.sectionId.startsWith("pending-section-")) {
           const pendingIndex = parseInt(
@@ -332,51 +344,81 @@ export const createUser = mutation({
             // For pending SHS sections, query based on properties
             const originalSectionInput = sections?.[pendingIndex];
             if (!originalSectionInput) {
-              throw new ConvexError(`Could not find original section input for pending index ${pendingIndex}`);
+              throw new ConvexError(
+                `Could not find original section input for pending index ${pendingIndex}`
+              );
             }
-            const shsSections = await ctx.db.query("sections")
-              .withIndex("adviserId", q => q.eq("adviserId", newUserId))
-              .filter(q => q.eq(q.field("name"), originalSectionInput.name))
-              .filter(q => q.eq(q.field("gradeLevel"), originalSectionInput.gradeLevel))
-              .filter(q => q.eq(q.field("schoolYear"), originalSectionInput.schoolYear))
+            const shsSections = await ctx.db
+              .query("sections")
+              .withIndex("adviserId", (q) => q.eq("adviserId", newUserId))
+              .filter((q) => q.eq(q.field("name"), originalSectionInput.name))
+              .filter((q) =>
+                q.eq(q.field("gradeLevel"), originalSectionInput.gradeLevel)
+              )
+              .filter((q) =>
+                q.eq(q.field("schoolYear"), originalSectionInput.schoolYear)
+              )
               .collect();
 
             if (shsSections.length === 0) {
-              throw new ConvexError(`Could not resolve pending SHS sections for index ${pendingIndex}`);
+              throw new ConvexError(
+                `Could not resolve pending SHS sections for index ${pendingIndex}`
+              );
             }
             // Allow proceeding even if only 1 is found initially, warn if not 2
             if (shsSections.length !== 2) {
-              console.warn(`Expected 2 sections for pending SHS index ${pendingIndex}, found ${shsSections.length}. Name: ${originalSectionInput.name}, Grade: ${originalSectionInput.gradeLevel}`);
+              console.warn(
+                `Expected 2 sections for pending SHS index ${pendingIndex}, found ${shsSections.length}. Name: ${originalSectionInput.name}, Grade: ${originalSectionInput.gradeLevel}`
+              );
             }
 
-            const firstSemSection = shsSections.find(s => s.semester === "1st semester");
-            const secondSemSection = shsSections.find(s => s.semester === "2nd semester");
+            const firstSemSection = shsSections.find(
+              (s) => s.semester === "1st semester"
+            );
+            const secondSemSection = shsSections.find(
+              (s) => s.semester === "2nd semester"
+            );
 
             // Add section IDs to target list based on the subject's intended semesters
             if (subject.semester?.includes("1st semester") && firstSemSection) {
               targetSectionIds.push(firstSemSection._id);
               // Set details for load creation (prioritize 1st sem if available)
-              sectionDetailsForLoadCreation = { id: firstSemSection._id, semester: "1st semester" };
+              sectionDetailsForLoadCreation = {
+                id: firstSemSection._id,
+                semester: "1st semester",
+              };
             }
-            if (subject.semester?.includes("2nd semester") && secondSemSection) {
+            if (
+              subject.semester?.includes("2nd semester") &&
+              secondSemSection
+            ) {
               targetSectionIds.push(secondSemSection._id);
               // If 1st sem wasn't selected/found, use 2nd sem details for load creation
               if (!sectionDetailsForLoadCreation) {
-                sectionDetailsForLoadCreation = { id: secondSemSection._id, semester: "2nd semester" };
+                sectionDetailsForLoadCreation = {
+                  id: secondSemSection._id,
+                  semester: "2nd semester",
+                };
               }
             }
             if (targetSectionIds.length === 0) {
-              throw new ConvexError(`Could not find matching semester sections for pending SHS index ${pendingIndex} and selected semesters ${subject.semester?.join(', ')}`);
+              throw new ConvexError(
+                `Could not find matching semester sections for pending SHS index ${pendingIndex} and selected semesters ${subject.semester?.join(", ")}`
+              );
             }
-
           } else {
             // JHS pending section - use the map
             const actualId = createdSectionsMap.get(pendingIndex);
             if (!actualId) {
-              throw new ConvexError(`Could not resolve pending JHS section: ${subject.sectionId}`);
+              throw new ConvexError(
+                `Could not resolve pending JHS section: ${subject.sectionId}`
+              );
             }
             targetSectionIds.push(actualId);
-            sectionDetailsForLoadCreation = { id: actualId, semester: undefined };
+            sectionDetailsForLoadCreation = {
+              id: actualId,
+              semester: undefined,
+            };
           }
         } else {
           try {
@@ -390,7 +432,9 @@ export const createUser = mutation({
               // SHS: Find the direct section and potentially its sibling
               const requiredSemesters = new Set(subject.semester ?? []);
               if (requiredSemesters.size === 0) {
-                throw new ConvexError(`SHS Subject ${subject.subjectName} must specify at least one semester.`);
+                throw new ConvexError(
+                  `SHS Subject ${subject.subjectName} must specify at least one semester.`
+                );
               }
 
               let firstSemSectionId: Id<"sections"> | undefined;
@@ -399,57 +443,90 @@ export const createUser = mutation({
               // Find the pair based on the provided directSectionId
               if (sectionDoc.semester === "1st semester") {
                 firstSemSectionId = sectionDoc._id;
-                const sibling = await ctx.db.query("sections")
-                  .withIndex("adviserId", q => q.eq("adviserId", sectionDoc.adviserId)) // Assuming same adviser
-                  .filter(q => q.eq(q.field("name"), sectionDoc.name))
-                  .filter(q => q.eq(q.field("gradeLevel"), sectionDoc.gradeLevel))
-                  .filter(q => q.eq(q.field("schoolYear"), sectionDoc.schoolYear))
-                  .filter(q => q.eq(q.field("semester"), "2nd semester"))
+                const sibling = await ctx.db
+                  .query("sections")
+                  .withIndex("adviserId", (q) =>
+                    q.eq("adviserId", sectionDoc.adviserId)
+                  ) // Assuming same adviser
+                  .filter((q) => q.eq(q.field("name"), sectionDoc.name))
+                  .filter((q) =>
+                    q.eq(q.field("gradeLevel"), sectionDoc.gradeLevel)
+                  )
+                  .filter((q) =>
+                    q.eq(q.field("schoolYear"), sectionDoc.schoolYear)
+                  )
+                  .filter((q) => q.eq(q.field("semester"), "2nd semester"))
                   .first();
                 secondSemSectionId = sibling?._id;
-              } else { // sectionDoc.semester === "2nd semester"
+              } else {
+                // sectionDoc.semester === "2nd semester"
                 secondSemSectionId = sectionDoc._id;
-                const sibling = await ctx.db.query("sections")
-                  .withIndex("adviserId", q => q.eq("adviserId", sectionDoc.adviserId)) // Assuming same adviser
-                  .filter(q => q.eq(q.field("name"), sectionDoc.name))
-                  .filter(q => q.eq(q.field("gradeLevel"), sectionDoc.gradeLevel))
-                  .filter(q => q.eq(q.field("schoolYear"), sectionDoc.schoolYear))
-                  .filter(q => q.eq(q.field("semester"), "1st semester"))
+                const sibling = await ctx.db
+                  .query("sections")
+                  .withIndex("adviserId", (q) =>
+                    q.eq("adviserId", sectionDoc.adviserId)
+                  ) // Assuming same adviser
+                  .filter((q) => q.eq(q.field("name"), sectionDoc.name))
+                  .filter((q) =>
+                    q.eq(q.field("gradeLevel"), sectionDoc.gradeLevel)
+                  )
+                  .filter((q) =>
+                    q.eq(q.field("schoolYear"), sectionDoc.schoolYear)
+                  )
+                  .filter((q) => q.eq(q.field("semester"), "1st semester"))
                   .first();
                 firstSemSectionId = sibling?._id;
               }
 
               // Add target IDs based on required semesters
               if (requiredSemesters.has("1st semester")) {
-                if (!firstSemSectionId) throw new ConvexError(`Could not find 1st semester section for ${sectionDoc.name} ${sectionDoc.gradeLevel}`);
+                if (!firstSemSectionId)
+                  throw new ConvexError(
+                    `Could not find 1st semester section for ${sectionDoc.name} ${sectionDoc.gradeLevel}`
+                  );
                 targetSectionIds.push(firstSemSectionId);
-                sectionDetailsForLoadCreation = { id: firstSemSectionId, semester: "1st semester" };
+                sectionDetailsForLoadCreation = {
+                  id: firstSemSectionId,
+                  semester: "1st semester",
+                };
               }
               if (requiredSemesters.has("2nd semester")) {
-                if (!secondSemSectionId) throw new ConvexError(`Could not find 2nd semester section for ${sectionDoc.name} ${sectionDoc.gradeLevel}`);
+                if (!secondSemSectionId)
+                  throw new ConvexError(
+                    `Could not find 2nd semester section for ${sectionDoc.name} ${sectionDoc.gradeLevel}`
+                  );
                 targetSectionIds.push(secondSemSectionId);
-                if (!sectionDetailsForLoadCreation) { // If only 2nd sem was required
-                  sectionDetailsForLoadCreation = { id: secondSemSectionId, semester: "2nd semester" };
+                if (!sectionDetailsForLoadCreation) {
+                  // If only 2nd sem was required
+                  sectionDetailsForLoadCreation = {
+                    id: secondSemSectionId,
+                    semester: "2nd semester",
+                  };
                 }
               }
               if (targetSectionIds.length === 0) {
-                throw new ConvexError(`Could not find matching semester sections for direct ID ${directSectionId} and selected semesters ${subject.semester?.join(', ')}`);
+                throw new ConvexError(
+                  `Could not find matching semester sections for direct ID ${directSectionId} and selected semesters ${subject.semester?.join(", ")}`
+                );
               }
-
             } else {
               targetSectionIds.push(directSectionId);
-              sectionDetailsForLoadCreation = { id: directSectionId, semester: undefined };
+              sectionDetailsForLoadCreation = {
+                id: directSectionId,
+                semester: undefined,
+              };
             }
-
           } catch (e: any) {
-            throw new ConvexError(`Invalid section ID format or lookup failed: ${subject.sectionId}. Error: ${e.message}`);
+            throw new ConvexError(
+              `Invalid section ID format or lookup failed: ${subject.sectionId}. Error: ${e.message}`
+            );
           }
         }
         if (!sectionDetailsForLoadCreation) {
-          throw new ConvexError(`Failed to determine section details for load creation for subject ${subject.subjectName} and section ID ${subject.sectionId}`);
+          throw new ConvexError(
+            `Failed to determine section details for load creation for subject ${subject.subjectName} and section ID ${subject.sectionId}`
+          );
         }
-
-
 
         // --- Link subjectTaught to Section(s) ---
         // Add the subjectTaught ID to the `subjects` array on the target section document(s).
@@ -468,7 +545,6 @@ export const createUser = mutation({
           }
         }
 
-
         // --- Create TeachingLoad records ---
         // One record per quarter the subject is taught in a specific section.
         const quartersToLoad = subject.quarter || [];
@@ -485,7 +561,9 @@ export const createUser = mutation({
             } else if (["3rd quarter", "4th quarter"].includes(quarter)) {
               loadSemester = "2nd semester";
             } else {
-              console.warn(`Invalid quarter value encountered: ${quarter}. Skipping load creation.`);
+              console.warn(
+                `Invalid quarter value encountered: ${quarter}. Skipping load creation.`
+              );
               continue;
             }
 
@@ -497,14 +575,19 @@ export const createUser = mutation({
               continue;
             }
 
-            const sectionDocs = await Promise.all(targetSectionIds.map(id => ctx.db.get(id)));
-            const sectionForThisSemester = sectionDocs.find(sec => sec?.semester === loadSemester);
+            const sectionDocs = await Promise.all(
+              targetSectionIds.map((id) => ctx.db.get(id))
+            );
+            const sectionForThisSemester = sectionDocs.find(
+              (sec) => sec?.semester === loadSemester
+            );
 
             if (!sectionForThisSemester) {
-              throw new ConvexError(`Could not find the target SHS section document for semester ${loadSemester} among resolved IDs: ${targetSectionIds.join(', ')}`);
+              throw new ConvexError(
+                `Could not find the target SHS section document for semester ${loadSemester} among resolved IDs: ${targetSectionIds.join(", ")}`
+              );
             }
             targetSectionIdForLoad = sectionForThisSemester._id;
-
           } else {
             // JHS: semester is undefined, use the single target section ID determined earlier
             targetSectionIdForLoad = sectionDetailsForLoadCreation.id;
@@ -514,14 +597,21 @@ export const createUser = mutation({
           // Handle MAPEH components separately
           if (subject.subjectName.toLowerCase() === "mapeh") {
             const mapehComponents = [
-              "Music", "Arts", "Physical Education", "Health",
+              "Music",
+              "Arts",
+              "Physical Education",
+              "Health",
             ] as const;
 
             for (const component of mapehComponents) {
               const existingLoad = await ctx.db
                 .query("teachingLoad")
-                .withIndex("subjectTaughtId", (q) => q.eq("subjectTaughtId", subjectTaughtId))
-                .filter((q) => q.eq(q.field("sectionId"), targetSectionIdForLoad))
+                .withIndex("subjectTaughtId", (q) =>
+                  q.eq("subjectTaughtId", subjectTaughtId)
+                )
+                .filter((q) =>
+                  q.eq(q.field("sectionId"), targetSectionIdForLoad)
+                )
                 .filter((q) => q.eq(q.field("quarter"), quarter))
                 .filter((q) => q.eq(q.field("subComponent"), component))
                 .filter((q) => q.eq(q.field("semester"), loadSemester))
@@ -535,13 +625,18 @@ export const createUser = mutation({
                   semester: loadSemester,
                   subComponent: component,
                 });
+              } else {
+                console.log(
+                  `Load exists for MAPEH ${component}, Q${quarter}, Sec ${targetSectionIdForLoad}`
+                );
               }
-              else { console.log(`Load exists for MAPEH ${component}, Q${quarter}, Sec ${targetSectionIdForLoad}`); }
             }
           } else {
             const existingLoad = await ctx.db
               .query("teachingLoad")
-              .withIndex("subjectTaughtId", (q) => q.eq("subjectTaughtId", subjectTaughtId))
+              .withIndex("subjectTaughtId", (q) =>
+                q.eq("subjectTaughtId", subjectTaughtId)
+              )
               .filter((q) => q.eq(q.field("sectionId"), targetSectionIdForLoad))
               .filter((q) => q.eq(q.field("quarter"), quarter))
               .filter((q) => q.eq(q.field("semester"), loadSemester))
@@ -555,8 +650,11 @@ export const createUser = mutation({
                 quarter: quarter,
                 semester: loadSemester,
               });
+            } else {
+              console.log(
+                `Load exists for ${subject.subjectName}, Q${quarter}, Sec ${targetSectionIdForLoad}`
+              );
             }
-            else { console.log(`Load exists for ${subject.subjectName}, Q${quarter}, Sec ${targetSectionIdForLoad}`); }
           }
         }
       }
@@ -912,14 +1010,25 @@ export const updateUser = mutation({
     // Update basic user info
     await ctx.db.patch(userId, userData);
 
-    const createdSectionsMap = new Map<number, { firstSemId?: Id<"sections">, secondSemId?: Id<"sections">, jhsId?: Id<"sections"> }>();
+    const createdSectionsMap = new Map<
+      number,
+      {
+        firstSemId?: Id<"sections">;
+        secondSemId?: Id<"sections">;
+        jhsId?: Id<"sections">;
+      }
+    >();
     // ! ADVISER ROLE
     if (
       (args.role === "adviser" || args.role === "adviser/subject-teacher") &&
       args.sections
     ) {
       const submittedSections = args.sections || [];
-      const submittedSectionIds = new Set(submittedSections.map(s => s.sectionId).filter(Boolean) as Id<"sections">[]);
+      const submittedSectionIds = new Set(
+        submittedSections
+          .map((s) => s.sectionId)
+          .filter(Boolean) as Id<"sections">[]
+      );
 
       const existingAdvisedSections = await ctx.db
         .query("sections")
@@ -930,10 +1039,20 @@ export const updateUser = mutation({
 
       // Update or mark existing sections
       for (const submittedSection of submittedSections) {
-        if (submittedSection.sectionId && submittedSectionIds.has(submittedSection.sectionId as Id<"sections">)) {
+        if (
+          submittedSection.sectionId &&
+          submittedSectionIds.has(submittedSection.sectionId as Id<"sections">)
+        ) {
           // Update existing section if needed (name, gradeLevel, schoolYear)
-          const existing = existingAdvisedSections.find(e => e._id === submittedSection.sectionId);
-          if (existing && (existing.name !== submittedSection.name || existing.gradeLevel !== submittedSection.gradeLevel || existing.schoolYear !== submittedSection.schoolYear)) {
+          const existing = existingAdvisedSections.find(
+            (e) => e._id === submittedSection.sectionId
+          );
+          if (
+            existing &&
+            (existing.name !== submittedSection.name ||
+              existing.gradeLevel !== submittedSection.gradeLevel ||
+              existing.schoolYear !== submittedSection.schoolYear)
+          ) {
             await ctx.db.patch(submittedSection.sectionId as Id<"sections">, {
               name: submittedSection.name,
               gradeLevel: submittedSection.gradeLevel,
@@ -953,12 +1072,31 @@ export const updateUser = mutation({
       for (const [index, sectionToCreate] of newSectionsToCreate.entries()) {
         const isSHS = seniorHighGrades.includes(sectionToCreate.gradeLevel);
         if (isSHS) {
-          const base = { name: sectionToCreate.name, gradeLevel: sectionToCreate.gradeLevel, schoolYear: sectionToCreate.schoolYear, adviserId: userId, subjects: [] };
-          const firstSemId = await ctx.db.insert("sections", { ...base, semester: "1st semester" });
-          const secondSemId = await ctx.db.insert("sections", { ...base, semester: "2nd semester" });
+          const base = {
+            name: sectionToCreate.name,
+            gradeLevel: sectionToCreate.gradeLevel,
+            schoolYear: sectionToCreate.schoolYear,
+            adviserId: userId,
+            subjects: [],
+          };
+          const firstSemId = await ctx.db.insert("sections", {
+            ...base,
+            semester: "1st semester",
+          });
+          const secondSemId = await ctx.db.insert("sections", {
+            ...base,
+            semester: "2nd semester",
+          });
           createdSectionsMap.set(index, { firstSemId, secondSemId });
         } else {
-          const jhsId = await ctx.db.insert("sections", { name: sectionToCreate.name, gradeLevel: sectionToCreate.gradeLevel, schoolYear: sectionToCreate.schoolYear, adviserId: userId, subjects: [], semester: undefined });
+          const jhsId = await ctx.db.insert("sections", {
+            name: sectionToCreate.name,
+            gradeLevel: sectionToCreate.gradeLevel,
+            schoolYear: sectionToCreate.schoolYear,
+            adviserId: userId,
+            subjects: [],
+            semester: undefined,
+          });
           createdSectionsMap.set(index, { jhsId });
         }
       }
@@ -968,7 +1106,9 @@ export const updateUser = mutation({
         if (!submittedSectionIds.has(existingSection._id)) {
           // Consider implications before deleting (e.g., students enrolled)
           // Maybe just remove adviserId instead? For now, deleting as per previous logic.
-          console.warn(`Deleting section ${existingSection._id} as it's no longer advised by ${userId}.`);
+          console.warn(
+            `Deleting section ${existingSection._id} as it's no longer advised by ${userId}.`
+          );
           await ctx.db.delete(existingSection._id);
         }
       }
@@ -976,10 +1116,12 @@ export const updateUser = mutation({
       // If role is NOT adviser, remove user as adviser from any sections they currently advise
       const currentlyAdvised = await ctx.db
         .query("sections")
-        .withIndex("adviserId", q => q.eq("adviserId", userId))
+        .withIndex("adviserId", (q) => q.eq("adviserId", userId))
         .collect();
       for (const section of currentlyAdvised) {
-        console.warn(`Removing user ${userId} as adviser from section ${section._id} due to role change.`);
+        console.warn(
+          `Removing user ${userId} as adviser from section ${section._id} due to role change.`
+        );
         await ctx.db.patch(section._id, { adviserId: undefined }); // Or handle differently
       }
 
@@ -1039,13 +1181,28 @@ export const updateUser = mutation({
       .collect();
 
     const existingSubjectIds = existingSubjectDocs.map((s) => s._id);
-    const existingLoadDocs = existingSubjectIds.length > 0
-      ? (await Promise.all(existingSubjectIds.map(id => ctx.db.query("teachingLoad").withIndex("subjectTaughtId", q => q.eq("subjectTaughtId", id)).collect()))).flat()
-      : [];
+    const existingLoadDocs =
+      existingSubjectIds.length > 0
+        ? (
+            await Promise.all(
+              existingSubjectIds.map((id) =>
+                ctx.db
+                  .query("teachingLoad")
+                  .withIndex("subjectTaughtId", (q) =>
+                    q.eq("subjectTaughtId", id)
+                  )
+                  .collect()
+              )
+            )
+          ).flat()
+        : [];
 
     // Map existing subjects by key for easy lookup
     const existingSubjectsMap = new Map<string, Doc<"subjectTaught">>(
-      existingSubjectDocs.map((doc) => [`${doc.subjectName}_${doc.gradeLevel}`, doc])
+      existingSubjectDocs.map((doc) => [
+        `${doc.subjectName}_${doc.gradeLevel}`,
+        doc,
+      ])
     );
 
     // const existingSubjectIds = existingSubjectDocs.map((s) => s._id);
@@ -1090,7 +1247,10 @@ export const updateUser = mutation({
 
     // --- Process Submitted State ---
 
-    const previousSectionLinks = new Map<Id<"subjectTaught">, Set<Id<"sections">>>();
+    const previousSectionLinks = new Map<
+      Id<"subjectTaught">,
+      Set<Id<"sections">>
+    >();
     for (const load of existingLoadDocs) {
       if (!previousSectionLinks.has(load.subjectTaughtId)) {
         previousSectionLinks.set(load.subjectTaughtId, new Set());
@@ -1101,7 +1261,10 @@ export const updateUser = mutation({
     const keptSubjectTaughtIds = new Set<Id<"subjectTaught">>();
     const processedLoadIds = new Set<Id<"teachingLoad">>();
     // Map final desired state: subjectTaughtId -> Set<sectionId>
-    const finalSectionLinks = new Map<Id<"subjectTaught">, Set<Id<"sections">>>();
+    const finalSectionLinks = new Map<
+      Id<"subjectTaught">,
+      Set<Id<"sections">>
+    >();
 
     // if (
     //   (args.role === "subject-teacher" ||
@@ -1437,67 +1600,104 @@ export const updateUser = mutation({
     // // --- End Deletion Phase ---
 
     if (
-      (args.role === "subject-teacher" || args.role === "adviser/subject-teacher") &&
+      (args.role === "subject-teacher" ||
+        args.role === "adviser/subject-teacher") &&
       submittedSubjectsInput
     ) {
       for (const submittedSubject of submittedSubjectsInput) {
         let subjectTaughtId: Id<"subjectTaught">;
         const targetSectionIds = new Set<Id<"sections">>(); // Sections this subject should be linked to
 
-        const isSenior = seniorHighGrades.includes(submittedSubject.gradeLevel as GradeLevelsTypes);
-        const submittedSemesters = isSenior ? new Set(submittedSubject.semester ?? []) : new Set<SemesterType>();
+        const isSenior = seniorHighGrades.includes(
+          submittedSubject.gradeLevel as GradeLevelsTypes
+        );
+        const submittedSemesters = isSenior
+          ? new Set(submittedSubject.semester ?? [])
+          : new Set<SemesterType>();
 
         // --- Resolve Target Section ID(s) ---
         if (submittedSubject.sectionId.startsWith("pending-section-")) {
-          const pendingIndex = parseInt(submittedSubject.sectionId.replace("pending-section-", ""));
+          const pendingIndex = parseInt(
+            submittedSubject.sectionId.replace("pending-section-", "")
+          );
           const createdIds = createdSectionsMap.get(pendingIndex); // Assumes adviser section creation happened above
           if (!createdIds) {
-            throw new ConvexError(`Could not resolve pending section index: ${pendingIndex}`);
+            throw new ConvexError(
+              `Could not resolve pending section index: ${pendingIndex}`
+            );
           }
           if (isSenior) {
-            if (submittedSemesters.has("1st semester") && createdIds.firstSemId) targetSectionIds.add(createdIds.firstSemId);
-            if (submittedSemesters.has("2nd semester") && createdIds.secondSemId) targetSectionIds.add(createdIds.secondSemId);
+            if (submittedSemesters.has("1st semester") && createdIds.firstSemId)
+              targetSectionIds.add(createdIds.firstSemId);
+            if (
+              submittedSemesters.has("2nd semester") &&
+              createdIds.secondSemId
+            )
+              targetSectionIds.add(createdIds.secondSemId);
           } else {
             if (createdIds.jhsId) targetSectionIds.add(createdIds.jhsId);
           }
-          if (targetSectionIds.size === 0 && (isSenior ? submittedSemesters.size > 0 : true)) {
-            throw new ConvexError(`Failed to find created section IDs for pending index ${pendingIndex} and grade ${submittedSubject.gradeLevel}`);
+          if (
+            targetSectionIds.size === 0 &&
+            (isSenior ? submittedSemesters.size > 0 : true)
+          ) {
+            throw new ConvexError(
+              `Failed to find created section IDs for pending index ${pendingIndex} and grade ${submittedSubject.gradeLevel}`
+            );
           }
         } else {
           // Direct ID provided
           try {
-            const directSectionId = submittedSubject.sectionId as Id<"sections">;
+            const directSectionId =
+              submittedSubject.sectionId as Id<"sections">;
             const sectionDoc = await ctx.db.get(directSectionId);
-            if (!sectionDoc) throw new ConvexError(`Section ${directSectionId} not found.`);
+            if (!sectionDoc)
+              throw new ConvexError(`Section ${directSectionId} not found.`);
 
             if (isSenior) {
               // Find the pair (1st and 2nd sem sections)
-              const sectionPair = await ctx.db.query("sections")
-                .withIndex("adviserId", q => q.eq("adviserId", sectionDoc.adviserId)) // Or query by name/grade/year if adviser might change
-                .filter(q => q.eq(q.field("name"), sectionDoc.name))
-                .filter(q => q.eq(q.field("gradeLevel"), sectionDoc.gradeLevel))
-                .filter(q => q.eq(q.field("schoolYear"), sectionDoc.schoolYear))
+              const sectionPair = await ctx.db
+                .query("sections")
+                .withIndex("adviserId", (q) =>
+                  q.eq("adviserId", sectionDoc.adviserId)
+                ) // Or query by name/grade/year if adviser might change
+                .filter((q) => q.eq(q.field("name"), sectionDoc.name))
+                .filter((q) =>
+                  q.eq(q.field("gradeLevel"), sectionDoc.gradeLevel)
+                )
+                .filter((q) =>
+                  q.eq(q.field("schoolYear"), sectionDoc.schoolYear)
+                )
                 .collect();
 
-              const firstSemSection = sectionPair.find(s => s.semester === "1st semester");
-              const secondSemSection = sectionPair.find(s => s.semester === "2nd semester");
+              const firstSemSection = sectionPair.find(
+                (s) => s.semester === "1st semester"
+              );
+              const secondSemSection = sectionPair.find(
+                (s) => s.semester === "2nd semester"
+              );
 
-              if (submittedSemesters.has("1st semester") && firstSemSection) targetSectionIds.add(firstSemSection._id);
-              if (submittedSemesters.has("2nd semester") && secondSemSection) targetSectionIds.add(secondSemSection._id);
+              if (submittedSemesters.has("1st semester") && firstSemSection)
+                targetSectionIds.add(firstSemSection._id);
+              if (submittedSemesters.has("2nd semester") && secondSemSection)
+                targetSectionIds.add(secondSemSection._id);
 
               if (targetSectionIds.size === 0 && submittedSemesters.size > 0) {
-                throw new ConvexError(`Could not find matching SHS sections for ${sectionDoc.name} ${sectionDoc.gradeLevel} and submitted semesters.`);
+                throw new ConvexError(
+                  `Could not find matching SHS sections for ${sectionDoc.name} ${sectionDoc.gradeLevel} and submitted semesters.`
+                );
               }
             } else {
               // JHS - just use the direct ID
               targetSectionIds.add(directSectionId);
             }
           } catch (e: any) {
-            throw new ConvexError(`Invalid section ID format or lookup failed: ${submittedSubject.sectionId}. Error: ${e.message}`);
+            throw new ConvexError(
+              `Invalid section ID format or lookup failed: ${submittedSubject.sectionId}. Error: ${e.message}`
+            );
           }
         }
         // --- End Resolve Target Section ID(s) ---
-
 
         // --- Find or Create/Patch subjectTaught ---
         const subjectKey = `${submittedSubject.subjectName}_${submittedSubject.gradeLevel}`;
@@ -1507,10 +1707,13 @@ export const updateUser = mutation({
           subjectTaughtId = existingSubjectDoc._id;
           // Patch if details changed
           const needsPatch =
-            JSON.stringify(existingSubjectDoc.gradeWeights) !== JSON.stringify(submittedSubject.gradeWeights) ||
+            JSON.stringify(existingSubjectDoc.gradeWeights) !==
+              JSON.stringify(submittedSubject.gradeWeights) ||
             existingSubjectDoc.category !== submittedSubject.category ||
-            JSON.stringify(existingSubjectDoc.semester ?? []) !== JSON.stringify(submittedSubject.semester ?? []) || // Compare semester arrays
-            JSON.stringify(existingSubjectDoc.quarter ?? []) !== JSON.stringify(submittedSubject.quarter ?? []); // Compare quarter arrays
+            JSON.stringify(existingSubjectDoc.semester ?? []) !==
+              JSON.stringify(submittedSubject.semester ?? []) || // Compare semester arrays
+            JSON.stringify(existingSubjectDoc.quarter ?? []) !==
+              JSON.stringify(submittedSubject.quarter ?? []); // Compare quarter arrays
 
           if (needsPatch) {
             await ctx.db.patch(subjectTaughtId, {
@@ -1535,15 +1738,13 @@ export const updateUser = mutation({
         keptSubjectTaughtIds.add(subjectTaughtId);
         // --- End Find or Create/Patch subjectTaught ---
 
-
         // --- Update Final Section Links Map ---
         if (!finalSectionLinks.has(subjectTaughtId)) {
           finalSectionLinks.set(subjectTaughtId, new Set());
         }
         const finalLinksForSubject = finalSectionLinks.get(subjectTaughtId)!;
-        targetSectionIds.forEach(id => finalLinksForSubject.add(id));
+        targetSectionIds.forEach((id) => finalLinksForSubject.add(id));
         // --- End Update Final Section Links Map ---
-
 
         // --- Link subjectTaught to NEW Target Section(s) ---
         for (const sectionId of targetSectionIds) {
@@ -1554,11 +1755,13 @@ export const updateUser = mutation({
               id: subjectTaughtId,
             });
           } catch (error) {
-            console.error(`Failed to add subject ${subjectTaughtId} to section ${sectionId}:`, error);
+            console.error(
+              `Failed to add subject ${subjectTaughtId} to section ${sectionId}:`,
+              error
+            );
           }
         }
         // --- End Link subjectTaught to NEW Target Section(s) ---
-
 
         // --- Sync Teaching Loads for this Subject/Section Combination ---
         const submittedQuarters = new Set(submittedSubject.quarter || []);
@@ -1573,32 +1776,50 @@ export const updateUser = mutation({
           const applicableQuarters = new Set<QuarterType>();
           if (isSenior) {
             if (sectionSemester === "1st semester") {
-              if (submittedQuarters.has("1st quarter")) applicableQuarters.add("1st quarter");
-              if (submittedQuarters.has("2nd quarter")) applicableQuarters.add("2nd quarter");
+              if (submittedQuarters.has("1st quarter"))
+                applicableQuarters.add("1st quarter");
+              if (submittedQuarters.has("2nd quarter"))
+                applicableQuarters.add("2nd quarter");
             } else if (sectionSemester === "2nd semester") {
-              if (submittedQuarters.has("3rd quarter")) applicableQuarters.add("3rd quarter");
-              if (submittedQuarters.has("4th quarter")) applicableQuarters.add("4th quarter");
+              if (submittedQuarters.has("3rd quarter"))
+                applicableQuarters.add("3rd quarter");
+              if (submittedQuarters.has("4th quarter"))
+                applicableQuarters.add("4th quarter");
             }
           } else {
             // JHS - all submitted quarters apply
-            submittedQuarters.forEach(q => applicableQuarters.add(q as QuarterType));
+            submittedQuarters.forEach((q) =>
+              applicableQuarters.add(q as QuarterType)
+            );
           }
 
-
           // Find existing loads for *this specific* subjectTaughtId and targetSectionId
-          const existingLoadsForThisCombo = existingLoadDocs.filter(l => l.subjectTaughtId === subjectTaughtId && l.sectionId === targetSectionId);
+          const existingLoadsForThisCombo = existingLoadDocs.filter(
+            (l) =>
+              l.subjectTaughtId === subjectTaughtId &&
+              l.sectionId === targetSectionId
+          );
 
           for (const quarter of applicableQuarters) {
             // Handle MAPEH components
             if (submittedSubject.subjectName.toLowerCase() === "mapeh") {
-              const mapehComponents = ["Music", "Arts", "Physical Education", "Health"] as const;
+              const mapehComponents = [
+                "Music",
+                "Arts",
+                "Physical Education",
+                "Health",
+              ] as const;
               for (const component of mapehComponents) {
-                const existingLoad = existingLoadsForThisCombo.find(l => l.quarter === quarter && l.subComponent === component);
+                const existingLoad = existingLoadsForThisCombo.find(
+                  (l) => l.quarter === quarter && l.subComponent === component
+                );
                 if (existingLoad) {
                   processedLoadIds.add(existingLoad._id);
                   // Patch semester if needed (unlikely here as sectionSemester is fixed)
                   if (existingLoad.semester !== sectionSemester) {
-                    await ctx.db.patch(existingLoad._id, { semester: sectionSemester });
+                    await ctx.db.patch(existingLoad._id, {
+                      semester: sectionSemester,
+                    });
                   }
                 } else {
                   const newLoadId = await ctx.db.insert("teachingLoad", {
@@ -1613,11 +1834,15 @@ export const updateUser = mutation({
               }
             } else {
               // Regular subject
-              const existingLoad = existingLoadsForThisCombo.find(l => l.quarter === quarter && !l.subComponent);
+              const existingLoad = existingLoadsForThisCombo.find(
+                (l) => l.quarter === quarter && !l.subComponent
+              );
               if (existingLoad) {
                 processedLoadIds.add(existingLoad._id);
                 if (existingLoad.semester !== sectionSemester) {
-                  await ctx.db.patch(existingLoad._id, { semester: sectionSemester });
+                  await ctx.db.patch(existingLoad._id, {
+                    semester: sectionSemester,
+                  });
                 }
               } else {
                 const newLoadId = await ctx.db.insert("teachingLoad", {
@@ -1638,19 +1863,28 @@ export const updateUser = mutation({
     // --- Deletion/Cleanup Phase ---
 
     // 1. Unlink subjects from sections they are no longer taught in
-    for (const [subjectTaughtId, previousSections] of previousSectionLinks.entries()) {
-      const finalSections = finalSectionLinks.get(subjectTaughtId) ?? new Set<Id<"sections">>();
+    for (const [
+      subjectTaughtId,
+      previousSections,
+    ] of previousSectionLinks.entries()) {
+      const finalSections =
+        finalSectionLinks.get(subjectTaughtId) ?? new Set<Id<"sections">>();
       for (const oldSectionId of previousSections) {
         if (!finalSections.has(oldSectionId)) {
           // Subject is no longer taught in oldSectionId, remove the link
           try {
-            console.log(`Removing subject ${subjectTaughtId} from old section ${oldSectionId}`);
+            console.log(
+              `Removing subject ${subjectTaughtId} from old section ${oldSectionId}`
+            );
             await ctx.runMutation(internal.sections.removeSubjectTaught, {
               sectionId: oldSectionId,
               id: subjectTaughtId,
             });
           } catch (error) {
-            console.error(`Failed to remove subject ${subjectTaughtId} from section ${oldSectionId}:`, error);
+            console.error(
+              `Failed to remove subject ${subjectTaughtId} from section ${oldSectionId}:`,
+              error
+            );
           }
         }
       }
@@ -1669,17 +1903,30 @@ export const updateUser = mutation({
     for (const subjectDoc of existingSubjectDocs) {
       if (!keptSubjectTaughtIds.has(subjectDoc._id)) {
         // Double-check: Ensure no loads remain (should have been deleted above)
-        const remainingLoads = await ctx.db.query("teachingLoad").withIndex("subjectTaughtId", q => q.eq("subjectTaughtId", subjectDoc._id)).collect();
+        const remainingLoads = await ctx.db
+          .query("teachingLoad")
+          .withIndex("subjectTaughtId", (q) =>
+            q.eq("subjectTaughtId", subjectDoc._id)
+          )
+          .collect();
         if (remainingLoads.length === 0) {
-          console.warn(`Deleting subjectTaught ${subjectDoc._id} (${subjectDoc.subjectName}, ${subjectDoc.gradeLevel}).`);
+          console.warn(
+            `Deleting subjectTaught ${subjectDoc._id} (${subjectDoc.subjectName}, ${subjectDoc.gradeLevel}).`
+          );
           // Links should have been removed in step 1, but as a fallback:
-          await ctx.runMutation(internal.sections.removeSubjectTaughtFromAll, { subjectTaughtId: subjectDoc._id });
+          await ctx.runMutation(internal.sections.removeSubjectTaughtFromAll, {
+            subjectTaughtId: subjectDoc._id,
+          });
           await ctx.db.delete(subjectDoc._id);
         } else {
-          console.error(`Logic Error: Subject ${subjectDoc._id} marked for deletion but still has loads: ${remainingLoads.map(l => l._id).join(", ")}`);
+          console.error(
+            `Logic Error: Subject ${subjectDoc._id} marked for deletion but still has loads: ${remainingLoads.map((l) => l._id).join(", ")}`
+          );
           // Force delete loads and subject anyway? Or throw error?
           for (const load of remainingLoads) await ctx.db.delete(load._id);
-          await ctx.runMutation(internal.sections.removeSubjectTaughtFromAll, { subjectTaughtId: subjectDoc._id });
+          await ctx.runMutation(internal.sections.removeSubjectTaughtFromAll, {
+            subjectTaughtId: subjectDoc._id,
+          });
           await ctx.db.delete(subjectDoc._id);
         }
       }
@@ -1687,10 +1934,15 @@ export const updateUser = mutation({
 
     // 4. If role changed away from teacher, ensure all remaining subjects/loads are deleted
     if (
-      !(args.role === "subject-teacher" || args.role === "adviser/subject-teacher") &&
+      !(
+        args.role === "subject-teacher" ||
+        args.role === "adviser/subject-teacher"
+      ) &&
       existingSubjectDocs.length > 0 // Check if there were subjects initially
     ) {
-      console.warn(`User ${userId} role changed away from teacher. Cleaning up any remaining subjects and loads.`);
+      console.warn(
+        `User ${userId} role changed away from teacher. Cleaning up any remaining subjects and loads.`
+      );
       // Refetch subjects just in case some were missed or created unexpectedly
       const finalSubjects = await ctx.db
         .query("subjectTaught")
@@ -1699,15 +1951,26 @@ export const updateUser = mutation({
 
       for (const subjectDoc of finalSubjects) {
         // Delete associated teaching loads first
-        const loads = await ctx.db.query("teachingLoad").withIndex("subjectTaughtId", q => q.eq("subjectTaughtId", subjectDoc._id)).collect();
+        const loads = await ctx.db
+          .query("teachingLoad")
+          .withIndex("subjectTaughtId", (q) =>
+            q.eq("subjectTaughtId", subjectDoc._id)
+          )
+          .collect();
         for (const load of loads) {
-          console.warn(`Deleting teaching load ${load._id} due to role change.`);
+          console.warn(
+            `Deleting teaching load ${load._id} due to role change.`
+          );
           await ctx.db.delete(load._id);
         }
 
-        console.warn(`Deleting subjectTaught ${subjectDoc._id} due to role change and removing from sections.`);
+        console.warn(
+          `Deleting subjectTaught ${subjectDoc._id} due to role change and removing from sections.`
+        );
         // Remove from all sections
-        await ctx.runMutation(internal.sections.removeSubjectTaughtFromAll, { subjectTaughtId: subjectDoc._id });
+        await ctx.runMutation(internal.sections.removeSubjectTaughtFromAll, {
+          subjectTaughtId: subjectDoc._id,
+        });
         // Delete the subjectTaught document
         await ctx.db.delete(subjectDoc._id);
       }
@@ -1790,7 +2053,31 @@ export const deleteUser = mutation({
 
     // 5. Delete the user account
     await ctx.db.delete(args.userId);
-
+    await addUserLogs(ctx, {
+      userId: adminId,
+      action: "delete",
+      target: `${userToDelete.role} - ${userToDelete.fullName}`,
+      details: `Deleted user with ID ${args.userId}`,
+    });
     return { success: true, deletedUserId: args.userId };
+  },
+});
+
+export const getUserByEmail = mutation({
+  args: {
+    email: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    if (!args.email) {
+      return null; // Return null if no email provided
+    }
+    const user = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("email"), args.email))
+      .first();
+    if (!user) {
+      throw new ConvexError("User not found");
+    }
+    return user;
   },
 });

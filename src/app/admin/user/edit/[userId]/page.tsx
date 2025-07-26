@@ -22,7 +22,7 @@ import {
 import { UserFormData } from "@/lib/zod";
 import { useConvexMutation } from "@convex-dev/react-query";
 import { useMutation } from "@tanstack/react-query";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation as useConvexReactMutation } from "convex/react";
 import { ConvexError } from "convex/values";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
@@ -49,6 +49,7 @@ interface EditUserPageProps {
 
 const EditUserPage = ({ params }: EditUserPageProps) => {
   const { userId } = params;
+  const createLogs = useConvexReactMutation(api.logs.createUserLogs);
 
   // const initialFormValues: UserFormData = {
   //   role: "admin",
@@ -368,18 +369,38 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
         {
           onSuccess: () => {
             toast.success("User updated successfully");
+            createLogs({
+              action: "update_user",
+              target: `${formData.role} - ${formData.fullName}`,
+              details: `User ${formData.fullName} updated successfully`,
+            });
             window.location.reload();
           },
           onError: (error: unknown) => {
             if (error instanceof ConvexError) {
+              createLogs({
+                action: "update_user",
+                target: "user",
+                details: `Failed to update user: ${error.data}`,
+              });
               toast.error(error.data || "Failed to update user");
             } else {
+              createLogs({
+                action: "update_user",
+                target: "user",
+                details: `An unexpected error occurred: ${error instanceof Error ? error.message : "Unknown error"}`,
+              });
               toast.error("An unexpected error occurred");
             }
           },
         }
       );
     } catch (error) {
+      createLogs({
+        action: "update_user",
+        target: "user",
+        details: `An unexpected error occurred: ${error instanceof Error ? error.message : "Unknown error"}`,
+      });
       toast.error("An unexpected error occurred");
     }
   };
@@ -399,7 +420,7 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
             <div className="bg-blue-50 p-3 rounded border border-blue-200 text-sm mb-4">
               <p className="text-blue-700">
                 Note: If you are creating a MAPEH subject, please name it
-                exactly as "MAPEH" (case sensitive).
+                exactly as &quot;MAPEH&quot; (case sensitive).
               </p>
             </div>
             <CardContent>

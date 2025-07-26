@@ -33,6 +33,7 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export function SchoolSettingsForm() {
+  const createUserLogs = useConvexMutation(api.logs.createUserLogs);
   const [schoolSettings, setSchoolSettings] = useState<FormData>({
     schoolName: "",
     schoolImage: "",
@@ -102,12 +103,27 @@ export function SchoolSettingsForm() {
 
       updateSchoolSettings(validatedData);
       toast.success("School settings updated successfully");
+      await createUserLogs({
+        action: "update",
+        target: "school-settings",
+        details: `School settings updated on ${new Date().toISOString().split("T")[0]}`,
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
+        await createUserLogs({
+          action: "update",
+          target: "school-settings",
+          details: `School settings update failed on ${new Date().toISOString().split("T")[0]}`,
+        });
       } else {
         toast.error("Failed to update school settings");
         console.error("Error updating school settings:", error);
+        await createUserLogs({
+          action: "update",
+          target: "school-settings",
+          details: `School settings update failed on ${new Date().toISOString().split("T")[0]}`,
+        });
       }
     } finally {
       setIsLoading(false);

@@ -334,7 +334,7 @@ function UserPage() {
             <div className="bg-blue-50 p-3 rounded border border-blue-200 text-sm mb-4">
               <p className="text-blue-700">
                 Note: If you are creating a MAPEH subject, please name it
-                exactly as "MAPEH" (case sensitive).
+                exactly as &quote;MAPEH&quote; (case sensitive).
               </p>
             </div>
             <form onSubmit={handleSubmit} className="space-y-2">

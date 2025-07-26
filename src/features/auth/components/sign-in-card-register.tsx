@@ -5,6 +5,9 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { TriangleAlertIcon } from "lucide-react";
 import { useState } from "react";
 import { AuthFlow } from "../types";
+import { Id } from "../../../../convex/_generated/dataModel";
+import { useMutation } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
 
 export const SignInCardRegister = ({
   setState,
@@ -16,7 +19,8 @@ export const SignInCardRegister = ({
   const [pending, setPending] = useState<boolean>(false);
   const [error, setError] = useState("");
   const { signIn } = useAuthActions();
-
+  const getUserByEmail = useMutation(api.users.getUserByEmail);
+  const createLogs = useMutation(api.logs.createUserLogs);
   // const router = useRouter()
 
   const onSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -32,6 +36,16 @@ export const SignInCardRegister = ({
         email,
         password,
         flow: "signIn",
+      }).then(async (res) => {
+        const user = await getUserByEmail({ email });
+        if (user) {
+          createLogs({
+            userId: user._id as Id<"users">,
+            action: "sign_in",
+            target: "N/A",
+            details: `User signed in with email: ${email}`,
+          });
+        }
       });
       setError("");
     } catch (error) {

@@ -29,6 +29,7 @@ import { unparse } from "papaparse";
 import JSZip from "jszip";
 
 export const BackupCard = () => {
+  const createUserLogs = useMutation(api.logs.createUserLogs);
   const [isExporting, setIsExporting] = useState(false);
   const [selectedModules, setSelectedModules] = useState<
     Record<string, boolean>
@@ -168,11 +169,20 @@ export const BackupCard = () => {
         exportData,
         `full-export-${new Date().toISOString().split("T")[0]}.${exportFormat}`
       );
-
+      await createUserLogs({
+        action: "export",
+        target: "full-system-export",
+        details: `Full system export completed on ${new Date().toISOString().split("T")[0]}`,
+      });
       toast.success("Full system export complete!");
     } catch (error) {
       console.error("Full export failed:", error);
       toast.error("Full system export failed. Check console for details.");
+      await createUserLogs({
+        action: "export",
+        target: "full-system-export",
+        details: `Full system export failed on ${new Date().toISOString().split("T")[0]}`,
+      });
     } finally {
       setIsExporting(false);
     }
@@ -208,11 +218,21 @@ export const BackupCard = () => {
         exportData,
         `selective-export-${new Date().toISOString().split("T")[0]}.${exportFormat}`
       );
+      await createUserLogs({
+        action: "export",
+        target: "selective-export",
+        details: `Selective export completed on ${new Date().toISOString().split("T")[0]}`,
+      });
 
       toast.success("Selective export complete!");
     } catch (error) {
       console.error("Selective export failed:", error);
       toast.error("Export failed: " + (error as Error).message);
+      await createUserLogs({
+        action: "export",
+        target: "selective-export",
+        details: `Selective export failed on ${new Date().toISOString().split("T")[0]}`,
+      });
     } finally {
       setIsExporting(false);
     }

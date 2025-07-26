@@ -426,6 +426,12 @@ const schema = defineSchema({
       v.literal("retained")
     ),
   }),
+  logs: defineTable({
+    userId: v.id("users"),
+    action: v.string(),
+    target: v.string(), // e.g., "user", "section", "subject"
+    details: v.optional(v.string()), // Additional details about the action
+  }).index("by_userId", ["userId"]),
 });
 
 export default schema;
