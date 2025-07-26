@@ -171,8 +171,7 @@ export const BackupCard = () => {
       );
       await createUserLogs({
         action: "export",
-        target: "full-system-export",
-        details: `Full system export completed on ${new Date().toISOString().split("T")[0]}`,
+        details: `Full system export completed.`,
       });
       toast.success("Full system export complete!");
     } catch (error) {
@@ -180,8 +179,7 @@ export const BackupCard = () => {
       toast.error("Full system export failed. Check console for details.");
       await createUserLogs({
         action: "export",
-        target: "full-system-export",
-        details: `Full system export failed on ${new Date().toISOString().split("T")[0]}`,
+        details: `Full system export failed.`,
       });
     } finally {
       setIsExporting(false);
@@ -220,8 +218,7 @@ export const BackupCard = () => {
       );
       await createUserLogs({
         action: "export",
-        target: "selective-export",
-        details: `Selective export completed on ${new Date().toISOString().split("T")[0]}`,
+        details: `Selective export completed.`,
       });
 
       toast.success("Selective export complete!");
@@ -230,8 +227,7 @@ export const BackupCard = () => {
       toast.error("Export failed: " + (error as Error).message);
       await createUserLogs({
         action: "export",
-        target: "selective-export",
-        details: `Selective export failed on ${new Date().toISOString().split("T")[0]}`,
+        details: `Selective export failed.`,
       });
     } finally {
       setIsExporting(false);

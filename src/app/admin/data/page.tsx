@@ -11,7 +11,7 @@ const DataPage = () => {
   const { results, status, loadMore } = usePaginatedQuery(
     api.logs.getUserLogs,
     {},
-    { initialNumItems: 5 }
+    { initialNumItems: 10 }
   );
 
   if (!users) {

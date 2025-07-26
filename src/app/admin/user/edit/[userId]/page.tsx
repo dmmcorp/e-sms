@@ -367,27 +367,24 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
               : undefined,
         },
         {
-          onSuccess: () => {
+          onSuccess: async () => {
             toast.success("User updated successfully");
-            createLogs({
+            await createLogs({
               action: "update_user",
-              target: `${formData.role} - ${formData.fullName}`,
               details: `User ${formData.fullName} updated successfully`,
             });
             window.location.reload();
           },
-          onError: (error: unknown) => {
+          onError: async (error: unknown) => {
             if (error instanceof ConvexError) {
-              createLogs({
+              await createLogs({
                 action: "update_user",
-                target: "user",
                 details: `Failed to update user: ${error.data}`,
               });
               toast.error(error.data || "Failed to update user");
             } else {
-              createLogs({
-                action: "update_user",
-                target: "user",
+              await createLogs({
+                action: "update_user",  
                 details: `An unexpected error occurred: ${error instanceof Error ? error.message : "Unknown error"}`,
               });
               toast.error("An unexpected error occurred");
@@ -396,9 +393,8 @@ const EditUserPage = ({ params }: EditUserPageProps) => {
         }
       );
     } catch (error) {
-      createLogs({
+      await createLogs({
         action: "update_user",
-        target: "user",
         details: `An unexpected error occurred: ${error instanceof Error ? error.message : "Unknown error"}`,
       });
       toast.error("An unexpected error occurred");

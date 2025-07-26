@@ -12,20 +12,29 @@ import { Id } from "./_generated/dataModel";
 
 export const createUserLogs = mutation({
   args: {
-    userId: v.optional(v.id("users")), // The ID of the user performing the action
     action: v.string(),
     details: v.optional(v.string()), // Additional details about the action
-    target: v.string(), // e.g., "user", "section", "subject"
   },
   handler: async (ctx, args) => {
-    const { userId, action, details, target } = args;
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+    const userDetails = await ctx.db.get(userId);
+    const { action, details } = args;
+    const fullName = userDetails?.fullName;
+    const role = userDetails?.role;
+    if (!fullName || !role) {
+      throw new Error("User details not found");
+    }
     if (userId && action === "sign_in") {
       // If userId is provided and action is "sign_in", we assume this is a user sign-in log
       await ctx.db.insert("logs", {
         userId,
         action,
         details: details || "User signed in",
-        target: target || "N/A",
+        fullName,
+        role,
       });
       return { success: true };
     } else {
@@ -37,7 +46,8 @@ export const createUserLogs = mutation({
         userId: authUserId,
         action,
         details,
-        target,
+        fullName,
+        role,
       });
       return { success: true };
     }
@@ -47,20 +57,29 @@ export const createUserLogs = mutation({
 export const addUserLogs = async (
   ctx: MutationCtx, // Convex context
   args: {
-    userId?: Id<"users">; // ID of the user performing the action
     action: string; // Action performed by the user
     details?: string; // Additional details about the action
-    target: string; // Target of the action, e.g., "user", "section", "subject"
   }
 ) => {
-  const { userId, action, details, target } = args;
+  const userId = await getAuthUserId(ctx);
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+  const userDetails = await ctx.db.get(userId);
+  const { action, details } = args;
+  const fullName = userDetails?.fullName;
+  const role = userDetails?.role;
+  if (!fullName || !role) {
+    throw new Error("User details not found");
+  }
   if (userId && action === "sign_in") {
     // If userId is provided and action is "sign_in", we assume this is a user sign-in log
     await ctx.db.insert("logs", {
       userId,
       action,
       details: details || "User signed in",
-      target: target || "N/A",
+      fullName,
+      role,
     });
     return { success: true };
   } else {
@@ -72,7 +91,8 @@ export const addUserLogs = async (
       userId: authUserId,
       action,
       details,
-      target,
+      fullName,
+      role,
     });
     return { success: true };
   }

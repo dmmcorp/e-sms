@@ -39,10 +39,8 @@ export const SignInCardRegister = ({
       }).then(async (res) => {
         const user = await getUserByEmail({ email });
         if (user) {
-          createLogs({
-            userId: user._id as Id<"users">,
+          await createLogs({
             action: "sign_in",
-            target: "N/A",
             details: `User signed in with email: ${email}`,
           });
         }

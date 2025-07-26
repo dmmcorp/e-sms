@@ -105,24 +105,21 @@ export function SchoolSettingsForm() {
       toast.success("School settings updated successfully");
       await createUserLogs({
         action: "update",
-        target: "school-settings",
-        details: `School settings updated on ${new Date().toISOString().split("T")[0]}`,
+        details: `School settings updated.`,
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
         await createUserLogs({
           action: "update",
-          target: "school-settings",
-          details: `School settings update failed on ${new Date().toISOString().split("T")[0]}`,
+          details: `School settings update failed.`,
         });
       } else {
         toast.error("Failed to update school settings");
         console.error("Error updating school settings:", error);
         await createUserLogs({
           action: "update",
-          target: "school-settings",
-          details: `School settings update failed on ${new Date().toISOString().split("T")[0]}`,
+          details: `School settings update failed.`,
         });
       }
     } finally {

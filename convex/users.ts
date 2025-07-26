@@ -221,16 +221,12 @@ export const createUser = mutation({
     await addUserLogs(ctx, {
       action: "create_user",
       details: `User account created for email: ${email}`,
-      target: `${userData.role} - ${userData.fullName}`,
-      userId: adminId as Id<"users">,
     });
     // if no response throw an error
     if (!accountResponse?.user?._id) {
       await addUserLogs(ctx, {
         action: "create_user",
         details: `Failed to create user account for email: ${email}`,
-        target: `${userData.role} - ${userData.fullName}`,
-        userId: adminId as Id<"users">,
       });
       throw new ConvexError("Failed to create account");
     }
@@ -2054,10 +2050,8 @@ export const deleteUser = mutation({
     // 5. Delete the user account
     await ctx.db.delete(args.userId);
     await addUserLogs(ctx, {
-      userId: adminId,
       action: "delete",
-      target: `${userToDelete.role} - ${userToDelete.fullName}`,
-      details: `Deleted user with ID ${args.userId}`,
+      details: `Deleted user ${userToDelete.fullName}`,
     });
     return { success: true, deletedUserId: args.userId };
   },

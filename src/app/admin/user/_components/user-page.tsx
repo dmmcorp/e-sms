@@ -25,7 +25,7 @@ import { Id } from "../../../../../convex/_generated/dataModel";
 import { containerVariants } from "../../_components/variants";
 import { SectionForm } from "./section-form";
 import { SubjectTaughtForm } from "./subject-taught-form";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation as useConvexReactMutation } from "convex/react";
 import { Loader2Icon } from "lucide-react";
 
 function UserPage() {
@@ -46,7 +46,7 @@ function UserPage() {
   });
 
   const sections = useQuery(api.sections.get, {});
-
+  const createUserLogs = useConvexReactMutation(api.logs.createUserLogs);
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
@@ -289,16 +289,28 @@ function UserPage() {
               : undefined,
         },
         {
-          onSuccess: () => {
+          onSuccess: async () => {
             setFormData(initialFormValues);
             toast.success("Successfully created a user");
+              await createUserLogs({
+              action: "create",
+              details: `Created user ${formData.fullName}`,
+            });
           },
-          onError: (error: unknown) => {
+          onError: async (error: unknown) => {
             console.error("Error creating user:", error);
             if (error instanceof ConvexError) {
               toast.error(error.data || "Failed to create user");
+              await createUserLogs({
+                action: "create",
+                details: `Failed to create user ${formData.fullName}`,
+              });
             } else {
               toast.error("An unexpected error occurred");
+              await createUserLogs({
+                action: "create",
+                details: `Failed to create user ${formData.fullName}`,
+              });
             }
           },
         }
@@ -306,8 +318,16 @@ function UserPage() {
     } catch (error) {
       if (error instanceof ConvexError) {
         toast.error(error.data || "Failed to create user");
+        await createUserLogs({
+          action: "create",
+          details: `Failed to create user ${formData.fullName}`,
+        });
       } else {
         toast.error("An unexpected error occurred");
+        await createUserLogs({
+          action: "create",
+          details: `Failed to create user ${formData.fullName}`,
+        });
       }
     }
   };

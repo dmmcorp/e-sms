@@ -50,16 +50,14 @@ export const InterventionsForm = () => {
       toast.success("Intervention created successfully");
       await createUserLogs({
         action: "create",
-        target: "interventions",
-        details: `Intervention created on ${new Date().toISOString().split("T")[0]}`,
+        details: `Intervention created.`,
       });
       form.reset();
     } catch (error) {
       toast.error("Failed to create intervention");
       await createUserLogs({
         action: "create",
-        target: "interventions",
-        details: `Intervention creation failed on ${new Date().toISOString().split("T")[0]}`,
+        details: `Intervention creation failed.`,
       });
     }
   };

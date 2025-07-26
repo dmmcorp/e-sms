@@ -428,8 +428,9 @@ const schema = defineSchema({
   }),
   logs: defineTable({
     userId: v.id("users"),
+    fullName: v.string(),
+    role: v.string(),
     action: v.string(),
-    target: v.string(), // e.g., "user", "section", "subject"
     details: v.optional(v.string()), // Additional details about the action
   }).index("by_userId", ["userId"]),
 });

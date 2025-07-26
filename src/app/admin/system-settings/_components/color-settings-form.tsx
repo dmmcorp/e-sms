@@ -43,16 +43,14 @@ export function ColorSettingsForm() {
       });
       await createUserLogs({
         action: "update",
-        target: "color-settings",
-        details: `Color settings updated on ${new Date().toISOString().split("T")[0]}`,
+        details: `Color settings updated.`,
       });
       toast.success("Settings updated.");
     } catch (error) {
       toast.error("Failed to update settings");
       await createUserLogs({
         action: "update",
-        target: "color-settings",
-        details: `Color settings update failed on ${new Date().toISOString().split("T")[0]}`,
+        details: `Color settings update failed.`,
       });
     }
   };
