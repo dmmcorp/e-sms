@@ -31,7 +31,7 @@ function Values({
     setValuesDialog
 }: ValuesProps) {
     const [isEditing, setIsEditing] = useState<boolean>(edit ?? false);
-  
+    const createLogs = useMutation(api.logs.createUserLogs);
 
     const value = useQuery(api.values.get, {studentId: studentId, sectionStudentId: sectionStudentId})
     const addValues = useMutation(api.values.add)
@@ -104,8 +104,20 @@ function Values({
             sectionStudentId: data.sectionStudentId as Id<'sectionStudents'>
         }),{
             loading: "Saving your input",
-            success: "Values marking save successfully :)",
-            error: "Saving Values marking failed :("
+            success: async () => {
+                await createLogs({
+                    action: "update",
+                    details: `Saved values for ${studentId}`,
+                });
+                return "Values marking save successfully :)"
+            },
+            error: async (error) => {
+                await createLogs({
+                    action: "update",
+                    details: `Failed to save values for ${studentId}`,
+                });
+                return "Saving Values marking failed :("
+            }
         })
         setIsEditing(!isEditing);
         setValuesDialog(false)

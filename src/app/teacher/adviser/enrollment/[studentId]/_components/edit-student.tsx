@@ -32,6 +32,7 @@ function EditStudent({
     editDialog,
     setEditDialog
 }:EditStudentProps) {
+    const createLogs = useMutation(api.logs.createUserLogs);
     const [isSubmitting, setIsSubmitting] = useState(false)
     const updateStudent = useMutation(api.students.edit)
     const form = useForm<z.infer<typeof enrollmentSchema>>({
@@ -92,11 +93,19 @@ function EditStudent({
             semesterEnrollingIn: values.semesterEnrollingIn || undefined,
         }),{
             loading: "Updating student information...",
-            success: () => {
+            success: async () => {
+                await createLogs({
+                    action: "update",
+                    details: `Updated student information for ${student?.firstName} ${student?.lastName}`,
+                });
                 setEditDialog(false)
-            return "Updated student information"
+                return "Updated student information"
             },
-            error: (error) => {
+            error: async (error) => {
+                await createLogs({
+                    action: "update",
+                    details: `Failed to update student information for ${student?.firstName} ${student?.lastName}`,
+                });
             return (
                 <div className="">{error.data}</div>
             )

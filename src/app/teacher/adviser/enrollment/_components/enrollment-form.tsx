@@ -61,7 +61,7 @@ function EnrollmentForm() {
   const sectionId = searchParams.get("id") as Id<"sections"> | null;
   const addStudent = useMutation(api.students.add);
   const router = useRouter();
-
+  const createLogs = useMutation(api.logs.createUserLogs);
   //default values of the form
   const form = useForm<z.infer<typeof enrollmentSchema>>({
     resolver: zodResolver(enrollmentSchema),
@@ -123,12 +123,20 @@ function EnrollmentForm() {
       }),
       {
         loading: "Adding student...",
-        success: () => {
+        success: async () => {
           form.reset();
+          await createLogs({
+            action: "update",
+            details: `Added a new student`,
+          });
           router.back();
           return "Successfully Added a new student";
         },
-        error: (error) => {
+        error: async (error) => {
+          await createLogs({
+            action: "update",
+            details: `Failed to add a new student`,
+          });
           return <div className="">{error.data}</div>;
         },
       }

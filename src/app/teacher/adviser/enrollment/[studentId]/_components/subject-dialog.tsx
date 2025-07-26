@@ -25,6 +25,7 @@ function SubjectDialog({
     enrollmentId,
     studentId
 }: SubjectDialogProps) {
+    const createLogs = useMutation(api.logs.createUserLogs);
     const currentSubjects = currentSection?.subjectsWithDetails.map(subject => subject.subject?._id).filter(s => s !== undefined) || [] as Id<'subjectTaught'>[]
     const [subjects, setSubjects] = useState<Id<'subjectTaught'>[]>(currentSubjects);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -40,15 +41,23 @@ function SubjectDialog({
         }),
         {
           loading: 'Updating subjects for the student...',
-          success: ()=>{ 
+          success: async ()=>{ 
             setIsLoading(false)
-           
+            await createLogs({
+                action: "update",
+                details: `Updated subjects for ${studentId}`,
+            });
             return 'Subjects have been successfully updated!'},
-          error:(error)=>{
+          error: async (error)=>{
             setIsLoading(false)
+            await createLogs({
+                action: "update",
+                details: `Failed to update subjects for ${studentId}`,
+            });
             const errorMes = error.message ? error.message : 'An unexpected error occurred while updating subjects. Please try again later.'
-            return errorMes},
+            return errorMes
         }
+        }   
       
     )
     onOpenChange(false)

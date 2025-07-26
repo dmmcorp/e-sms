@@ -33,6 +33,7 @@ function EnrollDialog({
     fullName,
     student,
 }: EnrollDialogProps) {
+    const createLogs = useMutation(api.logs.createUserLogs);
     const [subjects, setSubjects] = useState<Id<'subjectTaught'>[]>([]);
     const [selectedAll, setSelectedAll] = useState<boolean>(false);
     const [isReturning, setIsReturning] = useState<boolean>(false);
@@ -80,12 +81,20 @@ function EnrollDialog({
             }),
             {
               loading: 'Enrolling student...',
-              success: ()=>{ 
+              success: async ()=>{ 
                 setIsLoading(false)
                 setAssignDialog(false)
+                await createLogs({
+                    action: "update",
+                    details: `Enrolled ${fullName} to the section`,
+                });
                 return 'Student successfully enrolled!'},
-              error:(error)=>{
+              error: async (error)=>{
                 setIsLoading(false)
+                await createLogs({
+                    action: "update",
+                    details: `Failed to enroll ${fullName} to the section`,
+                });
                 const errorMes = error.data ? error.data : 'Failed to enroll student. Please try again.'
                 return errorMes},
             }

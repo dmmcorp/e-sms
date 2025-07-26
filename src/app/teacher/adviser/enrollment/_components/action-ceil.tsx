@@ -22,21 +22,33 @@ export default function ActionCeil({
     const deleteStudent = useMutation(api.students.archivedStudent);
     const router = useRouter();
     const fullName = `${student.firstName} ${student.middleName ?? ""} ${student.lastName}`;
-
+    const createLogs = useMutation(api.logs.createUserLogs);
     const handleDelete = () =>{
         toast.promise(deleteStudent({
             studentId: student._id
         }),{
             loading: "Removing Student from the list...",
-            success: "Remove student successfully.",
-            error: "Failed to remove student."
+            success: async () => {
+                await createLogs({
+                    action: "update",
+                    details: `Removed ${fullName} from the list`,
+                });
+                return "Remove student successfully."
+            },
+            error: async (error) => {
+                await createLogs({
+                    action: "update",
+                    details: `Failed to remove ${fullName} from the list`,
+                });
+                return "Failed to remove student."
+            }
         })
     }
     return (
         <div className="">
             <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-               
+                
                     <MoreHorizontal className="h-4 w-4" />
                
                 </DropdownMenuTrigger>

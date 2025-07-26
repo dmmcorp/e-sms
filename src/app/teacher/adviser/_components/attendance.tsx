@@ -25,7 +25,7 @@ interface AttendanceProps {
 
 function Attendance({ student, attendance, edit }: AttendanceProps) {
     const [isEditing, setIsEditing] = useState(edit ?? false);
-
+    const createLogs = useMutation(api.logs.createUserLogs);
     const addAttendance = useMutation(api.attendance.add)
 
     const form = useForm<z.infer<typeof AttendanceFormschema>>({
@@ -103,8 +103,20 @@ function Attendance({ student, attendance, edit }: AttendanceProps) {
             sectionStudentId: data.sectionStudentId as Id<'sectionStudents'>
         }), {
             loading: "Saving your input",
-            success: "Values marking save successfully :)",
-            error: "Saving Values marking failed :("
+            success: async () => {
+                await createLogs({
+                    action: "update",
+                    details: `Saved attendance for ${student.firstName} ${student.lastName}`,
+                });
+                return "Values marking save successfully :)"
+            },
+            error: async (error) => {
+                await createLogs({
+                    action: "update",
+                    details: `Failed to save attendance for ${student.firstName} ${student.lastName}`,
+                });
+                return "Saving Values marking failed :("
+            }
         })
         setIsEditing(!isEditing);
     }
