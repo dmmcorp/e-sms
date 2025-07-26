@@ -13,7 +13,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { MultiSelect } from '@/components/ui/multi-select'
 import { api } from '../../../../../../convex/_generated/api'
-import { ClassRecordTypes } from '@/lib/types'
+import { ClassRecordTypes, StudentNeedsIntervention } from '@/lib/types'
 
 interface InterventionDialogProp {
     open: boolean,
@@ -21,6 +21,7 @@ interface InterventionDialogProp {
     quarterlyGrade: number | undefined
     usedIntervention: string[],
     classRecord: ClassRecordTypes | null
+    student: StudentNeedsIntervention
 }
 
 export const InterventionFormSchema = z.object({
@@ -35,8 +36,10 @@ function InterventionDialog({
     open, 
     setOpen, 
     usedIntervention,
-    classRecord
+    classRecord,
+    student
 }: InterventionDialogProp) {
+  const createLogs = useMutation(api.logs.createUserLogs);
     const saveInterventionStats = useMutation(api.classRecords.saveInterventionGrade)
     const interventions = useQuery(api.interventions.get)
     const interventionNames = interventions ? interventions.map(i => {
@@ -72,8 +75,20 @@ function InterventionDialog({
             interventionGrade: data.interventionGrade
           }),{
             loading: "Saving Interventions details",
-            success: "Interventions details save successfully. :)",
-            error: "Failed to save Interventions details. :(",
+            success: async () => {
+              await createLogs({
+                action: "update",
+                details: `Saved interventions details for ${student.firstName} ${student.lastName}`,
+              });
+              return "Interventions details save successfully. :)"
+            },
+            error: async (error) => {
+              await createLogs({
+                action: "update",
+                details: `Failed to save interventions details for ${student.firstName} ${student.lastName}`,
+              });
+              return "Failed to save Interventions details. :("
+            }
         });
 
         setIsLoading(false)

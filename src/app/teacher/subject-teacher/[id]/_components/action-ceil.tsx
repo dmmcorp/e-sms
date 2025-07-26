@@ -32,6 +32,7 @@ export default function ActionCeil({
             setOpen={setOpen}
             usedIntervention={usedIntervention ?? []}
             classRecord={student.classRecord}
+            student={student}
         />
     </div>
   )

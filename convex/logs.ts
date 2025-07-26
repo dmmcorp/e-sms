@@ -98,16 +98,13 @@ export const addUserLogs = async (
   }
 };
 export const getUserLogs = query({
-  args: { paginationOpts: paginationOptsValidator },
+  args: {},
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
       throw new Error("Unauthorized");
     }
-    const result = await ctx.db
-      .query("logs")
-      .order("desc")
-      .paginate(args.paginationOpts);
+    const result = await ctx.db.query("logs").order("desc").collect();
     return result;
   },
 });
