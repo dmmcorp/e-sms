@@ -25,6 +25,7 @@ interface ActionCeilProps {
 function RemedialActions({
     student
 }: ActionCeilProps) {
+    const createLogs = useMutation(api.logs.createUserLogs);
     const [dialogOpen, setDialogOpen] = useState<boolean>(false)
     const router = useRouter()
     const studentName = `${student.lastName}, ${student.firstName} ${student.middleName}`
@@ -78,8 +79,20 @@ function RemedialActions({
             }),
             {
             loading: "Saving remedial data...",
-            success: "Remedial data saved successfully!",
-            error: "Failed to save remedial data. Please try again.",
+            success: async () => {
+                await createLogs({
+                    action: "update",
+                    details: `Saved remedial data for ${studentName}`,
+                });
+                return "Remedial data saved successfully!"
+            },
+            error: async (error) => {
+                await createLogs({
+                    action: "update",
+                    details: `Failed to save remedial data for ${studentName}`,
+                });
+                return "Failed to save remedial data. Please try again."
+            }
             }
         );
 

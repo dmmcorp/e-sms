@@ -34,6 +34,7 @@ function PromoteDialog({
   promoteDialog,
   setPromoteDialog,
 }: PromoteDialogProps) {
+  const createLogs = useMutation(api.logs.createUserLogs);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const isSHS =
     student.section.gradeLevel === "Grade 11" ||
@@ -300,7 +301,11 @@ function PromoteDialog({
         }),
         {
           loading: "Analyzing Promotion...",
-          success: (data) => {
+          success: async (data) => {
+            await createLogs({
+              action: "update",
+              details: `Promoted ${fullName} to the next grade level`,
+            });
             return (
               <div>
                 Success:{" "}
@@ -308,8 +313,12 @@ function PromoteDialog({
               </div>
             );
           },
-          error: (error) => {
+          error: async (error) => {
             const errorMes = error.data ? error.data : "Something went wrong!";
+            await createLogs({
+              action: "update",
+              details: `Failed to promote ${fullName} to the next grade level`,
+            });
             return (
               <div>
                 Invalid: <span className="capitalize"> {errorMes}</span>

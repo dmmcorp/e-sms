@@ -18,19 +18,36 @@ function DropDialog({
     dropDialog,
     setDropDialog
 }: DropDialogProps) {
+    const createLogs = useMutation(api.logs.createUserLogs);
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const dropStudent = useMutation(api.enrollment.dropStudent)
-    const handleDropStudent = () =>{
+    const handleDropStudent = async() =>{
         setIsLoading(true)
         if(student.enrollment) {
             toast.promise(dropStudent({
                 enrollmentId: student.enrollment._id
             }),{
                 loading: "Dropping student...",
-                success: "Student dropped successfully.",
-                error: "Error Dropping student..."
+                success: async () => {
+                    await createLogs({
+                        action: "update",
+                        details: `Dropped ${studentName}`,
+                    });
+                    return "Student dropped successfully."
+                },
+                error: async (error) => {
+                    await createLogs({
+                        action: "update",
+                        details: `Failed to drop ${studentName}`,
+                    });
+                    return "Error Dropping student..."
+                }
             })
         } else {
+            await createLogs({
+                action: "update",
+                details: `Failed to drop ${studentName}`,
+            });
             toast.error('Student not Enrolled.')
         }
         setDropDialog(false)

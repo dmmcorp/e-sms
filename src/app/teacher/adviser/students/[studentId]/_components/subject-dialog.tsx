@@ -29,7 +29,7 @@ function SubjectDialog({
     const [subjects, setSubjects] = useState<Id<'subjectTaught'>[]>(currentSubjects);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const editSubjects = useMutation(api.enrollment.editSubjects)
-
+    const createLogs = useMutation(api.logs.createUserLogs);
    function handleSubmit(): void {
         setIsLoading(true)
         toast.promise(
@@ -40,13 +40,20 @@ function SubjectDialog({
             }),
             {
                 loading: 'Updating subjects for the student...',
-                success: () => {
+                success: async () => {
                     setIsLoading(false)
-
+                    await createLogs({
+                        action: "update",
+                        details: `Updated subjects for ${studentId}`,
+                    });
                     return 'Subjects have been successfully updated!'
                 },
-                error: (error) => {
+                    error: async (error) => {
                     setIsLoading(false)
+                    await createLogs({
+                        action: "update",
+                        details: `Failed to update subjects for ${studentId}`,
+                    });
                     const errorMes = error.data ? error.data : 'An unexpected error occurred while updating subjects. Please try again later.'
                     return errorMes
                 },
