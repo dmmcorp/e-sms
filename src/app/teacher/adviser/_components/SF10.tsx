@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef, useState } from "react";
 import { Id } from "../../../../../convex/_generated/dataModel";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,7 @@ interface SF10Types {
 }
 
 function SF10({ sectionStudentId, readOnly }: SF10Types) {
+  const createUserLogs = useMutation(api.logs.createUserLogs);
   const [activeTab, setActiveTab] = useState("front");
   const student = useQuery(api.students.getStudentSection, {
     sectionStudentId: sectionStudentId,
@@ -38,13 +39,19 @@ function SF10({ sectionStudentId, readOnly }: SF10Types) {
     isSHS: isSHS,
   });
 
-  console.log(enrollments);
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   };
 
   const reactToPrintContent = () => {
     return componentRef.current;
+  };
+
+  const saveLogs = async () => {
+    await createUserLogs({
+      details: `Printed SF10 (${activeTab}) for student ${student?.lastName}`,
+      action: "PRINT_SF10",
+    });
   };
 
   const handlePrint = useReactToPrint({
@@ -77,8 +84,9 @@ function SF10({ sectionStudentId, readOnly }: SF10Types) {
           <div className="flex justify-end col-span-3">
             <Button
               size={"icon"}
-              onClick={() => {
+              onClick={async () => {
                 handlePrint(reactToPrintContent);
+                await saveLogs();
               }}
             >
               <Printer />
@@ -486,12 +494,17 @@ function SF10({ sectionStudentId, readOnly }: SF10Types) {
                 <h1 className="uppercase text-center bg-gray-300 text-[0.7rem] font-semibold">
                   Scholastic Record
                 </h1>
-                {enrollments?.studentEnrollments.map((enrollment) => {
+                {enrollments?.studentEnrollments.map((enrollment, index) => {
                   if (
                     enrollment.gradeLevel === "Grade 11 - 1st semester" ||
                     enrollment.gradeLevel === "Grade 11 - 2nd semester"
                   )
-                    return <ShsSubjectsTemplate record={enrollment} />;
+                    return (
+                      <ShsSubjectsTemplate
+                        key={enrollment.data?._id ?? index}
+                        record={enrollment}
+                      />
+                    );
                 })}
               </div>
             ) : (
@@ -499,12 +512,17 @@ function SF10({ sectionStudentId, readOnly }: SF10Types) {
                 <h1 className="uppercase text-center bg-gray-300 text-[0.7rem] font-semibold">
                   Scholastic Record
                 </h1>
-                {enrollments?.studentEnrollments.map((enrollment) => {
+                {enrollments?.studentEnrollments.map((enrollment, index) => {
                   if (
                     enrollment.gradeLevel === "Grade 7" ||
                     enrollment.gradeLevel === "Grade 8"
                   )
-                    return <JhsSubjectsTemplate record={enrollment} />;
+                    return (
+                      <JhsSubjectsTemplate
+                        key={enrollment.data?._id ?? index}
+                        record={enrollment}
+                      />
+                    );
                 })}
                 <div className="mt-2 border border-black p-1">
                   <h1 className="text-center font-semibold text-xs mb-3">
@@ -604,12 +622,17 @@ function SF10({ sectionStudentId, readOnly }: SF10Types) {
                 <h1 className="uppercase">SF10 JHS</h1>
               </div>
               <div className="">
-                {enrollments?.studentEnrollments.map((enrollment) => {
+                {enrollments?.studentEnrollments.map((enrollment, index) => {
                   if (
                     enrollment.gradeLevel === "Grade 12 - 1st semester" ||
                     enrollment.gradeLevel === "Grade 12 - 2nd semester"
                   )
-                    return <ShsSubjectsTemplate record={enrollment} />;
+                    return (
+                      <ShsSubjectsTemplate
+                        key={enrollment.data?._id ?? index}
+                        record={enrollment}
+                      />
+                    );
                 })}
               </div>
               <div className="my-2 w-full h-2 bg-gray-300"></div>
@@ -687,12 +710,17 @@ function SF10({ sectionStudentId, readOnly }: SF10Types) {
                 </h1>
               </div>
               <div className="">
-                {enrollments?.studentEnrollments.map((enrollment) => {
+                {enrollments?.studentEnrollments.map((enrollment, index) => {
                   if (
                     enrollment.gradeLevel === "Grade 9" ||
                     enrollment.gradeLevel === "Grade 10"
                   )
-                    return <JhsSubjectsTemplate record={enrollment} />;
+                    return (
+                      <JhsSubjectsTemplate
+                        key={enrollment.data?._id ?? index}
+                        record={enrollment}
+                      />
+                    );
                 })}
                 <div className="">
                   <div className="grid grid-cols-12 gap-x-2 text-[0.55rem] font-semibold px-2 pt-1 border-t-black border-t border-x-black border-x leading-3">
