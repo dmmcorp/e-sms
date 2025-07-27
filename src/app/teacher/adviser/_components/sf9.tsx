@@ -78,9 +78,9 @@ export default function SF9({
           <div className="flex justify-end col-span-3">
             <Button
               size={"icon"}
-              onClick={() => {
+              onClick={async () => {
                 handlePrint(reactToPrintContent);
-                saveLogs();
+                await saveLogs();
               }}
             >
               <Printer />
