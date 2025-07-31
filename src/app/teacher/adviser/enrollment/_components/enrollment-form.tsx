@@ -88,7 +88,6 @@ function EnrollmentForm() {
       semesterEnrollingIn: undefined, // Default to 1st semester
     },
   });
-  console.log(form.getValues());
   //this fuction is used the user click the save button
   function onSubmit(values: z.infer<typeof enrollmentSchema>) {
     setIsSubmitting(true);
