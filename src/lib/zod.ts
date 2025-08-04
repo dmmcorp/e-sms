@@ -150,11 +150,14 @@ export const enrollmentSchema = z
       .nonempty({ message: "Middle name is required." }),
 
     lrn: z.coerce
-      .number()
+      .number({
+        required_error: "LRN is required",
+        invalid_type_error: "LRN is required and must be exactly 12 digits.",
+      })
       .refine((value) => value.toString().length === 12, {
         message: "LRN must be exactly 12 digits.",
       })
-      .refine((value) => value !== null && value !== undefined, {
+      .refine((value) => value !== null || value !== undefined, {
         message: "LRN is required.",
       }),
 
@@ -185,11 +188,9 @@ export const enrollmentSchema = z
     jnrGenAve: z.coerce.number().optional(),
     jnrPrevSchoolName: z.string().optional(),
     jnrPrevSchoolAddress: z.string().optional(),
-    jnrDateOfAdmission: z
-      .date({
-        required_error: "Date of admission is required.",
-      })
-      .optional(),
+    jnrDateOfAdmission: z.date({
+      required_error: "Date of admission is required.",
+    }),
     jnrDateOfCompletion: z
       .date({
         required_error: "Date of completion is required.",

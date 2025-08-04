@@ -132,6 +132,7 @@ function EnrollmentForm() {
           return "Successfully Added a new student";
         },
         error: async (error) => {
+          console.log(error);
           await createLogs({
             action: "update",
             details: `Failed to add a new student`,
@@ -190,7 +191,7 @@ function EnrollmentForm() {
               </CardDescription>
             </div>
             <div className="hidden sm:block bg-white border rounded-lg px-3 py-1 text-sm">
-              Step {step} of 3
+              Step {step} of 2
             </div>
           </div>
         </CardHeader>
@@ -199,7 +200,7 @@ function EnrollmentForm() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               {step === 1 && (
                 <div className="space-y-6">
-                  <div className="text-lg font-medium">
+                  <div className="text-lg font-semibold">
                     Personal Information
                   </div>
                   <div className="grid gap-6 sm:grid-cols-3 items-start">
@@ -345,66 +346,68 @@ function EnrollmentForm() {
               )}
 
               {step === 2 && (
-                <div className="space-y-6">
-                  <div className="text-lg font-medium">
-                    Academic Information
-                  </div>
-                  <div className="grid gap-6 sm:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="lrn"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Learning Reference Number{" "}
-                            <span className="text-red-500">*</span>
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="Enter learning reference number"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Your unique student identifier
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="enrollingTo"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>
-                            Grade Level for Enrollment{" "}
-                            <span className="text-red-500">*</span>
-                          </FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
+                <>
+                  <div className="space-y-6">
+                    <div className="text-lg font-semibold">
+                      Academic Information
+                    </div>
+                    <div className="grid gap-6 sm:grid-cols-2">
+                      <FormField
+                        control={form.control}
+                        name="lrn"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Learning Reference Number{" "}
+                              <span className="text-red-500">*</span>
+                            </FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select grade level" />
-                              </SelectTrigger>
+                              <Input
+                                type="number"
+                                placeholder="Enter learning reference number"
+                                {...field}
+                              />
                             </FormControl>
-                            <SelectContent>
-                              {gradeLevels.map((level) => (
-                                <SelectItem key={level} value={level}>
-                                  {level}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    {form.watch("enrollingTo") === "Grade 7" ||
-                    form.watch("enrollingTo") === "Grade 11" ? (
+
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="enrollingTo"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>
+                              Grade Level for Enrollment{" "}
+                              <span className="text-red-500">*</span>
+                            </FormLabel>
+                            <Select
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                form.resetField("semesterEnrollingIn");
+                                form.resetField("jnrDateOfAdmission");
+                              }}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Select grade level " />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {gradeLevels.map((level) => (
+                                  <SelectItem key={level} value={level}>
+                                    {level}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
                       <FormField
                         control={form.control}
                         name="jnrDateOfAdmission"
@@ -454,68 +457,65 @@ function EnrollmentForm() {
                           </FormItem>
                         )}
                       />
-                    ) : (
-                      <></>
-                    )}
-                    {form.watch("enrollingTo") === "Grade 11" ||
-                    form.watch("enrollingTo") === "Grade 12" ? (
-                      <FormField
-                        control={form.control}
-                        name="semesterEnrollingIn"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-col">
-                            <FormLabel>
-                              Semester for Enrollment{" "}
-                              <span className="text-red-500">*</span>
-                            </FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
+                      {form.watch("enrollingTo") === "Grade 11" ||
+                      form.watch("enrollingTo") === "Grade 12" ? (
+                        <FormField
+                          control={form.control}
+                          name="semesterEnrollingIn"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                              <FormLabel>
+                                Semester for Enrollment{" "}
+                                <span className="text-red-500">*</span>
+                              </FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select semester" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {["1st semester", "2nd semester"].map(
+                                    (semester) => (
+                                      <SelectItem
+                                        key={semester}
+                                        value={semester}
+                                      >
+                                        {semester}
+                                      </SelectItem>
+                                    )
+                                  )}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      ) : (
+                        <FormField
+                          control={form.control}
+                          name="semesterEnrollingIn"
+                          render={({ field }) => (
+                            <FormItem className="hidden">
                               <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select semester" />
-                                </SelectTrigger>
+                                <Input type="hidden" {...field} />
                               </FormControl>
-                              <SelectContent>
-                                {["1st semester", "2nd semester"].map(
-                                  (semester) => (
-                                    <SelectItem key={semester} value={semester}>
-                                      {semester}
-                                    </SelectItem>
-                                  )
-                                )}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    ) : (
-                      <FormField
-                        control={form.control}
-                        name="semesterEnrollingIn"
-                        render={({ field }) => (
-                          <FormItem className="hidden">
-                            <FormControl>
-                              <Input type="hidden" {...field} />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    )}
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
-
-              {step === 3 && (
-                <>
+                  <Separator />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                     {/* Elementary school information */}
                     <div className="space-y-6">
-                      <div className="text-lg font-medium">
-                        School Information{" "}
-                        <span className="italic">(Elementary)</span>
+                      <div className="text-lg font-semibold">
+                        Elementary School Information{" "}
+                        <span className="italic">(optional)</span>
                       </div>
                       <FormField
                         control={form.control}
@@ -586,9 +586,9 @@ function EnrollmentForm() {
                     </div>
                     {/* Junior High school information */}
                     <div className="space-y-6">
-                      <div className="text-lg font-medium">
-                        School Information{" "}
-                        <span className="italic">(Junior High School)</span>
+                      <div className="text-lg font-semibold">
+                        Junior High School Information{" "}
+                        <span className="italic">(optional)</span>
                       </div>
                       <FormField
                         control={form.control}
@@ -694,7 +694,9 @@ function EnrollmentForm() {
                     name="alsRating"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>ALS Rating</FormLabel>
+                        <FormLabel className="text-lg font-semibold">
+                          ALS Rating
+                        </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Enter ALS rating (if applicable)"
@@ -744,7 +746,7 @@ function EnrollmentForm() {
                   <div className=""></div>
                 )}
 
-                {step === 3 ? (
+                {step === 2 ? (
                   <></>
                 ) : (
                   <Button
@@ -758,13 +760,6 @@ function EnrollmentForm() {
                           "sex",
                         ]);
                         if (isValid) setStep(step + 1);
-                      } else if (step === 2) {
-                        const isValid = await form.trigger([
-                          "lrn",
-                          "enrollingTo",
-                          "jnrDateOfAdmission",
-                        ]);
-                        if (isValid) setStep(step + 1);
                       }
                     }}
                     className="gap-1"
@@ -773,7 +768,7 @@ function EnrollmentForm() {
                   </Button>
                 )}
 
-                {step === 3 && (
+                {step === 2 && (
                   <Button
                     type="submit"
                     disabled={isSubmitting}
