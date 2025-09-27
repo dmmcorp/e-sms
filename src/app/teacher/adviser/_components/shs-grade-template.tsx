@@ -43,18 +43,17 @@ function SrGradesTemplate({
     ...(appliedAndSpecialized || []),
   ];
 
+  console.log("All Subjects:", allSubjects);
   // Function to calculate the average of quarterly grades
   function calculateQuarterlyAverage(
     grades: { "1st": number | undefined; "2nd": number | undefined } | undefined
   ): number | null {
     if (!grades) return null;
-    const validGrades = Object.values(grades).filter(
-      (grade): grade is number => grade !== undefined
-    );
-    if (validGrades.length === 0) return null;
-    const sum = validGrades.reduce((acc, grade) => acc + grade, 0);
-    const quarterAverage = Math.round(sum / validGrades.length).toFixed(0);
-    return Number(quarterAverage);
+    const gradeValues = Object.values(grades);
+    if (gradeValues.length !== 2 || gradeValues.some((g) => g === undefined))
+      return null;
+    const sum = (gradeValues[0] as number) + (gradeValues[1] as number);
+    return Number(Math.round(sum / 2).toFixed(0));
   }
 
   function calculateGeneralAverage(): number | null {

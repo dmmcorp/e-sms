@@ -101,9 +101,30 @@ function PromoteDialog({
     grades: QuarterGrades | undefined
   ): number | null {
     if (!grades) return null;
-    const validGrades = Object.values(grades).filter(
-      (grade): grade is number => grade !== undefined
-    );
+    // Determine required quarters based on SHS/JHS
+    let requiredQuarters: Quarter[];
+    if (isSHS) {
+      // Determine semester based on student's section
+      const semester = student.section.semester;
+      if (semester === "1st semester") {
+        requiredQuarters = ["1st", "2nd"];
+      } else if (semester === "2nd semester") {
+        requiredQuarters = ["3rd", "4th"];
+      } else {
+        requiredQuarters = ["1st", "2nd", "3rd", "4th"];
+      }
+    } else {
+      requiredQuarters = ["1st", "2nd", "3rd", "4th"];
+    }
+    // Check for missing grades in required quarters
+    for (const quarter of requiredQuarters) {
+      if (grades[quarter as keyof QuarterGrades] === undefined) {
+        return null;
+      }
+    }
+    const validGrades = requiredQuarters
+      .map((q) => grades[q as keyof QuarterGrades])
+      .filter((grade): grade is number => grade !== undefined);
     if (validGrades.length === 0) return null;
     const sum = validGrades.reduce((acc, grade) => acc + grade, 0);
     // Only round to 2 decimal places for general average
@@ -258,13 +279,13 @@ function PromoteDialog({
       }
     });
 
-    return count > 0 ? total / count : null;
+    return count > 0 ? Number(Math.round(total / count).toFixed(0)) : null;
   }
 
   const generalAverage = calculateGeneralAverage();
   const subjectGrades = getSubjectsBelowPassing();
   const failedSubjects = getSubjectsBelowPassing().filter(
-    ({ average }) => average !== null && average < 75
+    ({ average }) => average !== null && Number(average.toFixed(0)) < 75
   ); // Exclude subjects with average >= 75
 
   const handlePromote = () => {
@@ -336,121 +357,165 @@ function PromoteDialog({
     setIsLoading(false);
   };
 
+  function hasUncompliedIntervention(): boolean {
+    if (!subjects || subjects.length === 0) return false;
+
+    // For each subject, check if there is an intervention for a quarter and its grade is missing
+    return subjects.some((subject) => {
+      // Only check main subjects (not MAPEH components)
+      const isMainSubject = !(
+        "isMapehComponent" in subject && subject.isMapehComponent
+      );
+
+      if (!isMainSubject || !subject.interventions) return false;
+
+      // For each quarter, if there is an intervention object and its grade is missing, return true
+      return ["1st", "2nd", "3rd", "4th"].some((quarter) => {
+        const intervention =
+          subject.interventions?.[quarter as "1st" | "2nd" | "3rd" | "4th"];
+        return (
+          intervention !== undefined &&
+          (intervention.grade === undefined ||
+            intervention.grade === null ||
+            intervention.grade === 0)
+        );
+      });
+    });
+  }
   return (
     <Dialog open={promoteDialog} onOpenChange={setPromoteDialog}>
       <DialogContent>
         <DialogTitle>Promote to the next grade level?</DialogTitle>
         {failedSubjects.length !== 0 && failedSubjects.length >= 1 ? (
-          isSHS ? (
-            <>
-              <div className="space-y-3">
-                <p>
-                  <strong className="capitalize">{fullName}</strong> has{" "}
-                  <strong>failed ({failedSubjects.length})</strong> of his
-                  subjects.
-                </p>
-                <h1>Failed Subject(s):</h1>
-                {failedSubjects.map((fs) => (
-                  <div key={fs.subject._id} className="">
-                    <h1 className="pl-5">
-                      -{" "}
-                      <strong>
-                        {fs.subject.subjectName} - ({fs.average})
-                      </strong>
-                    </h1>
-                  </div>
-                ))}
-                <p className="text-sm text-justify">
-                  * Must pass remedial classes for failed competencies in the
-                  subjects or learning areas to be allowed to enroll in the next
-                  semester. Otherwise, the learner must retake the subjects
-                  failed.
-                </p>
-              </div>
-              <DialogFooter>
-                <Button
-                  disabled={isLoading || generalAverage === null}
-                  variant={"default"}
-                  onClick={handlePromote}
-                  className=" text-white"
-                >
-                  Conditionally Promote
-                </Button>
-              </DialogFooter>
-            </>
-          ) : failedSubjects.length >= 3 ? (
-            <>
-              <div className="space-y-3">
-                <p>
-                  <strong className="capitalize">{fullName}</strong> has{" "}
-                  <strong>failed ({failedSubjects.length})</strong> of his
-                  subjects.
-                </p>
-                <h1>Failed Subject(s):</h1>
-                {failedSubjects.map((fs) => (
-                  <div key={fs.subject._id} className="">
-                    <h1 className="pl-5">
-                      -{" "}
-                      <strong>
-                        {fs.subject.subjectName} - ({fs.average})
-                      </strong>
-                    </h1>
-                  </div>
-                ))}
-                <p className="text-sm text-justify">
-                  * Did not meet expectations in three or more learning areas.
-                  Retained in the same grade level.
-                </p>
-              </div>
-              <DialogFooter>
-                <Button
-                  disabled={isLoading || generalAverage === null}
-                  variant={"destructive"}
-                  onClick={handlePromote}
-                  className=" text-white"
-                >
-                  Retain
-                </Button>
-              </DialogFooter>
-            </>
-          ) : (
-            <>
-              <div className="space-y-3">
-                <p>
-                  <strong className="capitalize">{fullName}</strong> has{" "}
-                  <strong>failed ({failedSubjects.length})</strong> of his
-                  subjects.
-                </p>
-                <h1>Failed Subject(s):</h1>
-                {failedSubjects.map((fs) => (
-                  <div key={fs.subject._id} className="">
-                    <h1 className="pl-5">
-                      -{" "}
-                      <strong>
-                        {fs.subject.subjectName} - ({fs.average})
-                      </strong>
-                    </h1>
-                  </div>
-                ))}
-                <p className="text-sm text-justify">
-                  *Must enroll in remedial classes for that subject(s) to
-                  improve their grade
-                </p>
-              </div>
-              <DialogFooter>
-                <Button
-                  disabled={isLoading || generalAverage === null}
-                  variant={"default"}
-                  onClick={handlePromote}
-                  className=" text-white"
-                >
-                  Conditionally Promote
-                </Button>
-              </DialogFooter>
-            </>
-          )
+          <>
+            {" "}
+            {/* check if there is an uncomplied intervention (conditionally) -> check if 3 or more failed subjects(ratain) -> 2 or less failed subjects(conditionally)*/}
+            {hasUncompliedIntervention() ? (
+              // Uncomplied Intervention
+              <>
+                <div className="space-y-3">
+                  <p>
+                    <strong className="capitalize">{fullName}</strong> has a
+                    subject that has an <strong>uncomplied intervention</strong>
+                    .
+                  </p>
+                </div>
+                <DialogFooter>
+                  <Button
+                    disabled={isLoading || generalAverage === null}
+                    variant={"default"}
+                    onClick={handlePromote}
+                    className=" text-white"
+                  >
+                    Conditionally Promote
+                  </Button>
+                </DialogFooter>
+              </>
+            ) : failedSubjects.length >= 3 ? (
+              // 3 or more failed subjects
+              <>
+                <div className="space-y-3">
+                  <p>
+                    <strong className="capitalize">{fullName}</strong> has{" "}
+                    <strong>failed ({failedSubjects.length})</strong> of his
+                    subjects.
+                  </p>
+                  <h1>Failed Subject(s):</h1>
+                  {failedSubjects.map((fs) => (
+                    <div key={fs.subject._id} className="">
+                      <h1 className="pl-5">
+                        -{" "}
+                        <strong>
+                          {fs.subject.subjectName} - ({fs.average})
+                        </strong>
+                      </h1>
+                    </div>
+                  ))}
+                  <p className="text-sm text-justify">
+                    * Did not meet expectations in three or more learning areas.
+                    Retained in the same grade level.
+                  </p>
+                </div>
+                <DialogFooter>
+                  <Button
+                    disabled={isLoading || generalAverage === null}
+                    variant={"destructive"}
+                    onClick={handlePromote}
+                    className=" text-white"
+                  >
+                    Retain
+                  </Button>
+                </DialogFooter>
+              </>
+            ) : (
+              // 2 or less failed subjects
+              <>
+                <div className="space-y-3">
+                  <p>
+                    <strong className="capitalize">{fullName}</strong> has{" "}
+                    <strong>failed ({failedSubjects.length})</strong> of his
+                    subjects.
+                  </p>
+                  <h1>Failed Subject(s):</h1>
+                  {failedSubjects.map((fs) => (
+                    <div key={fs.subject._id} className="">
+                      <h1 className="pl-5">
+                        -{" "}
+                        <strong>
+                          {fs.subject.subjectName} - ({fs.average})
+                        </strong>
+                      </h1>
+                    </div>
+                  ))}
+                  <p className="text-sm text-justify">
+                    * Must pass remedial classes for failed competencies in the
+                    subjects or learning areas to be allowed to enroll in the
+                    next semester. Otherwise, the learner must retake the
+                    subjects failed.
+                  </p>
+                </div>
+                <DialogFooter>
+                  <Button
+                    disabled={isLoading || generalAverage === null}
+                    variant={"default"}
+                    onClick={handlePromote}
+                    className=" text-white"
+                  >
+                    Conditionally Promote
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
+          </>
+        ) : generalAverage === null ? (
+          <>
+            {" "}
+            {/* General Average is null */}
+            <p className="capitalize">
+              {fullName} has <strong>1 or more missing grades.</strong>{" "}
+            </p>
+            <DialogFooter>
+              <Button
+                variant={"secondary"}
+                className=""
+                onClick={() => setPromoteDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                disabled={isLoading || generalAverage === null}
+                variant={"default"}
+                onClick={handlePromote}
+                className=" text-white"
+              >
+                Unable to Promote
+              </Button>
+            </DialogFooter>
+          </>
         ) : (
           <>
+            {" "}
+            {/* No failed subjects */}
             <p className="capitalize">
               {fullName} has passed all his subjects.
             </p>
