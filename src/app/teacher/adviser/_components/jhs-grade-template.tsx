@@ -13,7 +13,7 @@ import {
   SubjectType,
   ValidCounts,
 } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, getQuarterlyGrade } from "@/lib/utils";
 import CustomTooltip from "./custom-tooltip";
 
 interface JrGradesTemplateProps {
@@ -439,30 +439,10 @@ function JrGradesTemplate({ student, sf9, sf10 }: JrGradesTemplateProps) {
                 "isMapehMain" in subject && subject.isMapehMain
                   ? subject.grades
                   : {
-                      "1st":
-                        "interventions" in subject
-                          ? subject.interventions?.["1st"]?.grade !== 0
-                            ? subject.interventions?.["1st"]?.grade
-                            : subject.grades?.["1st"]
-                          : subject.grades?.["1st"],
-                      "2nd":
-                        "interventions" in subject
-                          ? subject.interventions?.["2nd"]?.grade !== 0
-                            ? subject.interventions?.["2nd"]?.grade
-                            : subject.grades?.["2nd"]
-                          : subject.grades?.["2nd"],
-                      "3rd":
-                        "interventions" in subject
-                          ? subject.interventions?.["3rd"]?.grade !== 0
-                            ? subject.interventions?.["3rd"]?.grade
-                            : subject.grades?.["3rd"]
-                          : subject.grades?.["3rd"],
-                      "4th":
-                        "interventions" in subject
-                          ? subject.interventions?.["4th"]?.grade !== 0
-                            ? subject.interventions?.["4th"]?.grade
-                            : subject.grades?.["4th"]
-                          : subject.grades?.["4th"],
+                      "1st": getQuarterlyGrade(subject, "1st"),
+                      "2nd": getQuarterlyGrade(subject, "2nd"),
+                      "3rd": getQuarterlyGrade(subject, "3rd"),
+                      "4th": getQuarterlyGrade(subject, "4th"),
                     }
               )}
             </div>
