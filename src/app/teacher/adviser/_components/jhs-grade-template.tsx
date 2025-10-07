@@ -269,7 +269,7 @@ function JrGradesTemplate({ student, sf9, sf10 }: JrGradesTemplateProps) {
     }
 
     const hasCompleteFinalGrades = count === numberOfSubjects;
-    if (hasCompleteFinalGrades) return null;
+    if (!hasCompleteFinalGrades) return null;
     return count > 0 ? total / count : null;
   }
 
