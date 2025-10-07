@@ -272,3 +272,14 @@ export const getQuarterlyGrade = (
       : subject.grades?.[quarter]
     : subject.grades?.[quarter];
 };
+
+export const calculatePercentageAverage = (
+  entries: { score: number; perfect: number }[]
+): number => {
+  if (!entries || entries.length === 0) return 0;
+
+  const totalScore = entries.reduce((sum, entry) => sum + entry.score, 0);
+  const totalPerfect = entries.reduce((sum, entry) => sum + entry.perfect, 0);
+
+  return totalPerfect === 0 ? 0 : (totalScore / totalPerfect) * 100;
+};

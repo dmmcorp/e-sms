@@ -335,6 +335,22 @@ export const getLoadUsingSectionId = query({
         async (classRecord) => {
           const load = await ctx.db.get(classRecord.teachingLoadId);
           if (!load) return null;
+
+          // 1. Get highest scores by component type
+          const highestScores = await ctx.db
+            .query("highestScores")
+            .filter((q) => q.eq(q.field("teachingLoadId"), load._id))
+            .collect();
+
+          const highestScoresByComponent: Record<
+            string,
+            { assessmentNo: number; score: number }[]
+          > = {};
+          for (const hs of highestScores) {
+            highestScoresByComponent[hs.componentType] = hs.scores;
+          }
+
+          // 2. Get student grades per component
           const ww = await ctx.db
             .query("writtenWorks")
             .filter((q) => q.eq(q.field("classRecordId"), classRecord._id))
@@ -348,26 +364,55 @@ export const getLoadUsingSectionId = query({
             .filter((q) => q.eq(q.field("classRecordId"), classRecord._id))
             .collect();
 
-          // Calculate the number of entries for each type
-          const wwLength = ww.length;
-          const ptLength = pt.length;
-          const meLength = me.length;
+          // 3. Calculate total student scores and total highest scores
+          const highestWwScores =
+            highestScoresByComponent["Written Works"] ?? [];
+          const highestPtScores =
+            highestScoresByComponent["Performance Tasks"] ?? [];
+          const highestMeScores = highestScoresByComponent["Major Exam"] ?? [];
 
-          // Calculate average scores for each type
+          const totalStudentWw = ww.reduce(
+            (sum, entry) => sum + entry.score,
+            0
+          );
+          const totalHighestWw = ww.reduce((sum, entry) => {
+            const matching = highestWwScores.find(
+              (hs) => hs.assessmentNo === entry.assessmentNo
+            );
+            return sum + (matching?.score ?? 0);
+          }, 0);
+
+          const totalStudentPt = pt.reduce(
+            (sum, entry) => sum + entry.score,
+            0
+          );
+          const totalHighestPt = pt.reduce((sum, entry) => {
+            const matching = highestPtScores.find(
+              (hs) => hs.assessmentNo === entry.assessmentNo
+            );
+            return sum + (matching?.score ?? 0);
+          }, 0);
+
+          const totalStudentMe = me.reduce(
+            (sum, entry) => sum + entry.score,
+            0
+          );
+          const totalHighestMe = me.reduce((sum, entry) => {
+            const matching = highestMeScores.find(
+              (hs) => hs.assessmentNo === entry.assessmentNo
+            );
+            return sum + (matching?.score ?? 0);
+          }, 0);
+
+          // 4. Calculate percentage average per component
           const wwAverage =
-            wwLength > 0
-              ? ww.reduce((sum, item) => sum + item.score, 0) / wwLength
-              : 0;
+            totalHighestWw > 0 ? (totalStudentWw / totalHighestWw) * 100 : 0;
           const ptAverage =
-            ptLength > 0
-              ? pt.reduce((sum, item) => sum + item.score, 0) / ptLength
-              : 0;
+            totalHighestPt > 0 ? (totalStudentPt / totalHighestPt) * 100 : 0;
           const meAverage =
-            meLength > 0
-              ? me.reduce((sum, item) => sum + item.score, 0) / meLength
-              : 0;
+            totalHighestMe > 0 ? (totalStudentMe / totalHighestMe) * 100 : 0;
 
-          // Prepare chart data for the class record
+          // 5. Prepare chart data
           const chartData = [
             {
               type: "Written",
@@ -383,18 +428,22 @@ export const getLoadUsingSectionId = query({
             },
           ];
 
-          // Return the class record with chart data
+          // 6. Return updated record
           return {
             ...classRecord,
-            chartData: chartData,
+            chartData,
             teachingLoad: load,
           };
         }
-      ).then((data) => data.filter((record) => record != null));
+      );
+
+      const filteredClassRecords = classRecords.filter(
+        (record) => record != null
+      );
 
       // Fetch students needing interventions and include their details
       const needsInterventions = await asyncMap(
-        classRecords.filter(
+        filteredClassRecords.filter(
           (record) =>
             record.needsIntervention && record.interventionGrade === undefined
         ),
@@ -407,7 +456,7 @@ export const getLoadUsingSectionId = query({
         }
       );
       const needsInterventionsAll = await asyncMap(
-        classRecords.filter((record) => record.needsIntervention),
+        filteredClassRecords.filter((record) => record.needsIntervention),
         async (record) => {
           const student = await ctx.db.get(record.studentId);
           return {
@@ -430,7 +479,7 @@ export const getLoadUsingSectionId = query({
           ...subject,
           teacher: teacher,
         },
-        classRecords: classRecords,
+        classRecords: filteredClassRecords,
         // droppedStud: droppedStudents,
         // returningStud: returningStudents,
         needsInterventions: needsInterventions,
