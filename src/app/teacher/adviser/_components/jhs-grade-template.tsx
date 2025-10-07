@@ -122,7 +122,7 @@ function JrGradesTemplate({ student, sf9, sf10 }: JrGradesTemplateProps) {
       })
       .filter((grade): grade is number => grade !== undefined);
 
-    if (grades.length === 0) return "";
+    if (grades.length === 0 || grades.length < 4) return "";
 
     const average =
       grades.reduce((sum, grade) => sum + grade, 0) / grades.length;
@@ -204,6 +204,7 @@ function JrGradesTemplate({ student, sf9, sf10 }: JrGradesTemplateProps) {
 
     let total = 0;
     let count = 0;
+    let numberOfSubjects = 0;
 
     const mapehComponents = subjects.filter(
       (subject) =>
@@ -223,6 +224,7 @@ function JrGradesTemplate({ student, sf9, sf10 }: JrGradesTemplateProps) {
           subject.subjectName
         )
     );
+    numberOfSubjects += noMAPEHSubjects.length;
 
     noMAPEHSubjects.forEach((subject) => {
       // For each quarter, pick the intervention grade if it exists, otherwise the regular grade
@@ -261,10 +263,13 @@ function JrGradesTemplate({ student, sf9, sf10 }: JrGradesTemplateProps) {
       }
     });
     if (mapehAverage !== null) {
+      numberOfSubjects += 1;
       total += mapehAverage;
       count += 1;
     }
 
+    const hasCompleteFinalGrades = count === numberOfSubjects;
+    if (hasCompleteFinalGrades) return null;
     return count > 0 ? total / count : null;
   }
 
@@ -496,7 +501,7 @@ function JrGradesTemplate({ student, sf9, sf10 }: JrGradesTemplateProps) {
             "col-span-2 border-b border-black border-r h-full flex justify-center items-center min-h-[1.5rem]"
           )}
         >
-          {generalAverage ? generalAverage : null}
+          {generalAverage ? (generalAverage < 75 ? "Failed" : "Passed") : null}
         </div>
       </div>
 
