@@ -116,17 +116,16 @@ function JrGradesTemplate({ student, sf9, sf10 }: JrGradesTemplateProps) {
         // First check for intervention grade
         const interventionGrade = subject.interventions?.[quarter]?.grade;
         // If no intervention grade, use regular grade
-        return interventionGrade ?? subject.grades?.[quarter];
+        return interventionGrade !== undefined && interventionGrade !== 0
+          ? interventionGrade
+          : subject.grades?.[quarter];
       })
       .filter((grade): grade is number => grade !== undefined);
 
     if (grades.length === 0) return "";
-    console.log("This is the grades:", grades);
+
     const average =
       grades.reduce((sum, grade) => sum + grade, 0) / grades.length;
-
-    console.log("This is the average:", average);
-    console.log("This is the grades.length:", grades.length);
 
     return average !== null ? (average > 74 ? "Passed" : "Failed") : "";
   }
