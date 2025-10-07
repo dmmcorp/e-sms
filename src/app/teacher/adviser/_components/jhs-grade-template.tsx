@@ -88,7 +88,6 @@ function JrGradesTemplate({ student, sf9, sf10 }: JrGradesTemplateProps) {
       (grade): grade is number =>
         grade !== undefined && grade !== null && !isNaN(grade)
     );
-    console.log("Grades inside the calculateAve:", grades);
     if (validGrades.length != 4) return null;
     const sum = validGrades.reduce((acc, grade) => acc + grade, 0);
 
@@ -122,9 +121,13 @@ function JrGradesTemplate({ student, sf9, sf10 }: JrGradesTemplateProps) {
       .filter((grade): grade is number => grade !== undefined);
 
     if (grades.length === 0) return "";
-
+    console.log("This is the grades:", grades);
     const average =
       grades.reduce((sum, grade) => sum + grade, 0) / grades.length;
+
+    console.log("This is the average:", average);
+    console.log("This is the grades.length:", grades.length);
+
     return average !== null ? (average > 74 ? "Passed" : "Failed") : "";
   }
 
@@ -263,7 +266,6 @@ function JrGradesTemplate({ student, sf9, sf10 }: JrGradesTemplateProps) {
       count += 1;
     }
 
-    console.log("total score:", total, "Count of subjects:", count);
     return count > 0 ? total / count : null;
   }
 
@@ -353,7 +355,6 @@ function JrGradesTemplate({ student, sf9, sf10 }: JrGradesTemplateProps) {
           );
         }
 
-        console.log(subject);
         return (
           <div
             key={subject._id}
