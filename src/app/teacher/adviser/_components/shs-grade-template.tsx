@@ -234,19 +234,27 @@ function SrGradesTemplate({
               <p className="">
                 {allSubjects[index]?.grades && sem === "1st semester"
                   ? calculateQuarterlyAverage({
-                      "1st": allSubjects[index]?.interventions?.["1st"]?.grade
-                        ? allSubjects[index]?.interventions["1st"].grade
+                      "1st": allSubjects[index].interventions
+                        ? allSubjects[index]?.interventions?.["1st"]?.grade
+                          ? allSubjects[index]?.interventions["1st"].grade
+                          : allSubjects[index]?.grades["1st"]
                         : allSubjects[index]?.grades["1st"],
-                      "2nd": allSubjects[index]?.interventions?.["2nd"]?.grade
-                        ? allSubjects[index]?.interventions["2nd"].grade
+                      "2nd": allSubjects[index].interventions
+                        ? allSubjects[index]?.interventions?.["2nd"]?.grade
+                          ? allSubjects[index]?.interventions["2nd"].grade
+                          : allSubjects[index]?.grades["2nd"]
                         : allSubjects[index]?.grades["2nd"],
                     })
                   : calculateQuarterlyAverage({
-                      "1st": allSubjects[index]?.interventions?.["3rd"]?.grade
-                        ? allSubjects[index]?.interventions["3rd"].grade
+                      "1st": allSubjects[index].interventions
+                        ? allSubjects[index]?.interventions?.["3rd"]?.grade
+                          ? allSubjects[index]?.interventions["3rd"].grade
+                          : allSubjects[index]?.grades["3rd"]
                         : allSubjects[index]?.grades["3rd"],
-                      "2nd": allSubjects[index]?.interventions?.["4th"]?.grade
-                        ? allSubjects[index]?.interventions["4th"].grade
+                      "2nd": allSubjects[index].interventions
+                        ? allSubjects[index]?.interventions?.["4th"]?.grade
+                          ? allSubjects[index]?.interventions["4th"].grade
+                          : allSubjects[index]?.grades["4th"]
                         : allSubjects[index]?.grades["4th"],
                     })}
               </p>
@@ -256,11 +264,15 @@ function SrGradesTemplate({
                 {allSubjects[index]?.grades && sem === "1st semester"
                   ? (() => {
                       const grades = {
-                        "1st": allSubjects[index]?.interventions?.["1st"]
-                          ? allSubjects[index]?.interventions["1st"].grade
+                        "1st": allSubjects[index].interventions
+                          ? allSubjects[index]?.interventions?.["1st"]?.grade
+                            ? allSubjects[index]?.interventions["1st"].grade
+                            : allSubjects[index]?.grades["1st"]
                           : allSubjects[index]?.grades["1st"],
-                        "2nd": allSubjects[index]?.interventions?.["2nd"]
-                          ? allSubjects[index]?.interventions["2nd"].grade
+                        "2nd": allSubjects[index].interventions
+                          ? allSubjects[index]?.interventions?.["2nd"]?.grade
+                            ? allSubjects[index]?.interventions["2nd"].grade
+                            : allSubjects[index]?.grades["2nd"]
                           : allSubjects[index]?.grades["2nd"],
                       };
                       if (
@@ -269,17 +281,23 @@ function SrGradesTemplate({
                       )
                         return null;
                       const average = calculateQuarterlyAverage(grades);
-                      return average !== null && average <= 74
-                        ? "Failed"
-                        : "Passed";
+                      return average !== null
+                        ? average <= 74
+                          ? "Failed"
+                          : "Passed"
+                        : "";
                     })()
                   : (() => {
                       const grades = {
-                        "1st": allSubjects[index]?.interventions?.["3rd"]
-                          ? allSubjects[index]?.interventions["3rd"].grade
+                        "1st": allSubjects[index].interventions
+                          ? allSubjects[index]?.interventions?.["3rd"]?.grade
+                            ? allSubjects[index]?.interventions["3rd"].grade
+                            : allSubjects[index]?.grades["3rd"]
                           : allSubjects[index]?.grades["3rd"],
-                        "2nd": allSubjects[index]?.interventions?.["4th"]
-                          ? allSubjects[index]?.interventions["4th"].grade
+                        "2nd": allSubjects[index].interventions
+                          ? allSubjects[index]?.interventions?.["4th"]?.grade
+                            ? allSubjects[index]?.interventions["4th"].grade
+                            : allSubjects[index]?.grades["4th"]
                           : allSubjects[index]?.grades["4th"],
                       };
                       if (
@@ -288,9 +306,11 @@ function SrGradesTemplate({
                       )
                         return null;
                       const average = calculateQuarterlyAverage(grades);
-                      return average !== null && average <= 74
-                        ? "Failed"
-                        : "Passed";
+                      return average !== null
+                        ? average <= 74
+                          ? "Failed"
+                          : "Passed"
+                        : "";
                     })()}
               </p>
             </div>
