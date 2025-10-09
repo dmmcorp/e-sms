@@ -111,7 +111,7 @@ function SrGradesTemplate({
   }
 
   const generalAverage = calculateGeneralAverage();
-
+  console.log(generalAverage);
   if (sf10) {
     return (
       <>
