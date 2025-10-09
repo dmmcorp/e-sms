@@ -43,7 +43,6 @@ function SrGradesTemplate({
     ...(appliedAndSpecialized || []),
   ];
 
-  console.log("All Subjects:", allSubjects);
   // Function to calculate the average of quarterly grades
   function calculateQuarterlyAverage(
     grades: { "1st": number | undefined; "2nd": number | undefined } | undefined
@@ -57,11 +56,12 @@ function SrGradesTemplate({
   }
 
   function calculateGeneralAverage(): number | null {
-    if (!subjects || subjects.length === 0) return null;
+    if (!allSubjects || allSubjects.length === 0) return null;
 
     let total = 0;
     let count = 0;
-
+    let numberOfSubjects = 0;
+    console.log(allSubjects);
     allSubjects.forEach((subject) => {
       let modifiedGrades:
         | { "1st": number | undefined; "2nd": number | undefined }
@@ -70,19 +70,33 @@ function SrGradesTemplate({
       if (sem === "1st semester") {
         modifiedGrades = {
           "1st":
-            subject?.interventions?.["1st"]?.grade ?? subject?.grades?.["1st"],
+            subject?.interventions?.["1st"]?.grade !== undefined &&
+            subject?.interventions?.["1st"]?.grade !== 0
+              ? subject?.interventions?.["1st"]?.grade
+              : subject?.grades?.["1st"],
           "2nd":
-            subject?.interventions?.["2nd"]?.grade ?? subject?.grades?.["2nd"],
+            subject?.interventions?.["2nd"]?.grade !== undefined &&
+            subject?.interventions?.["2nd"]?.grade !== 0
+              ? subject?.interventions?.["2nd"]?.grade
+              : subject?.grades?.["2nd"],
         };
       } else {
         modifiedGrades = {
           "1st":
-            subject?.interventions?.["3rd"]?.grade ?? subject?.grades?.["3rd"],
+            subject?.interventions?.["3rd"]?.grade !== undefined &&
+            subject?.interventions?.["3rd"]?.grade !== 0
+              ? subject?.interventions?.["3rd"]?.grade
+              : subject?.grades?.["3rd"],
           "2nd":
-            subject?.interventions?.["4th"]?.grade ?? subject?.grades?.["4th"],
+            subject?.interventions?.["4th"]?.grade !== undefined &&
+            subject?.interventions?.["4th"]?.grade !== 0
+              ? subject?.interventions?.["4th"]?.grade
+              : subject?.grades?.["4th"],
         };
       }
 
+      console.log(modifiedGrades);
+      numberOfSubjects += allSubjects.length;
       const subjectAvg = calculateQuarterlyAverage(modifiedGrades);
 
       if (subjectAvg !== null) {
@@ -91,6 +105,8 @@ function SrGradesTemplate({
       }
     });
 
+    const hasCompleteFinalGrades = count === numberOfSubjects;
+    if (!hasCompleteFinalGrades) return null;
     return count > 0 ? Math.round(total / count) : null;
   }
 
