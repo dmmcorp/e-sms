@@ -264,12 +264,12 @@ function SrGradesTemplate({
                 {allSubjects[index]?.grades && sem === "1st semester"
                   ? (() => {
                       const grades = {
-                        "1st": allSubjects[index].interventions
+                        "1st": allSubjects[index]?.interventions
                           ? allSubjects[index]?.interventions?.["1st"]?.grade
                             ? allSubjects[index]?.interventions["1st"].grade
                             : allSubjects[index]?.grades["1st"]
                           : allSubjects[index]?.grades["1st"],
-                        "2nd": allSubjects[index].interventions
+                        "2nd": allSubjects[index]?.interventions
                           ? allSubjects[index]?.interventions?.["2nd"]?.grade
                             ? allSubjects[index]?.interventions["2nd"].grade
                             : allSubjects[index]?.grades["2nd"]
@@ -289,12 +289,12 @@ function SrGradesTemplate({
                     })()
                   : (() => {
                       const grades = {
-                        "1st": allSubjects[index].interventions
+                        "1st": allSubjects[index]?.interventions
                           ? allSubjects[index]?.interventions?.["3rd"]?.grade
                             ? allSubjects[index]?.interventions["3rd"].grade
                             : allSubjects[index]?.grades["3rd"]
                           : allSubjects[index]?.grades["3rd"],
-                        "2nd": allSubjects[index].interventions
+                        "2nd": allSubjects[index]?.interventions
                           ? allSubjects[index]?.interventions?.["4th"]?.grade
                             ? allSubjects[index]?.interventions["4th"].grade
                             : allSubjects[index]?.grades["4th"]
