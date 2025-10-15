@@ -3,15 +3,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 export default convexAuthNextjsMiddleware();
 
-const ALLOWED_IPS = ["203.160.80.12", "203.160.80.13"]; // Example static IPs
-const ALLOWED_RANGE = "203.160.80."; // Example prefix for school subnet
+const allowedIPs =
+  process.env.ALLOWED_IPS?.split(",").map((ip) => ip.trim()) || [];
+const allowedPrefix = process.env.ALLOWED_PREFIX || "";
 
 export function middleware(req: NextRequest) {
   const ip =
     req.headers.get("x-forwarded-for")?.split(",")[0] || req.ip || "unknown";
 
   // Allow if IP matches the exact or prefix pattern
-  if (ALLOWED_IPS.includes(ip) || ip.startsWith(ALLOWED_RANGE)) {
+  if (allowedIPs.includes(ip) || ip.startsWith(allowedPrefix)) {
     return NextResponse.next();
   }
 
